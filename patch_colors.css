@@ -1,0 +1,20 @@
+
+@media (max-width: 767px) {
+  .hero-tagline {
+    color: var(--gold);
+  }
+  .hero-headline-accent {
+    color: var(--red);
+  }
+  .hero-btn-primary {
+    background: #c40b13; 
+    color: #fff;
+    border: none;
+  }
+  .hero-btn-secondary {
+    background: #fff;
+    border: 1px solid var(--red);
+    color: var(--red);
+  }
+}
+

@@ -256,27 +256,37 @@ async function attachOrder(id, orderId) {
     const bookings = readLocalBookings();
     const idx = bookings.findIndex(b => b.id === id);
     if (idx === -1) return false;
-    bookings[idx].notes = `razorpay_order:${orderId}`;
-    writeLocalBookings(bookings);
+    const existingNotes = bookings[idx].notes || "";
+    if (!existingNotes.includes(`razorpay_order:${orderId}`)) {
+      bookings[idx].notes = existingNotes ? `${existingNotes}\nrazorpay_order:${orderId}` : `razorpay_order:${orderId}`;
+      writeLocalBookings(bookings);
+    }
     return true;
   }
 
   /* ---- Supabase ---- */
-  const { error } = await supabase.from("bookings").update({ notes: `razorpay_order:${orderId}` }).eq("id", id);
-  return !error;
+  const { data } = await supabase.from("bookings").select("notes").eq("id", id).single();
+  if (!data) return false;
+  const existingNotes = data.notes || "";
+  if (!existingNotes.includes(`razorpay_order:${orderId}`)) {
+    const newNotes = existingNotes ? `${existingNotes}\nrazorpay_order:${orderId}` : `razorpay_order:${orderId}`;
+    const { error } = await supabase.from("bookings").update({ notes: newNotes }).eq("id", id);
+    return !error;
+  }
+  return true;
 }
 
 async function findByOrderId(orderId) {
   /* ---- LOCAL fallback ---- */
   if (!supabase) {
-    const b = readLocalBookings().find(b => b.notes === `razorpay_order:${orderId}`);
+    const b = readLocalBookings().find(b => b.notes && b.notes.includes(`razorpay_order:${orderId}`));
     if (!b) return null;
     return { id: b.id, price: b.price };
   }
 
   /* ---- Supabase ---- */
-  const { data, error } = await supabase.from("bookings").select("*").eq("notes", `razorpay_order:${orderId}`).single();
-  if (error) return null;
+  const { data, error } = await supabase.from("bookings").select("*").like("notes", `%razorpay_order:${orderId}%`).single();
+  if (error || !data) return null;
   return { id: data.id, price: data.price };
 }
 
@@ -288,16 +298,26 @@ async function markPaid(id, paymentId) {
     if (idx === -1) return false;
     bookings[idx].payment_status = "Paid";
     bookings[idx].status         = "Confirmed";
-    bookings[idx].notes          = `razorpay_payment:${paymentId}`;
+    const existingNotes = bookings[idx].notes || "";
+    if (!existingNotes.includes(`razorpay_payment:${paymentId}`)) {
+      bookings[idx].notes = existingNotes ? `${existingNotes}\nrazorpay_payment:${paymentId}` : `razorpay_payment:${paymentId}`;
+    }
     writeLocalBookings(bookings);
     return true;
   }
 
   /* ---- Supabase ---- */
+  const { data } = await supabase.from("bookings").select("notes").eq("id", id).single();
+  if (!data) return false;
+  const existingNotes = data.notes || "";
+  let newNotes = existingNotes;
+  if (!existingNotes.includes(`razorpay_payment:${paymentId}`)) {
+     newNotes = existingNotes ? `${existingNotes}\nrazorpay_payment:${paymentId}` : `razorpay_payment:${paymentId}`;
+  }
   const { error } = await supabase.from("bookings").update({
     payment_status : "Paid",
     status         : "Confirmed",
-    notes          : `razorpay_payment:${paymentId}`
+    notes          : newNotes
   }).eq("id", id);
   return !error;
 }

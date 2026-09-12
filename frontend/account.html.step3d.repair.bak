@@ -1,0 +1,231 @@
+<!DOCTYPE html><!-- ================================================================
+     ACCOUNT PAGE (account.html)
+     ================================================================
+     The sidebar menu labels and profile section text below can be
+     edited directly in this file. Profile data and bookings are
+     loaded live from the backend — see assets/js/pages/account.js.
+     ================================================================ --><html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&amp;family=Noto+Sans+Telugu:wght@400;500;600;700&amp;family=Noto+Sans+Devanagari:wght@400;500;600;700&amp;family=Noto+Serif+Telugu:wght@500;600;700&amp;family=Noto+Serif+Devanagari:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/global.css">
+<link rel="stylesheet" href="assets/css/navbar.css">
+<link rel="stylesheet" href="assets/css/account.css">
+<link rel="stylesheet" href="assets/css/home.css">
+<link rel="stylesheet" href="assets/css/animations.css">
+<link rel="stylesheet" href="assets/css/responsive.css">  <!-- always last -->
+<title data-cms-key="account.title.main">My Account | Shubha Sankalpam</title>
+<meta name="description" content="Manage your profile and view your puja booking history.">
+</head>
+<body>
+<div id="site-header"></div>
+
+<div class="breadcrumb"><div class="container"><a href="home.html">HOME</a><i>›</i><span>Account</span></div></div>
+
+<div class="container">
+  <!-- NEW TOP BANNER -->
+  <div class="account-banner">
+    <div class="ab-left">
+      <div class="ab-avatar" id="abAvatar">D</div>
+      <div class="ab-info">
+        <div class="ab-name-row">
+          <h2 id="abName">Devotee</h2>
+          <span class="ab-badge">DEVOTEE</span>
+        </div>
+        <div class="ab-phone-row">
+          <span class="ab-icon">📞</span> <span id="abPhone"></span> • Verified Account
+        </div>
+      </div>
+    </div>
+    <div class="ab-right">
+      <button class="btn btn-gold" id="abEditBtn">✎ Edit Profile</button>
+      <button class="btn btn-outline" id="abLogoutBtn">Logout</button>
+    </div>
+  </div>
+
+  <div class="account-grid" id="accountLoggedIn">
+    <!-- ============ SIDEBAR — each button's data-panel value must
+         match a panel's id below (panel-xxx). Clicking a button shows
+         that panel and hides the others — see assets/js/pages/account.js -->
+    <aside class="side-card" aria-label="Account menu">
+      <button class="side-item active" data-panel="profile"><span class="si">👤</span> Profile Summary</button>
+      <button class="side-item" data-panel="bookings"><span class="si">🛕</span> My Bookings &amp; Tracker</button>
+      <button class="side-item" data-panel="subscriptions"><span class="si">🗓️</span> My Subscriptions</button>
+      <button class="side-item" data-panel="wishlist"><span class="si">🤍</span> Saved Wishlist</button>
+      <button class="side-item" data-panel="address"><span class="si">📍</span> Saved Addresses</button>
+      <button class="side-item" data-panel="wallet"><span class="si">👛</span> Devotee Wallet</button>
+      <button class="side-item" data-panel="language"><span class="si">🌐</span> Language Switcher</button>
+      <button class="side-item" data-panel="about"><span class="si">ℹ️</span> About</button>
+      <button class="side-item" data-panel="support"><span class="si">🎧</span> Support</button>
+    </aside>
+
+  <div>
+    <!-- ============ PANEL: PROFILE (shown by default) ============ -->
+    <div class="account-panel" id="panel-profile">
+      <div class="dash-stats">
+        <div class="dash-stat">
+          <span data-cms-key="account.stat.total_bookings">TOTAL BOOKINGS</span>
+          <b id="dashBkCount">0</b>
+        </div>
+        <div class="dash-stat">
+          <span data-cms-key="account.stat.active_subscriptions">ACTIVE SUBSCRIPTIONS</span>
+          <b>0</b>
+        </div>
+        <div class="dash-stat">
+          <span data-cms-key="account.stat.saved_addresses">SAVED ADDRESSES</span>
+          <b>0</b>
+        </div>
+      </div>
+
+      <div class="dash-card">
+        <h3>Devotee Information</h3>
+        <div class="dash-grid">
+          <div class="dash-item">
+            <label data-cms-key="account.label.full_name">Full Name:</label>
+            <div id="dashName">Devotee</div>
+          </div>
+          <div class="dash-item">
+            <label data-cms-key="account.label.verified_phone">Verified Phone:</label>
+            <div id="dashPhone"></div>
+          </div>
+          <div class="dash-item">
+            <label data-cms-key="account.label.email">Email Address:</label>
+            <div id="dashEmail">Add email address</div>
+          </div>
+          <div class="dash-item">
+            <label data-cms-key="account.label.preferred_language">Preferred Language:</label>
+            <div id="dashLang">English (Default)</div>
+          </div>
+          <div class="dash-item">
+            <label>Gotram:</label>
+            <div id="dashGotram">Not provided</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PANEL: MY BOOKINGS (real data from the backend) ============ -->
+    <div class="account-panel" id="panel-bookings" style="display:none">
+      <div class="panel-title"><span class="pt-icon">🛕</span><h2 data-cms-key="account.heading.my_bookings">My Bookings</h2></div>
+      <div class="bk-tabs" id="bkTabs">
+        <button class="bk-tab active" data-bktab="ongoing" data-cms-key="account.tab.ongoing">Ongoing</button>
+        <button class="bk-tab" data-bktab="pending" data-cms-key="account.tab.pending">Pending</button>
+        <button class="bk-tab" data-bktab="completed" data-cms-key="account.tab.completed">Completed</button>
+      </div>
+      <div id="myBookingsList"></div>
+    </div>
+
+    <!-- ============ PANEL: SUBSCRIPTIONS (honest empty state —
+         packages aren't a trackable subscription yet, so this
+         doesn't pretend to show fake data) ============ -->
+    <div class="account-panel" id="panel-subscriptions" style="display:none">
+      <div class="panel-title"><span class="pt-icon">🗓️</span><h2 data-cms-key="account.heading.my_subscriptions">My Subscriptions</h2></div>
+      <div class="empty-panel">
+        <span class="empty-icon">🗓️</span>
+        <p data-cms-key="account.empty.subscriptions">You don't have any active subscriptions yet.</p>
+        <a class="btn btn-red" href="package.html">Browse Packages <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- ============ PANEL: WALLET (honest coming-soon state) ============ -->
+    <div class="account-panel" id="panel-wallet" style="display:none">
+      <div class="panel-title"><span class="pt-icon">👛</span><h2 data-cms-key="account.heading.wallet">Wallet</h2></div>
+      <div class="empty-panel">
+        <span class="empty-icon">👛</span>
+        <p>Wallet balance: <b>₹0</b></p>
+        <p class="hint" data-cms-key="account.hint.wallet">Wallet credits (from cancellations/refunds) will appear here once that feature is enabled.</p>
+      </div>
+    </div>
+
+    <!-- ============ PANEL: WISHLIST (real — reads localStorage,
+         filled in by assets/js/pages/account.js) ============ -->
+    <div class="account-panel" id="panel-wishlist" style="display:none">
+      <div class="panel-title"><span class="pt-icon">🤍</span><h2 data-cms-key="account.heading.wishlist">Wishlist</h2></div>
+      <div class="cards" id="wishlistCards"></div>
+      <div class="empty-panel" id="wishlistEmpty" style="display:none">
+        <span class="empty-icon">🤍</span>
+        <p data-cms-key="account.empty.wishlist">Nothing saved yet — tap the ♡ on any puja or package to add it here.</p>
+        <a class="btn btn-red" href="puja.html">Browse Pujas <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- ============ PANEL: SAVED ADDRESS (honest coming-soon state) ============ -->
+    <div class="account-panel" id="panel-address" style="display:none">
+      <div class="panel-title"><span class="pt-icon">📍</span><h2 data-cms-key="account.heading.saved_address">Saved Address</h2></div>
+      <div class="empty-panel">
+        <span class="empty-icon">📍</span>
+        <p data-cms-key="account.empty.address">No saved addresses yet.</p>
+        <p class="hint" data-cms-key="account.hint.address">Most pujas don't need a delivery address — this is here for future features like prasadam delivery.</p>
+      </div>
+    </div>
+
+    <!-- ============ PANEL: LANGUAGE (real — same 3 languages as
+         the header switcher, filled in by account.js) ============ -->
+    <div class="account-panel" id="panel-language" style="display:none">
+      <div class="panel-title"><span class="pt-icon">🌐</span><h2 data-cms-key="account.heading.language">Language</h2></div>
+      <div class="lang-panel-list" id="langPanelList"></div>
+    </div>
+
+    <!-- ============ PANEL: ABOUT ============ -->
+    <div class="account-panel" id="panel-about" style="display:none">
+      <div class="panel-title"><span class="pt-icon">ℹ️</span><h2 data-cms-key="account.heading.about">About</h2></div>
+      <div class="empty-panel" style="text-align:left">
+        <p id="aboutText"></p>
+      </div>
+    </div>
+
+    <!-- ============ PANEL: SUPPORT ============ -->
+    <div class="account-panel" id="panel-support" style="display:none">
+      <div class="panel-title"><span class="pt-icon">🎧</span><h2 data-cms-key="account.heading.support">Support</h2></div>
+      <div class="empty-panel">
+        <span class="empty-icon">🎧</span>
+        <p data-cms-key="account.hint.support">Need help with a booking or have a question?</p>
+        <a class="btn" id="supportWa" href="#" target="_blank" rel="noopener" style="background:#25D366;color:#fff" data-cms-key="account.button.whatsapp">✆ Chat on WhatsApp</a>
+        <p class="hint" id="supportEmail"></p>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="lightbox" id="editProfileModal">
+  <div class="lightbox-frame" style="background:#fff; width:min(90vw, 400px); border-radius:16px; padding:24px; position:relative; display:flex; flex-direction:column; gap:16px; aspect-ratio:auto;">
+    <button class="lightbox-close" id="closeEditProfile" style="background:var(--red-soft); color:var(--red); top:16px; right:16px;">×</button>
+    <h3 style="font-size:1.2rem; color:var(--ink);" data-cms-key="account.heading.edit_profile">Edit Profile</h3>
+    <form id="editProfileForm" style="display:flex; flex-direction:column; gap:16px;">
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <label style="font-size:.85rem; font-weight:600; color:var(--muted);" data-cms-key="account.label.edit_name">Full Name</label>
+        <input type="text" id="epName" required="" style="padding:10px 14px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:1rem;">
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <label style="font-size:.85rem; font-weight:600; color:var(--muted);">Email Address (Optional)</label>
+        <input type="email" id="epEmail" style="padding:10px 14px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:1rem;">
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <label style="font-size:.85rem; font-weight:600; color:var(--muted);">Gotram</label>
+        <input type="text" id="epGotram" required="" style="padding:10px 14px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:1rem;">
+      </div>
+      <button type="submit" class="btn btn-red" style="margin-top:8px; width:100%; justify-content:center;">Save Changes</button>
+    </form>
+  </div>
+</div>
+
+<div id="site-footer"></div>
+<!-- ============ CONTENT (edit these files to change text/prices/images) ============ -->
+<script src="content/site-settings.js"></script>
+<script src="content/pujas.js"></script>
+<script src="content/packages.js"></script>
+<script src="content/puja-detail-defaults.js"></script>
+<script src="content/trust-highlights.js"></script>
+<script src="content/faq.js"></script>
+
+<!-- ============ SITE CODE (do not need to edit for content changes) ============ -->
+<script src="assets/js/main.js"></script>
+<script src="assets/js/navbar.js"></script>
+<script src="assets/js/animations.js"></script>
+<script src="assets/js/cards.js"></script>
+<script src="assets/js/pages/account.js"></script>
+
+</body></html>

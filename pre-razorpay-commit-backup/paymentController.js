@@ -70,39 +70,74 @@ async function webhook(req, res) {
   const rawBody = req._rawBody; // set by server.js before this runs — see there
   const signature = req.headers["x-razorpay-signature"];
 
+  if (!RAZORPAY_WEBHOOK_SECRET) {
+    console.error("⚠️  Razorpay webhook secret missing — rejecting webhook");
+    return send(res, 500, { error: "Webhook secret not configured" });
+  }
+
+  if (!signature) {
+    console.error("⚠️  Razorpay webhook signature missing");
+    return send(res, 400, { error: "Missing signature" });
+  }
+
   const expected = crypto
     .createHmac("sha256", RAZORPAY_WEBHOOK_SECRET)
     .update(rawBody)
     .digest("hex");
 
-  if (!signature || signature !== expected) {
+  if (signature !== expected) {
     console.error("⚠️  Razorpay webhook signature mismatch — ignoring (possible spoofed request)");
     return send(res, 400, { error: "Invalid signature." });
   }
 
-  const event = JSON.parse(rawBody);
+  let event;
+  try {
+    event = JSON.parse(rawBody);
+  } catch (err) {
+    return send(res, 400, { error: "Invalid JSON" });
+  }
   const payment = event.payload && event.payload.payment && event.payload.payment.entity;
 
-  if (event.event === "payment.captured" && payment) {
+  if ((event.event === "payment.captured" || event.event === "order.paid") && payment) {
     const booking = await bookingModel.findByOrderId(payment.order_id);
     if (booking) {
-      await bookingModel.markPaid(booking.id, payment.id);
-      console.log(`✅ Payment CONFIRMED via webhook: booking ${booking.id} (₹${booking.price})`);
-      /* WHATSAPP CONFIRMATION GOES HERE: once AiSensy is fully wired
-         for outbound messages (not just OTP), send the devotee a
-         booking-confirmed template here using booking.phone. */
+      // Basic idempotency check via fetching all bookings to see if already confirmed
+      const allBookings = await bookingModel.all();
+      const bFull = allBookings.find(b => b.id === booking.id);
+      if (bFull && (bFull.status === "Confirmed" || bFull.status === "Paid")) {
+        console.log(`ℹ️ Payment already processed for booking ${booking.id}`);
+      } else {
+        await bookingModel.markPaid(booking.id, payment.id);
+        console.log(`✅ Payment CONFIRMED via webhook: booking ${booking.id} (₹${booking.price})`);
+      }
+    } else {
+      console.log(`ℹ️ Booking not found for order ${payment.order_id} (might be already marked paid)`);
     }
   }
 
   if (event.event === "payment.failed" && payment) {
     const booking = await bookingModel.findByOrderId(payment.order_id);
     if (booking) {
-      await bookingModel.setStatus(booking.id, "failed");
-      console.log(`❌ Payment FAILED via webhook: booking ${booking.id}`);
+      const allBookings = await bookingModel.all();
+      const bFull = allBookings.find(b => b.id === booking.id);
+      if (bFull && (bFull.status === "Confirmed" || bFull.status === "Paid")) {
+        console.log(`ℹ️ Ignoring payment.failed because booking ${booking.id} is already Confirmed`);
+      } else {
+        await bookingModel.setStatus(booking.id, "failed");
+        console.log(`❌ Payment FAILED via webhook: booking ${booking.id}`);
+      }
     }
   }
 
-  send(res, 200, { ok: true }); // Razorpay just needs a 200 to stop retrying
+  // Handle refund events safely
+  if (event.event && event.event.startsWith("refund.")) {
+    const refund = event.payload && event.payload.refund && event.payload.refund.entity;
+    if (refund) {
+      console.log(`ℹ️ Refund event ${event.event} received. Refund ID: ${refund.id}, Payment ID: ${refund.payment_id}`);
+    }
+  }
+
+  return send(res, 200, { ok: true }); // Razorpay just needs a 200 to stop retrying
 }
 
 
@@ -120,11 +155,8 @@ async function verifyPayment(req, res) {
     .digest("hex");
 
   if (expected === razorpay_signature) {
-    await bookingModel.markPaid(bookingId, razorpay_payment_id);
     return send(res, 200, { success: true });
   } else {
-    // Payment failure: store failed status
-    await bookingModel.setStatus(bookingId, 'failed');
     return send(res, 400, { error: "Invalid signature" });
   }
 }

@@ -1,0 +1,7 @@
+
+@media (max-width: 767px) {
+  .hero-dot.active {
+    background: var(--red);
+  }
+}
+

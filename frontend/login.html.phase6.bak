@@ -1,0 +1,71 @@
+<!DOCTYPE html><!-- ================================================================
+     LOGIN PAGE (login.html)
+     ================================================================
+     The login card text below can be edited directly in this file.
+     The OTP send/verify logic lives in assets/js/auth.js.
+     ================================================================ --><html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&amp;family=Noto+Sans+Telugu:wght@400;500;600;700&amp;family=Noto+Sans+Devanagari:wght@400;500;600;700&amp;family=Noto+Serif+Telugu:wght@500;600;700&amp;family=Noto+Serif+Devanagari:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/global.css">
+<link rel="stylesheet" href="assets/css/navbar.css">
+<link rel="stylesheet" href="assets/css/forms.css">
+<link rel="stylesheet" href="assets/css/animations.css">
+<link rel="stylesheet" href="assets/css/responsive.css">  <!-- always last -->
+<title data-cms-key="login.title.main">Login | Shubha Sankalpam</title>
+<meta name="description" content="Login with OTP to book pujas, track your bookings, and receive your puja video.">
+</head>
+<body>
+<div id="site-header"></div>
+
+<div class="container">
+  <div class="login-card" id="loginCard">
+    <div class="login-avatar" id="loginAvatar">✉️</div>
+    <h2 id="loginStepTitle" data-cms-key="login.heading.form">Login or Sign Up</h2>
+    <p id="loginStepHint" data-cms-key="login.hint.otp">We'll email you a one-time password (OTP) to verify it's you.</p>
+    
+    <!-- Step 1: Email + Phone -->
+    <div class="login-fields" id="phoneStep">
+      <input type="email" id="loginEmail" placeholder="Enter your Email ID" autocomplete="email" required="">
+      <input type="tel" id="loginPhone" placeholder="+91 XXXXX XXXXX" autocomplete="tel" required="">
+      <button class="login-big-btn" id="sendOtpBtn" data-cms-key="login.button.send_otp">Send OTP <span class="login-arrow">→</span></button>
+    </div>
+    
+    <!-- Step 2: Enter OTP -->
+    <div class="login-fields hidden" id="otpStep">
+      <input type="text" id="loginOtp" placeholder="Enter 4-digit OTP" maxlength="4" inputmode="numeric">
+      <p class="demo-otp" id="demoOtp"></p>
+      <button class="login-big-btn" id="verifyOtpBtn" data-cms-key="login.button.verify_otp">Verify OTP <span class="login-arrow">→</span></button>
+      <div id="resendWrap" style="text-align: center; margin-top: 12px; font-size: 0.9rem;">
+        <span id="timerText" style="color: var(--muted); font-weight: 600;">Resend OTP in <span id="otpTimer">60</span>s</span>
+        <button id="resendOtpBtn" class="hidden" style="color: var(--red); font-weight: 700; border: none; background: none; cursor: pointer; text-decoration: underline; text-underline-offset: 4px;" data-cms-key="login.button.resend_otp">Resend OTP</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Complete Profile -->
+    <div class="login-fields hidden" id="profileStep">
+      <input type="text" id="loginName" placeholder="Full Name" autocomplete="name" required="">
+      <input type="text" id="loginGotram" placeholder="Gotram (e.g., Kashyapa)" autocomplete="off" required="">
+      <button class="login-big-btn" id="saveProfileBtn" data-cms-key="login.button.complete_profile">Complete Profile <span class="login-arrow">→</span></button>
+    </div>
+  </div>
+</div>
+
+<div id="site-footer"></div>
+<!-- ============ CONTENT (edit these files to change text/prices/images) ============ -->
+<script src="content/site-settings.js"></script>
+<script src="content/pujas.js"></script>
+<script src="content/packages.js"></script>
+<script src="content/puja-detail-defaults.js"></script>
+<script src="content/trust-highlights.js"></script>
+<script src="content/faq.js"></script>
+
+<!-- ============ SITE CODE (do not need to edit for content changes) ============ -->
+<script src="assets/js/main.js"></script>
+<script src="assets/js/navbar.js"></script>
+<script src="assets/js/animations.js"></script>
+<script src="assets/js/cards.js"></script>
+<script src="assets/js/auth.js"></script>
+
+</body></html>

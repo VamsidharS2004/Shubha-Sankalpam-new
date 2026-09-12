@@ -1,0 +1,117 @@
+/**
+ * CMS RENDERER
+ * Phase 5 Integration
+ * 
+ * Responsibilities:
+ * 1. Asynchronously fetch CMS data from backend.
+ * 2. Maintain existing site functionality as fallback.
+ * 3. Safely update `[data-cms-key]` elements.
+ * 4. Safely update `LISTING_UI` and `DETAIL_UI` shared dictionaries 
+ *    and trigger `applyListingI18n()` / `applyDetailI18n()` if they exist.
+ */
+
+window.CMS_DATA = null;
+
+async function initCmsRenderer() {
+    try {
+        const res = await fetch("/api/content/global");
+        if (!res.ok) return; // Silent fail to fallback
+        
+        const data = await res.json();
+        if (data.ok && data.content) {
+            window.CMS_DATA = data.content;
+            applyCmsContent();
+        }
+    } catch (e) {
+        console.warn("CMS Renderer: Failed to load CMS content, falling back to static HTML.", e);
+    }
+}
+
+function applyCmsContent() {
+    if (!window.CMS_DATA) return;
+    
+    // Ensure we use the exact same language state as the rest of the site
+    const lang = window.currentLang || localStorage.getItem("preferredLanguage") || "en";
+    
+    // 1. Process explicit DOM elements mapped via [data-cms-key="page.section_key"]
+    document.querySelectorAll("[data-cms-key]").forEach(el => {
+        const fullKey = el.getAttribute("data-cms-key");
+        if (!fullKey) return;
+        
+        const parts = fullKey.split(".");
+        const pageSlug = parts[0];
+        const sectionKey = parts.slice(1).join(".");
+        
+        if (window.CMS_DATA[pageSlug] && window.CMS_DATA[pageSlug][sectionKey]) {
+            const translation = window.CMS_DATA[pageSlug][sectionKey].translations[lang];
+            
+            // Fallback to English from CMS if current lang is missing, 
+            // OR if english is missing too, do nothing (keep hardcoded HTML fallback)
+            const fallbackTranslation = window.CMS_DATA[pageSlug][sectionKey].translations["en"];
+            const finalValue = translation ? translation : fallbackTranslation;
+            
+            if (finalValue && finalValue.trim() !== "") {
+                // Support targeting specific attributes (e.g. data-cms-attr="placeholder")
+                const targetAttr = el.getAttribute("data-cms-attr");
+                if (targetAttr) {
+                    el.setAttribute(targetAttr, finalValue);
+                } else {
+                    // Security / XSS Handling:
+                    // Only use innerHTML if the content explicitly contains safe HTML tags like <em>, <strong>, <br>
+                    // Otherwise use textContent to strictly prevent XSS.
+                    const hasMarkup = /<(em|strong|br|b|i|u|span|p|a)[> ]/i.test(finalValue);
+                    if (hasMarkup) {
+                        el.innerHTML = finalValue;
+                    } else {
+                        el.textContent = finalValue;
+                    }
+                }
+            }
+        }
+    });
+    
+    // 2. Overwrite language.js shared UI dictionaries if they exist
+    // This allows home.html, puja.html, package.html, and puja-details.html to update automatically
+    if (typeof LISTING_UI !== "undefined" && window.CMS_DATA["home"]) {
+        const homeSections = window.CMS_DATA["home"];
+        Object.keys(homeSections).forEach(key => {
+            const translations = homeSections[key].translations;
+            if (translations.en) LISTING_UI.en[key] = translations.en;
+            if (translations.te) LISTING_UI.te[key] = translations.te;
+            if (translations.hi) LISTING_UI.hi[key] = translations.hi;
+        });
+        
+        if (typeof applyListingI18n === "function") {
+            applyListingI18n();
+        }
+    }
+    
+    if (typeof DETAIL_UI !== "undefined" && window.CMS_DATA["global"]) {
+        const globalSections = window.CMS_DATA["global"];
+        Object.keys(globalSections).forEach(key => {
+            const translations = globalSections[key].translations;
+            if (translations.en) DETAIL_UI.en[key] = translations.en;
+            if (translations.te) DETAIL_UI.te[key] = translations.te;
+            if (translations.hi) DETAIL_UI.hi[key] = translations.hi;
+        });
+        
+        if (typeof applyDetailI18n === "function") {
+            applyDetailI18n();
+        }
+    }
+}
+
+// Re-apply when language is changed via existing language.js dropdown
+// language.js fires a custom event if we want, or we can just hook into the dropdown
+document.addEventListener("DOMContentLoaded", () => {
+    initCmsRenderer();
+    
+    // Listen for clicks on the existing language dropdown items
+    document.addEventListener("click", (e) => {
+        const btn = e.target.closest(".lang-btn");
+        if (btn) {
+            // Give language.js a tiny delay to update window.currentLang
+            setTimeout(applyCmsContent, 10);
+        }
+    });
+});

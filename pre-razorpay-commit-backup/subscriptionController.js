@@ -130,20 +130,30 @@ async function webhook(req, res) {
   const rawBody = req._rawBody;
   const signature = req.headers["x-razorpay-signature"];
 
-  /* Verify signature only if a webhook secret is configured */
-  if (RAZORPAY_WEBHOOK_SECRET && signature) {
-    const expected = crypto
-      .createHmac("sha256", RAZORPAY_WEBHOOK_SECRET)
-      .update(rawBody)
-      .digest("hex");
-    if (signature !== expected) {
-      console.error("⚠️  Subscription webhook signature mismatch");
-      return send(res, 400, { error: "Invalid signature." });
-    }
+  if (!RAZORPAY_WEBHOOK_SECRET) {
+    console.error("⚠️  Razorpay webhook secret missing — rejecting webhook");
+    return send(res, 500, { error: "Webhook secret not configured." });
+  }
+
+  if (!signature) {
+    console.error("⚠️  Razorpay webhook signature missing");
+    return send(res, 400, { error: "Missing signature." });
+  }
+
+  const expected = crypto
+    .createHmac("sha256", RAZORPAY_WEBHOOK_SECRET)
+    .update(rawBody)
+    .digest("hex");
+
+  if (signature !== expected) {
+    console.error("⚠️  Subscription webhook signature mismatch");
+    return send(res, 400, { error: "Invalid signature." });
   }
 
   let event;
-  try { event = JSON.parse(rawBody); } catch (e) {
+  try {
+    event = JSON.parse(rawBody);
+  } catch (e) {
     return send(res, 400, { error: "Invalid JSON" });
   }
 

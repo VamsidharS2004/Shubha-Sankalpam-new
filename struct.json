@@ -1,0 +1,243 @@
+[
+  {
+    "key": "booking.title.main",
+    "page": "booking.html",
+    "tag": "title",
+    "selector": "title",
+    "text": "Booking — Enter Sankalpam Details | Shubha Sankalpam"
+  },
+  {
+    "key": "login.title.main",
+    "page": "login.html",
+    "tag": "title",
+    "selector": "title",
+    "text": "Login | Shubha Sankalpam"
+  },
+  {
+    "key": "login.heading.form",
+    "page": "login.html",
+    "tag": "h2",
+    "selector": "h2",
+    "text": "Login or Sign Up"
+  },
+  {
+    "key": "login.hint.otp",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "login.button.resend_otp",
+    "page": "login.html",
+    "tag": "button",
+    "selector": "#resendOtpBtn",
+    "text": "Resend OTP"
+  },
+  {
+    "key": "login.button.send_otp",
+    "page": "login.html",
+    "tag": "button",
+    "selector": "#sendOtpBtn",
+    "text": "Send OTP <span class=\"login-arrow\">→</span>"
+  },
+  {
+    "key": "login.button.verify_otp",
+    "page": "login.html",
+    "tag": "button",
+    "selector": "#verifyOtpBtn",
+    "text": "Verify OTP <span class=\"login-arrow\">→</span>"
+  },
+  {
+    "key": "login.button.complete_profile",
+    "page": "login.html",
+    "tag": "button",
+    "selector": "#saveProfileBtn",
+    "text": "Complete Profile <span class=\"login-arrow\">→</span>"
+  },
+  {
+    "key": "account.title.main",
+    "page": "account.html",
+    "tag": "title",
+    "selector": "title",
+    "text": "My Account | Shubha Sankalpam"
+  },
+  {
+    "key": "account.nav.home",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.nav.account",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.button.edit_profile",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.button.logout",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.stat.total_bookings",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.stat.active_subscriptions",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.stat.saved_addresses",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.heading.devotee_info",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.label.full_name",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.label.verified_phone",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.label.email",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.label.preferred_language",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.label.gotram",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.heading.my_bookings",
+    "page": "account.html",
+    "tag": "h2",
+    "selector": "h2",
+    "text": "My Bookings"
+  },
+  {
+    "key": "account.tab.ongoing",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.tab.pending",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.tab.completed",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.heading.my_subscriptions",
+    "page": "account.html",
+    "tag": "h2",
+    "selector": "h2",
+    "text": "My Subscriptions"
+  },
+  {
+    "key": "account.empty.subscriptions",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.heading.wallet",
+    "page": "account.html",
+    "tag": "h2",
+    "selector": "h2",
+    "text": "Wallet"
+  },
+  {
+    "key": "account.empty.wallet",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.heading.wishlist",
+    "page": "account.html",
+    "tag": "h2",
+    "selector": "h2",
+    "text": "Wishlist"
+  },
+  {
+    "key": "account.empty.wishlist",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.heading.saved_address",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.empty.address",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.hint.address",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.heading.language",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.heading.about",
+    "page": "account.html",
+    "tag": "h2",
+    "selector": "h2",
+    "text": "About"
+  },
+  {
+    "key": "account.heading.support",
+    "page": "account.html",
+    "tag": "h2",
+    "selector": "h2",
+    "text": "Support"
+  },
+  {
+    "key": "account.hint.support",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.button.whatsapp",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.heading.edit_profile",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.label.edit_name",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.label.edit_email",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.label.edit_gotram",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "account.button.save_changes",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "payment.title.main",
+    "page": "payment.html",
+    "tag": "title",
+    "selector": "title",
+    "text": "Payment — Scan &amp; Pay | Shubha Sankalpam"
+  },
+  {
+    "key": "payment.heading.autopay",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "payment.button.skip_autopay",
+    "error": "NOT FOUND"
+  },
+  {
+    "key": "payment.hint.security",
+    "error": "NOT FOUND"
+  }
+]

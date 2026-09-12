@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!-- ================================================================
+     PUJA LISTING PAGE (puja.html)
+     ================================================================
+     WHERE TO FIND THINGS ON THIS PAGE:
+
+       Banner heading/subtitle ("Discover Sacred Pujas...")
+         → edit directly below, in the "DISCOVER BANNER" section
+
+       Category filter tabs (All / Finance / Health)
+         → edit directly below, in the "FILTER TABS" section — the
+           "data-cat" value on each tab must match a puja's "cat"
+           field in content/pujas.js
+
+       Puja cards (all of them, filtered by the tabs above)
+         → content/pujas.js
+
+       Header, footer, and language switcher (same on every page)
+         → assets/js/navbar.js
+     ================================================================ -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Serif+Telugu:wght@500;600;700&family=Noto+Serif+Devanagari:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/global.css">
+<link rel="stylesheet" href="assets/css/navbar.css">
+<link rel="stylesheet" href="assets/css/puja-listing.css">
+<link rel="stylesheet" href="assets/css/home.css">
+<link rel="stylesheet" href="assets/css/animations.css">
+<link rel="stylesheet" href="assets/css/responsive.css">  <!-- always last -->
+<title>Our Pujas — Book Online | Shubha Sankalpam</title>
+<meta name="description" content="Browse and book Vedic pujas and homams for finance, health, and family well-being — performed by verified purohits at sacred temples.">
+</head>
+<body>
+<div id="site-header"></div>
+
+<div class="discover">
+  <!-- ============ DISCOVER BANNER — edit heading/subtitle here ============ -->
+  <svg class="wm wm-l" viewBox="0 0 100 160" fill="none" aria-hidden="true"><path d="M50 6 34 30h32L50 6Zm-22 30v18h44V36M22 60h56v14H22Zm-6 20h68v16H16Zm-6 22h80v18H10Zm-4 24h88v18H6Z" stroke="currentColor" stroke-width="3"/></svg>
+  <svg class="wm wm-r" viewBox="0 0 100 160" fill="none" aria-hidden="true"><path d="M50 6 34 30h32L50 6Zm-22 30v18h44V36M22 60h56v14H22Zm-6 20h68v16H16Zm-6 22h80v18H10Zm-4 24h88v18H6Z" stroke="currentColor" stroke-width="3"/></svg>
+  <h1 data-i18n-list="hero_h1">Discover Sacred Pujas & Divine Blessings</h1>
+  <p data-i18n-list="hero_p">Find authentic temple rituals performed by qualified priests and receive personalized sankalpam, puja videos, and divine blessings.</p>
+  <div class="search-bar">
+    <input type="search" id="searchPujas" placeholder="What puja are you looking for?" data-i18n-list-placeholder="search_p">
+    <span class="si">🔍</span>
+  </div>
+</div>
+
+<div class="container listing">
+  <!-- ============ FILTER TABS ============
+       The text here is what shows on the tab (e.g. "Finance").
+       The data-cat value must exactly match the "cat" field on a
+       puja in content/pujas.js for that filter to work. Add a new
+       tab + give some pujas that same "cat" value to create a new
+       category. -->
+  <h2 class="listing-heading" data-i18n-list="list_title">Upcoming Pujas</h2>
+  <div class="tabs tabs-sticky" id="tabsPage" style="justify-content:flex-start">
+    <button class="tab active" data-cat="All" data-i18n-list="filter_all">All</button>
+    <button class="tab" data-cat="Finance" data-i18n-list="filter_fin">Finance</button>
+    <button class="tab" data-cat="Health" data-i18n-list="filter_health">Health</button>
+  </div>
+  <!-- ============ PUJA CARDS — generated automatically from
+       content/pujas.js, nothing to edit below this line ============ -->
+  <div class="cards" id="pujaCardsPage"></div>
+</div>
+
+<div id="site-footer"></div>
+<!-- ============ CONTENT (edit these files to change text/prices/images) ============ -->
+<script src="content/site-settings.js"></script>
+<script src="content/pujas.js"></script>
+<script src="content/packages.js"></script>
+<script src="content/puja-detail-defaults.js"></script>
+<script src="content/trust-highlights.js"></script>
+<script src="content/faq.js"></script>
+
+<!-- ============ SITE CODE (do not need to edit for content changes) ============ -->
+<script src="assets/js/main.js"></script>
+<script src="assets/js/navbar.js"></script>
+<script src="assets/js/animations.js"></script>
+<script src="assets/js/cards.js"></script>
+<script src="assets/js/language.js"></script>
+<script src="assets/js/pages/puja.js"></script></body>
+</html>
