@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Serif+Telugu:wght@500;600;700&family=Noto+Serif+Devanagari:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/global.css">
+  <link rel="stylesheet" href="assets/css/navbar.css">
+  <link rel="stylesheet" href="assets/css/responsive.css">
+  <title data-cms-key="about.title.main">About Us | Shubha Sankalpam</title>
+  <style>
+    .about-page {
+      padding: 100px 0 40px;
+      background: var(--bg);
+    }
+    
+    .hero-grid {
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 48px; 
+      align-items: center;
+    }
+    
+    .feature-card {
+      background: var(--bg); 
+      padding: 32px; 
+      border-radius: 12px; 
+      border: 1px solid var(--line); 
+      text-align: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+    }
+    
+    .contact-box {
+      background: #fff; 
+      padding: 16px 24px; 
+      border-radius: 8px; 
+      border: 1px solid var(--line); 
+      font-weight: 600; 
+      color: var(--ink);
+    }
+
+    @media (max-width: 900px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      .hero-grid img {
+        order: -1;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .about-page { padding: 80px 0 40px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= TOP NAV ================= -->
+  <div id="site-header"></div>
+
+  <!-- ================= CONTENT ================= -->
+  <main class="about-page">
+    
+    <!-- HERO SECTION -->
+    <section style="padding: 40px 0;">
+      <div class="container hero-grid">
+        <div class="about-hero-content">
+          <h1 style="font-size: clamp(28px, 4vw, 42px); color: var(--maroon); margin-bottom: 20px; line-height: 1.2;" data-cms-key="about.heading.1">Experience Divine Blessings with Authentic Vedic Pujas</h1>
+          <p style="font-size: 1.1rem; color: var(--muted); margin-bottom: 24px; line-height: 1.7;" data-cms-key="about.paragraph.intro">
+            Welcome to <strong>Shubha Sankalpam</strong>, your trusted digital platform for fulfilling your spiritual and religious needs. In a fast-paced world, staying connected to our roots and participating in ancient Vedic rituals can sometimes be challenging. We bridge that gap by bringing sacred temples and experienced purohits directly to you.
+          </p>
+          <a href="puja.html" class="btn btn-red" data-cms-key="about.button.explore">Explore Pujas</a>
+        </div>
+        <img src="https://placehold.co/600x400/7a1a1e/fff?text=Spiritual+Journey" alt="Vedic Puja Ceremony" data-cms-key="about.img.hero_alt" style="width: 100%; border-radius: 12px; box-shadow: 0 12px 24px rgba(0,0,0,0.08); object-fit: cover; aspect-ratio: 4/3;">
+      </div>
+    </section>
+
+    <!-- MISSION & FEATURES SECTION -->
+    <section style="padding: 60px 0; background: #fff;">
+      <div class="container" style="text-align: center; max-width: 800px;">
+        <h2 style="font-size: 2rem; color: var(--maroon); margin-bottom: 20px;" data-cms-key="about.heading.2">Our Mission</h2>
+        <p style="font-size: 1.1rem; color: var(--ink); line-height: 1.7; margin-bottom: 30px;" data-cms-key="about.paragraph.mission">
+          Our mission is to make authentic Hindu rituals and pujas accessible to devotees across the globe. We aim to digitize the temple experience without losing the sanctity, devotion, and traditional values that make these rituals so powerful.
+        </p>
+      </div>
+      
+      <div class="container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 32px; margin-top: 40px;">
+        
+        <div class="feature-card">
+          <div style="font-size: 2.5rem; margin-bottom: 16px;">🛕</div>
+          <h3 style="font-size: 1.25rem; color: var(--ink); margin-bottom: 12px;" data-cms-key="about.heading.3">What We Do</h3>
+          <p style="color: var(--muted); font-size: 0.95rem; line-height: 1.6;" data-cms-key="about.paragraph.feature1">We partner with highly revered temples and verified, experienced Purohits to conduct pujas, homams, and sevas on your behalf, ensuring your Sankalpam is recited with utmost devotion.</p>
+        </div>
+
+        <div class="feature-card">
+          <div style="font-size: 2.5rem; margin-bottom: 16px;">✨</div>
+          <h3 style="font-size: 1.25rem; color: var(--ink); margin-bottom: 12px;" data-cms-key="about.heading.4">Why Choose Us?</h3>
+          <p style="color: var(--muted); font-size: 0.95rem; line-height: 1.6;" data-cms-key="about.paragraph.feature2">We believe in complete transparency. For every puja you book, we provide dedicated video recordings within 48 hours so you can witness the rituals performed in your name.</p>
+        </div>
+
+        <div class="feature-card">
+          <div style="font-size: 2.5rem; margin-bottom: 16px;">🙏</div>
+          <h3 style="font-size: 1.25rem; color: var(--ink); margin-bottom: 12px;" data-cms-key="about.heading.5">Authentic Rituals</h3>
+          <p style="color: var(--muted); font-size: 0.95rem; line-height: 1.6;" data-cms-key="about.paragraph.feature3">We carefully curate our services to guarantee 100% authentic Vedic rituals, bringing peace of mind and divine blessings directly to your home.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CONTACT SECTION -->
+    <section style="padding: 60px 0; text-align: center;">
+      <div class="container" style="max-width: 600px;">
+        <h2 style="font-size: 2rem; color: var(--maroon); margin-bottom: 20px;" data-cms-key="about.heading.6">Contact Us</h2>
+        <p style="font-size: 1.05rem; color: var(--muted); line-height: 1.6; margin-bottom: 30px;" data-cms-key="about.paragraph.contact_prompt">
+          We are always here to assist you on your spiritual journey. If you have any questions or need guidance regarding our services, please feel free to reach out to our devotee care team.
+        </p>
+        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+          <div class="contact-box" data-cms-key="about.label.contact_email">
+            ✉️ support@shubhasankalpam.com
+          </div>
+          <div class="contact-box" data-cms-key="about.label.contact_phone">
+            📞 +91 91212 96262
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================= FOOTER ================= -->
+  <div id="site-footer"></div>
+
+  <!-- ============ SITE CODE ============ -->
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/language.js"></script>
+  <script src="assets/js/navbar.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (typeof initLayout === "function") initLayout();
+    });
+  </script>
+  <script src="assets/js/cms-renderer.js"></script>
+</body>
+</html>

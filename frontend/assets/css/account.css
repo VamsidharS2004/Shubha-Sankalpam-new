@@ -1,0 +1,136 @@
+/* ================================================================
+   ACCOUNT.CSS — account.html (profile, bookings, sidebar menu)
+   Also covers the breadcrumb trail used on several pages.
+   ================================================================ */
+
+.breadcrumb{border-bottom:1px solid var(--line);padding:16px 0}
+
+.breadcrumb .container{font-size:.9rem;font-weight:600}
+
+.breadcrumb a{color:#9AA0AE}
+
+.breadcrumb span{color:var(--ink)}
+
+.breadcrumb i{color:#D8C6A8;font-style:normal;margin:0 8px}
+
+.account-grid{display:grid;grid-template-columns:300px minmax(0, 1fr);gap:34px;padding:34px 0 60px;align-items:start}
+
+.account-banner{background:linear-gradient(to right, #500e16, #7a1523);border-radius:18px;padding:32px 40px;margin:30px 0;display:flex;justify-content:space-between;align-items:center;color:#fff;box-shadow:var(--shadow)}
+
+.ab-left{display:flex;align-items:center;gap:24px}
+.ab-avatar{width:70px;height:70px;background:#DDBB93;color:#500e16;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:700;font-family:serif;flex:none;border:3px solid #7a1523}
+.ab-name-row{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.ab-name-row h2{font-size:1.6rem;font-weight:700;margin:0;font-family:'Fraunces', serif}
+.ab-badge{background:transparent;border:1px solid #DDBB93;color:#DDBB93;padding:2px 8px;border-radius:6px;font-size:0.7rem;font-weight:700;letter-spacing:1px}
+.ab-phone-row{display:flex;align-items:center;gap:8px;font-size:0.95rem;color:#f0e6d6}
+.ab-icon{color:#DDBB93}
+.ab-dot{margin:0 4px;font-size:0.8rem;color:#DDBB93}
+
+.ab-right{display:flex;align-items:center;gap:16px}
+.ab-right .btn{padding:10px 22px;border-radius:999px;font-weight:600;font-size:0.9rem;cursor:pointer;border:none}
+.btn-gold{background:linear-gradient(135deg, #fcebc0, #dcb974);color:#500e16;box-shadow:0 4px 14px rgba(0,0,0,0.1)}
+.btn-outline{background:transparent;border:1px solid #DDBB93 !important;color:#DDBB93;padding:9px 21px !important}
+
+.side-card{border:1px solid #E8D9C3;border-radius:18px;padding:16px 14px;box-shadow:var(--shadow);background:#fff;position:sticky;top:calc(var(--header-h, 70px) + 20px)}
+
+.side-item{display:flex;align-items:center;gap:12px;width:100%;background:none;border:none;text-align:left;padding:13px 16px;border-radius:12px;font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:4px}
+
+.side-item .si{font-size:1.05rem;width:22px;text-align:center}
+
+.side-item:hover{background:var(--red-soft)}
+
+.side-item.active{background:var(--red);color:#fff}
+
+.side-item.active{background:var(--red);color:#fff}
+
+.panel-title{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid var(--line)}
+
+.panel-title .pt-icon{width:34px;height:34px;border-radius:9px;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1rem}
+
+.panel-title h2{font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-weight:800;letter-spacing:-.01em;font-size:1.5rem;color:var(--ink)}
+
+/* DASHBOARD STATS */
+.dash-stats{display:grid;grid-template-columns:repeat(3,minmax(0, 1fr));gap:20px;margin-bottom:34px}
+.dash-stat{background:#fff;border:1px solid #E8D9C3;border-radius:14px;padding:24px;text-align:center;box-shadow:var(--shadow)}
+.dash-stat span{display:block;font-size:0.8rem;font-weight:700;color:var(--muted);letter-spacing:0.5px;margin-bottom:12px}
+.dash-stat b{display:block;font-size:2.2rem;font-weight:800;color:var(--red);font-family:'Fraunces', serif}
+
+/* DASHBOARD CARD */
+.dash-card{background:#fff;border:1px solid #E8D9C3;border-radius:14px;padding:30px;box-shadow:var(--shadow)}
+.dash-card h3{font-size:1.4rem;font-family:'Fraunces', serif;color:var(--red);margin-bottom:24px;font-weight:800}
+.dash-grid{display:grid;grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);gap:24px}
+.dash-item{display:flex;flex-direction:column;gap:6px}
+.dash-item label{font-size:0.85rem;color:var(--red);font-weight:600}
+.dash-item div{font-size:1rem;font-weight:600;color:var(--ink)}
+
+.bk-item{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin-bottom:12px;box-shadow:0 6px 24px rgba(150,20,15,.05)}
+.bk-summary{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;cursor:pointer}
+.bk-details{margin-top:16px;padding-top:16px;border-top:1px dashed var(--line)}
+.bk-detail-row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:.88rem}
+.bk-detail-row span:first-child{color:var(--muted);font-weight:600}
+.bk-detail-row span:last-child{color:var(--ink);text-align:right;word-break:break-word}
+.bk-actions{margin-top:14px}
+.bk-actions .btn{padding:11px 22px;font-size:.88rem}
+/* status colors — quick visual read of where a booking stands */
+.bk-status-paid, .bk-status-video-sent{background:var(--forest-soft);color:var(--forest)}
+.bk-status-payment-pending{background:#FFF3D6;color:#8A6A10}
+.bk-status-payment-claimed{background:#F0E6D6;color:#6B4A1E}
+.bk-status-failed{background:#F7ECE2;color:var(--red)}
+
+.bk-item b{display:block;font-size:.95rem}
+
+.bk-item small{color:var(--muted);font-size:.8rem}
+
+.bk-status{background:var(--red-soft);color:var(--red);border-radius:999px;padding:5px 14px;font-size:.76rem;font-weight:700}
+
+.bk-empty{background:#fff;border:1px dashed var(--line);border-radius:14px;padding:26px;text-align:center;color:var(--muted);font-size:.92rem}
+
+
+
+/* ============================================================
+   ACCOUNT PANELS — the "coming soon" / empty states, and the
+   in-page language picker, used by the newly-functional sidebar
+   ============================================================ */
+.account-panel{min-height:200px}
+.empty-panel{
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  background: #fff;
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--muted);
+}
+.empty-panel .empty-icon{font-size: 2.4rem; display:block; margin-bottom:12px}
+.empty-panel p{margin-bottom:14px; font-size:.95rem}
+.empty-panel p.hint{font-size:.82rem; color:var(--muted); margin-top:4px}
+.empty-panel b{color:var(--ink)}
+
+.lang-panel-list{display:flex; flex-direction:column; gap:10px; max-width:420px}
+.lang-panel-item{
+  display:flex; align-items:center; gap:14px;
+  border:1px solid var(--line); border-radius:12px;
+  background:#fff; padding:14px 18px; text-align:left; width:100%;
+}
+.lang-panel-item.active{border-color:var(--red); background:var(--red-soft)}
+.lang-panel-item .lang-circle{
+  width:38px; height:38px; border-radius:50%; border:1.5px solid var(--line);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; color:#5A0F1C; font-size:.95rem; flex:none; background:#fff;
+}
+.lang-panel-item.active .lang-circle{background:#5A0F1C; color:#fff; border-color:#5A0F1C}
+.lang-panel-item .lang-names{flex:1; line-height:1.25}
+.lang-panel-item .lang-names b{display:block; font-size:.95rem}
+.lang-panel-item .lang-names span{font-size:.76rem; color:var(--muted)}
+.lang-panel-item .lang-check{color:#5A0F1C; font-weight:700}
+
+/* ============================================================
+   BOOKINGS TABS (Ongoing / Pending / Completed) + video player
+   ============================================================ */
+.bk-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.bk-tab{background:#fff;border:1px solid var(--line);border-radius:999px;padding:9px 20px;font-size:.85rem;font-weight:600;color:var(--muted);cursor:pointer}
+.bk-tab.active{background:var(--red);border-color:transparent;color:#fff}
+.bk-video{margin-top:14px}
+.bk-video-player{width:100%;max-width:480px;border-radius:12px;display:block;background:#000}
+.bk-video-jumps{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.bk-video-jump{background:var(--red-soft);color:var(--red);border:none;border-radius:999px;padding:7px 16px;font-size:.8rem;font-weight:700;cursor:pointer}
+.bk-video-jump:hover{background:var(--red);color:#fff}

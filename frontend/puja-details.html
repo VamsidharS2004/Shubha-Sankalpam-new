@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<!-- ================================================================
+     PUJA DETAILS PAGE (puja-details.html)
+     ================================================================
+     This ENTIRE page is filled in automatically by JavaScript —
+     there is no puja-specific text typed directly into this file.
+     ================================================================ -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Serif+Telugu:wght@500;600;700&family=Noto+Serif+Devanagari:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/global.css">
+<link rel="stylesheet" href="assets/css/navbar.css">
+<link rel="stylesheet" href="assets/css/puja-details.css">
+<link rel="stylesheet" href="assets/css/animations.css">
+<link rel="stylesheet" href="assets/css/responsive.css">  <!-- always last -->
+<title>Puja Details | Shubha Sankalpam</title>
+<meta name="description" content="Everything about this puja — benefits, procedure, temple, timings, and how to book — performed by verified Vedic purohits.">
+</head>
+<body>
+<div id="site-header"></div>
+
+<div class="pd-content">
+  <!-- Hidden dependencies required by details.js but not displayed in new design -->
+  <div style="display:none;">
+    <em id="pdMantra"></em>
+    <b id="stRatings"></b>
+    <b id="stConducted"></b>
+    <b id="stAvg"></b>
+    <button id="pdShare"></button>
+    <div id="pdReviewStats"></div>
+    <div id="pdStickyClosedRow"></div>
+  </div>
+
+  <div class="container pd-hero-section">
+    <!-- LEFT COLUMN: Image & Title -->
+    <div class="pd-hero-left">
+      <div class="pd-carousel">
+  <div class="pd-slides" id="pdSlides"></div>
+  <div class="pd-caption" id="pdCaption"></div>
+  <div class="pd-badge">🔥 Most Popular</div>
+</div>
+      
+      <div class="pd-breadcrumbs">
+        <span>Home</span> &rsaquo; <span>Puja</span> &rsaquo; <span>Maha Pujas</span> &rsaquo; <span id="pdBreadcrumbName">Maha Rudrabhishekam</span>
+      </div>
+
+      <h1 id="pdTitle" class="pd-hero-title"></h1>
+      
+      <div class="pd-hero-meta">
+        <div class="pd-meta-item"><span class="ic">📅</span> <b id="pdDate"></b></div>
+        <div class="pd-meta-item"><span class="ic">🕒</span> <span id="pdTimeLabel">06:00 AM - 08:00 AM</span></div>
+        <div class="pd-meta-item"><span class="ic">⏳</span> <span>Duration: <b id="pdDurationVal">2 Hours</b></span></div>
+      </div>
+      <div class="pd-hero-meta" style="margin-top:12px;">
+        <div class="pd-meta-item"><span class="ic">🛕</span> <b id="pdTemple"></b> <small id="pdTempleLoc2" style="display:none;"></small></div>
+        <div class="pd-meta-item"><span class="ic">📜</span> <span>Language: <b>Sanskrit</b></span></div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: Booking Card -->
+    <div class="pd-hero-right">
+      <div class="pd-booking-card">
+        <div class="pd-price-row">
+          <h2 id="pdPrice" class="pd-card-price"></h2><span class="pd-price-suffix">/- per puja</span>
+        </div>
+        <p class="pd-price-sub">Inclusive of all puja samagri & seva</p>
+
+        <!-- Muhurat Countdown -->
+        <div class="pd-countdown-card" id="muhuratRow">
+          <div class="pd-cd-title" data-i18n="muhurat_ends">Booking closes in</div>
+          <div class="pd-cd-timer">
+            <div class="pd-cd-box"><span class="pd-cd-val" id="cdD">00</span><span class="pd-cd-lbl" data-i18n="u_days">Days</span></div>
+            <div class="pd-cd-box"><span class="pd-cd-val" id="cdH">00</span><span class="pd-cd-lbl" data-i18n="u_hours">Hours</span></div>
+            <div class="pd-cd-box"><span class="pd-cd-val" id="cdM">00</span><span class="pd-cd-lbl" data-i18n="u_min">Minutes</span></div>
+            <div class="pd-cd-box"><span class="pd-cd-val" id="cdS">00</span><span class="pd-cd-lbl" data-i18n="u_sec">Seconds</span></div>
+          </div>
+        </div>
+
+        <!-- Booking Closed State -->
+        <div id="bookingClosedRow" style="display:none; text-align:center; padding: 24px 0 16px;">
+           <h2 style="color:var(--maroon); margin-bottom:16px; font-size:1.8rem; font-family:'Fraunces', serif;">Booking Closed</h2>
+           <button class="pd-btn-notify" id="pdNotifyBtn">Notify Me</button>
+        </div>
+
+        <div id="bookBtnRow">
+          <button class="pd-btn-primary" id="pdBook" data-i18n="book_now">Book Puja Now</button>
+        </div>
+
+        <div class="pd-highlights">
+          <div class="pd-hl-title"><span>✨</span> Puja Highlights <span>✨</span></div>
+          <ul class="pd-hl-list">
+            <li><span class="ic">✓</span> <span data-i18n="trust2">Performed by Vedic Scholars</span></li>
+            <li><span class="ic">✓</span> <span data-i18n="trust4">Includes All Samagri & Vastra</span></li>
+            <li><span class="ic">✓</span> <span data-i18n="trust1">Live Streaming Available</span></li>
+            <li><span class="ic">✓</span> <span data-i18n="trust3">Puja Completion Certificate</span></li>
+          </ul>
+        </div>
+
+        <div class="pd-help-box">
+          <h4 data-i18n="advisor_title">Need Help with Booking?</h4>
+          <div class="pd-help-btns">
+            <a class="pd-btn-wa" id="pdWa" href="#" target="_blank" rel="noopener"><span class="ic">💬</span> <span data-i18n="book_wa">Chat on WhatsApp</span></a>
+            <a class="pd-btn-call" id="pdCall" href="#"><span class="ic">📞</span> <span data-i18n="book_call">Call Us</span></a>
+            <!-- Keep for JS -->
+            <a id="pdExpertWa" style="display:none;"></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT GRID -->
+  <div class="container pd-content-grid">
+    <!-- Sticky Sidebar -->
+    <aside class="pd-sidebar">
+      <nav class="pd-tabs" id="pdTabs">
+        <a href="#sec-about" class="active"><span class="ic">🛕</span> <span data-i18n="tab_about">About Puja</span></a>
+        <a href="#sec-benefits"><span class="ic">⭐</span> <span data-i18n="tab_benefits">Benefits</span></a>
+        <a href="#sec-procedure"><span class="ic">📖</span> <span data-i18n="tab_procedure">Procedure</span></a>
+        <a href="#sec-temple"><span class="ic">🏛️</span> <span data-i18n="tab_temple">Temple Details</span></a>
+        <a href="#sec-receive"><span class="ic">🎁</span> <span data-i18n="tab_receive">What You'll Receive</span></a>
+        <a href="#sec-faqs"><span class="ic">❓</span> <span data-i18n="tab_faqs">FAQ</span></a>
+        <a href="#sec-gallery"><span class="ic">🖼️</span> <span data-i18n="tab_gallery">Gallery</span></a>
+        <!-- Hidden but required by JS -->
+        <a href="#sec-reviews" style="display:none;" data-i18n="tab_reviews">Reviews</a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="pd-main-content">
+      
+      <section id="sec-about" class="pd-section">
+        <h2 class="pd-section-title" data-i18n="h_about">About Puja</h2>
+        <div class="pd-section-content">
+          <p id="pdAbout" class="pd-text"></p>
+          <button id="pdReadMore" style="display:none;"></button>
+          <div id="pdInfoTable" style="display:none;"></div>
+        </div>
+      </section>
+
+      <section id="sec-benefits" class="pd-section">
+        <h2 class="pd-section-title" data-i18n="h_benefits">Benefits</h2>
+        <div class="pd-benefits-grid" id="pdBenefits"></div>
+      </section>
+
+      <section id="sec-procedure" class="pd-section">
+        <h2 class="pd-section-title" data-i18n="h_procedure">Procedure</h2>
+        <div class="pd-procedure-list" id="pdProcedure"></div>
+      </section>
+      
+      <!-- Temple Details -->
+      <section id="sec-temple" class="pd-section">
+        <h2 class="pd-section-title" data-i18n="h_temple">Temple Details</h2>
+        <div class="pd-temple-card">
+          <div id="pdTemplePhoto"></div>
+          <div class="pd-temple-info">
+            <h3 id="pdTempleName"></h3>
+            <p id="pdTempleLoc"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- What You'll Receive -->
+      <section id="sec-receive" class="pd-section">
+        <h2 class="pd-section-title" data-i18n="h_receive">What's Included in the Puja</h2>
+        <div id="pdReceive" class="pd-receive-list"></div>
+      </section>
+
+      <!-- FAQ -->
+      <section id="sec-faqs" class="pd-section">
+        <h2 class="pd-section-title" data-i18n="h_faqs">Frequently Asked Questions</h2>
+        <div class="pd-faq-list" id="pdFaqs"></div>
+      </section>
+
+      <!-- Gallery -->
+      <section id="sec-gallery" class="pd-section pd-gallery-section">
+        <h2 class="pd-section-title" data-i18n="h_gallery">Gallery</h2>
+        <div class="pd-photos"></div>
+      </section>
+
+      <section id="sec-reviews" style="display:none;">
+        <div id="pdReviews"></div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- STICKY BOTTOM BAR -->
+  <div class="pd-sticky-bottom" id="pdStickyRow">
+    <div class="pd-sb-inner">
+      <div class="pd-sb-left">
+        <div class="pd-sb-icon">
+          <img src="assets/images/logo_transparent.png" alt="Logo" style="width: 100%; height: 100%; object-fit: contain;">
+        </div>
+        <div class="pd-sb-text">
+          <h4 id="pdStickyName"></h4>
+          <h3 id="pdStickyPrice" class="pd-sb-price"></h3>
+        </div>
+      </div>
+      <div class="pd-sb-right">
+        <button class="pd-btn-white" id="pdStickyBook">
+          <span data-i18n="book_now">Book Now</span>
+          <span class="pd-btn-icon">➔</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /pd-content -->
+
+<div id="site-footer"></div>
+
+<!-- ============ CONTENT ============ -->
+<script src="content/site-settings.js"></script>
+<script src="content/pujas.js"></script>
+<script src="content/packages.js"></script>
+<script src="content/puja-detail-defaults.js"></script>
+<script src="content/trust-highlights.js"></script>
+<script src="content/faq.js"></script>
+
+<!-- ============ SITE CODE ============ -->
+<script src="assets/js/main.js"></script>
+<script src="assets/js/language.js"></script>
+<script src="assets/js/navbar.js"></script>
+<script src="assets/js/animations.js"></script>
+<script src="assets/js/cards.js"></script>
+<script src="assets/js/pages/details.js"></script>
+<script>
+  // Quick breadcrumb override
+  document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => {
+      const title = document.getElementById("pdTitle");
+      if(title && title.textContent) {
+        document.getElementById("pdBreadcrumbName").textContent = title.textContent;
+      }
+    }, 100);
+  });
+</script>
+  <script src="assets/js/cms-renderer.js"></script>
+</body>
+</html>

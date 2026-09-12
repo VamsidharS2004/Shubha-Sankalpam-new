@@ -1,0 +1,88 @@
+<!DOCTYPE html><!-- ================================================================
+     PAYMENT PAGE (payment.html)
+     ================================================================
+     The page text below can be edited directly in this file.
+     Your UPI ID (used to build the QR code) is set in
+     content/site-settings.js — NOT in this file.
+     ================================================================ --><html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&amp;family=Noto+Sans+Telugu:wght@400;500;600;700&amp;family=Noto+Sans+Devanagari:wght@400;500;600;700&amp;family=Noto+Serif+Telugu:wght@500;600;700&amp;family=Noto+Serif+Devanagari:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/global.css">
+<link rel="stylesheet" href="assets/css/navbar.css">
+<link rel="stylesheet" href="assets/css/forms.css">
+<link rel="stylesheet" href="assets/css/animations.css">
+<link rel="stylesheet" href="assets/css/responsive.css">  <!-- always last -->
+<title data-cms-key="payment.title.main">Payment — Scan &amp; Pay | Shubha Sankalpam</title>
+<meta name="description" content="Complete your puja payment securely via UPI QR code.">
+</head>
+<body>
+<div id="site-header"></div>
+
+<div class="container form-page">
+  <div class="form-card pay-card">
+    <h1 data-i18n="pm_title">Scan &amp; Pay</h1>
+    <div class="form-puja" id="payPuja"></div>
+    <div class="pay-amount">₹<span id="payAmount"></span></div>
+    <div class="qr-box"><div id="qrcode"></div></div>
+    <p class="pay-upi"><span data-i18n="pm_upi">UPI ID</span>: <b id="payUpi"></b></p>
+    <p class="hint" style="text-align:center" data-i18n="pm_hint">Open GPay / PhonePe / Paytm or any UPI app and scan this code, or pay directly to the UPI ID above.</p>
+
+    <!-- Step indicator for package bookings -->
+    <div id="pkg-steps" style="display:none; background:#fff8f0; border:1.5px solid #e8c48a; border-radius:10px; padding:14px 18px; margin:18px 0 6px; text-align:left; font-size:0.93rem; color:#5a3800;">
+      <b style="font-size:1rem;">📋 How to complete your monthly subscription:</b>
+      <ol style="margin:8px 0 0 18px; padding:0; line-height:1.9;">
+        <li><b>Step 1:</b> Scan the QR &amp; pay ₹<span class="pkg-price"></span> using GPay / PhonePe / Paytm</li>
+        <li><b>Step 2:</b> Come back here and click the button below</li>
+        <li><b>Step 3:</b> Set up AutoPay so future months are automatic 🔄</li>
+      </ol>
+    </div>
+
+    <button class="btn btn-red" id="paidBtn" style="width:100%; max-width:320px; justify-content:center; margin: 18px auto 10px; display:flex;" data-i18n="pm_done">✓ I've Paid — Set Up AutoPay Now</button>
+    <div class="success" id="paySuccess" style="display:none">
+      <div class="tick">✓</div>
+      <h3 data-i18n="pm_thankyou">Thank you! Booking received.</h3>
+      <p data-i18n="pm_success">We will verify your payment and send a confirmation on WhatsApp. Your sankalpam video will follow within 48 hours of the puja.</p>
+      <a class="btn btn-white" href="account.html" style="margin-top:20px" data-i18n="pm_view">View My Bookings</a>
+    </div>
+
+    <!-- AutoPay Card — shown after first payment for packages only -->
+    <div id="autopay-card" style="display:none; text-align:center; padding: 10px 0;">
+      <div style="font-size:2.5rem; margin-bottom:10px;">🔄</div>
+      <h3 style="margin:0 0 8px; color: var(--dark);" data-cms-key="payment.heading.autopay">Enable AutoPay</h3>
+      <p style="color:var(--muted); font-size:0.95rem; margin:0 0 6px;">Your first payment is done! Enable AutoPay so you're <br>never charged manually again — every month, automatically.</p>
+      <p id="autopayAmtLine" style="font-weight:700; font-size:1.1rem; color:var(--red); margin:0 0 20px;"></p>
+      <button class="btn btn-red" id="enableAutopayBtn" style="width:100%; justify-content:center; margin-bottom:10px;">
+        🔐 Enable AutoPay
+      </button>
+      <button class="btn btn-white" id="skipAutopayBtn" style="width:100%; justify-content:center; color:var(--muted); border-color:var(--muted);" data-cms-key="payment.button.skip_autopay">
+        Skip for now
+      </button>
+      <p style="font-size:0.8rem; color:var(--muted); margin-top:12px;" data-cms-key="payment.hint.security">
+        🔒 Secured by Razorpay · Cancel anytime from My Account
+      </p>
+    </div>
+  </div>
+</div>
+
+<div id="site-footer"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- ============ CONTENT (edit these files to change text/prices/images) ============ -->
+<script src="content/site-settings.js"></script>
+<script src="content/pujas.js"></script>
+<script src="content/packages.js"></script>
+<script src="content/puja-detail-defaults.js"></script>
+<script src="content/trust-highlights.js"></script>
+<script src="content/faq.js"></script>
+
+<!-- ============ SITE CODE (do not need to edit for content changes) ============ -->
+<script src="assets/js/language.js"></script>
+<script src="assets/js/main.js"></script>
+<script src="assets/js/navbar.js"></script>
+<script src="assets/js/animations.js"></script>
+<script src="assets/js/cards.js"></script>
+<script src="assets/js/pages/payment.js"></script>
+
+
+</body></html>

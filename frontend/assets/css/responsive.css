@@ -1,0 +1,271 @@
+/* ================================================================
+   RESPONSIVE.CSS — structured by architectural breakpoints
+   ================================================================
+   Every media query rule is a small, targeted override.
+   Organized strictly by breakpoint in a mobile-first override
+   direction (using max-width from largest to smallest).
+   ================================================================ */
+
+/* --- 1023px --- */
+@media (max-width: 1023px) {
+  /* Container padding scales down */
+  .container { padding: 0 28px; }
+
+  /* Footer link grid: 2fr 1fr 1fr 1.4fr desktop -> 1fr 1fr */
+  .foot-grid { grid-template-columns:minmax(0, 1fr) minmax(0, 1fr); gap: 28px; }
+
+  /* Image gallery: 4 cols -> 2 cols */
+  .gallery { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+
+  /* Two-column detail/dashboard layouts -> single column */
+  .pd-top { grid-template-columns:minmax(0, 1fr); gap: 30px; }
+  .pd-grid { grid-template-columns:minmax(0, 1fr); gap: 28px; }
+  .account-grid { grid-template-columns:minmax(0, 1fr); gap: 26px; }
+
+  /* Sticky sidebars must switch to position: static since there's no room to stick */
+  .pd-side { position: static; }
+  .side-card { position: static; }
+  .pd-booking-card { position: static; }
+  .temple-card { grid-template-columns:minmax(0, 1fr); }
+}
+
+/* --- 960px --- */
+@media (max-width: 960px) {
+  .pd-hero-section { grid-template-columns:minmax(0, 1fr); gap: 24px; }
+  .pd-content-grid { grid-template-columns:minmax(0, 1fr); }
+  .pd-main-content { background: transparent; border: none; padding: 0; }
+  .pd-sidebar {
+    position: sticky; top: 70px; z-index: 50; padding: 0; border: none;
+    border-bottom: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px); margin-bottom: 24px; width: 100%; min-width: 0; overflow: hidden; box-sizing: border-box;
+  }
+  .pd-tabs {
+    display: flex; flex-wrap: nowrap; flex-direction: row; overflow-x: auto; gap: 16px; padding: 12px 20px;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; width: 100%; box-sizing: border-box;
+  }
+  .pd-tabs::-webkit-scrollbar { display: none; }
+  .pd-tabs a { flex-shrink: 0; white-space: nowrap; padding: 8px 16px; background: var(--bg-soft); border-left: none !important; border-bottom: 2px solid transparent; }
+  .pd-tabs a.active { border-bottom: 2px solid var(--gold); }
+}
+
+/* --- 920px --- */
+@media (max-width: 920px) {
+  .shortcuts { grid-template-columns:minmax(0, 1fr); }
+  .profile-card { flex-direction: column; text-align: center; }
+  .profile-line { justify-content: center; }
+  .slide { grid-template-columns:minmax(0, 1fr); }
+  .slide-media { min-height: 300px; }
+  .step-arrow { display: none; }
+  .step { width: calc(50% - 10px); }
+  .ornament { display: none; }
+  .slider-arrow.prev { left: -6px; }
+  .slider-arrow.next { right: -6px; }
+}
+
+/* --- 901px+ (Toggle bounds for navigation) --- */
+@media (min-width: 901px) {
+  .bottom-nav { display: none; }
+  body { padding-bottom: 0; }
+}
+
+/* --- 900px --- */
+@media (max-width: 900px) {
+  /* Toggle body's bottom padding so page content never sits under the bottom bar */
+  body { padding-bottom: calc(70px + env(safe-area-inset-bottom)); }
+  .bottom-nav { display: flex; width: 100vw; max-width: 100%; box-sizing: border-box; overflow-x: hidden; justify-content: space-evenly; }
+  .bottom-nav a { flex: 1; text-align: center; }
+  .floating-wa { bottom: 85px; right: 16px; width: 54px; height: 54px; }
+  .floating-wa svg { width: 24px; height: 24px; }
+  
+  /* hide .nav-links entirely */
+  .nav-links { display: none; }
+
+  /* Generic 3-up card grid: 3 columns -> 2 columns */
+  .why-grid, .temple-grid, .testimonial-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+
+  /* Booking-form layout: 1fr 400px -> 1fr (stacked) */
+  .booking-layout { grid-template-columns:minmax(0, 1fr); }
+  .names-grid { grid-template-columns:minmax(0, 1fr); }
+
+  .trust-box .ornament { display: none; }
+  .hero-grid { grid-template-columns:minmax(0, 1fr); }
+  .benefit-grid, .receive-grid { grid-template-columns:minmax(0, 1fr); }
+  .steps-row { gap: 14px; }
+  .pd-stats { flex-wrap: wrap; row-gap: 12px; }
+  .detail-grid { grid-template-columns:minmax(0, 1fr); }
+}
+
+/* --- 767px --- */
+@media (max-width: 767px) {
+  /* Container padding scales to 16px */
+  .container { padding: 0 16px; }
+  
+  /* Booking card responsive bounds */
+  .pd-booking-card { width: 100% !important; max-width: 100% !important; box-sizing: border-box; }
+
+  /* Footer link grid: 1fr 1fr -> single column */
+  .foot-grid { grid-template-columns:minmax(0, 1fr); gap: 24px; }
+
+  /* Space optimizations */
+  .section { padding: 32px 0; }
+  .discover { padding: 32px 16px; }
+
+  .info-table { grid-template-columns:minmax(0, 1fr); }
+  .pd-alt-row { grid-template-columns:minmax(0, 1fr); }
+  .muhurat-row { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .countdown { gap: 5px; }
+  .cd-box { min-width: 44px; padding: 7px 6px; }
+  .cd-box b { font-size: 1rem; }
+  .stats { gap: 28px; }
+  .pd-tabs { gap: 20px; }
+  
+  .account-banner { flex-direction: column; align-items: flex-start; padding: 24px 20px; gap: 20px; }
+  .ab-left { gap: 14px; }
+  .ab-avatar { width: 56px; height: 56px; font-size: 1.6rem; }
+  .ab-name-row { flex-wrap: wrap; gap: 10px; }
+  .ab-name-row h2 { font-size: 1.4rem; }
+  .ab-phone-row { flex-wrap: wrap; gap: 8px; line-height: 1.4; }
+  .ab-right { flex-wrap: wrap; width: 100%; justify-content: flex-start; }
+  .login-card { padding: 34px 24px; margin: 36px auto; }
+  .modal { padding: 24px; }
+  .form-card { padding: 26px 22px; }
+}
+
+/* --- 700px --- */
+@media (max-width: 700px) {
+  .trust-box-inner { justify-content: flex-start; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .discover .wm { width: 80px; }
+}
+
+/* --- 640px --- */
+@media (max-width: 640px) {
+  /* minmax(310px,...) can't shrink below 310px per column — on a 320–375px
+     phone (minus padding) that overflows the screen. Below 640px we switch
+     to a single column that always fits, regardless of exact device width. */
+  .cards { grid-template-columns:minmax(0, 1fr); }
+  
+  /* Generic 3-up card grid -> 1 col */
+  .why-grid, .temple-grid, .testimonial-grid { grid-template-columns:minmax(0, 1fr); }
+  
+  .dash-grid { grid-template-columns:minmax(0, 1fr); }
+  .dash-stats { grid-template-columns:minmax(0, 1fr); }
+  
+  /* Lightbox overrides extracted from global.css */
+  .lightbox-frame { width: 92vw; }
+  .lightbox-nav { width: 40px; height: 40px; font-size: 1.4rem; }
+  .lightbox-nav.prev { left: 8px; }
+  .lightbox-nav.next { right: 8px; }
+  .lightbox-close { top: 12px; right: 12px; }
+}
+
+/* --- 600px --- */
+@media (max-width: 600px) {
+  .pd-procedure-list { grid-template-columns:minmax(0, 1fr); }
+  .pd-benefits-grid { grid-template-columns:minmax(0, 1fr); }
+  .proc-step:not(:last-child)::after {
+    display: none; /* Removed as requested */ top: 40px; left: 50%; transform: translateX(-50%);
+    width: 0; height: calc(100% + 24px); border-left: 2px dashed var(--gold);
+    background: transparent; z-index: 0;
+  }
+  .pd-hero-title { font-size: 1.5rem; }
+  
+  /* Mobile booking card structural fix */
+  .pd-booking-card { padding: 16px; width: 100% !important; max-width: 100% !important; box-sizing: border-box; }
+  
+  /* Countdown grid logic to fit 320px screens perfectly without wrap breaking */
+  .pd-cd-timer { display: grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap: 4px; width: 100%; box-sizing: border-box; }
+  .pd-cd-box { padding: 6px 2px; min-width: 0; width: 100%; box-sizing: border-box; }
+  .pd-cd-val { font-size: 1.1rem; }
+  .pd-cd-lbl { font-size: 0.6rem; }
+  
+  .pd-btn-primary { font-size: 1rem; padding: 14px; }
+  .pd-help-btns { flex-direction: column; gap: 8px; }
+  .pd-hl-list { gap: 10px; }
+  
+  /* Mobile highlights text wrapping fix */
+  .pd-hl-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 0.82rem; line-height: 1.4; white-space: normal; word-break: break-word; }
+  .pd-hl-list .ic { flex-shrink: 0; margin-top: 2px; }
+  
+  .pd-btn-primary, .pd-btn-wa, .pd-btn-call { width: 100%; box-sizing: border-box; }
+  .review-grid { grid-template-columns:minmax(0, 1fr); }
+}
+
+/* --- 560px --- */
+@media (max-width: 560px) {
+  /* Image gallery -> 1 column */
+  .gallery { grid-template-columns:minmax(0, 1fr); gap: 14px; }
+  .step { width: 100%; }
+}
+
+/* --- 480px --- */
+@media (max-width: 480px) {
+  /* Nav/header shrinking -> height drops to 64px */
+  .nav { height: 64px; }
+  
+  /* shrink logo image/text */
+  .logo-text b { font-size: 1.15rem; }
+  .logo-text small { font-size: .56rem; }
+  .logo img { width: 45px !important; height: 45px !important; }
+  .logo { gap: 6px; }
+
+  /* make the WhatsApp pill icon-only */
+  .whatsapp-pill span { display: none; }
+  
+  /* hide the "English" label text next to the language switcher */
+  .lang-names { display: none; }
+  .lang { padding: 6px 10px; gap: 4px; font-size: 0.75rem; }
+
+  /* reduce button/price font sizes slightly */
+  .btn { padding: 12px 20px; font-size: .9rem; }
+  .pd-book { font-size: 1rem; padding: 14px 18px; }
+  .price { font-size: 1.15rem; }
+
+  /* stack card footers vertically instead of side-by-side */
+  .card-foot { flex-direction: column; align-items: flex-start; gap: 12px; }
+
+  /* make step-indicator badges full-width */
+  .step-indicator { width: 100%; }
+
+  /* shrink QR code images to max 180px */
+  .qr-box img { max-width: 180px; }
+
+  /* hide any decorative/ornamental background SVGs entirely */
+  .bg-ornament, .decorative-svg, .ornament-bg { display: none; }
+}
+
+/* --- 420px --- */
+@media (max-width: 420px) {
+  .hero-content h1 { font-size: 2rem; }
+}
+
+/* --- 400px --- */
+@media (max-width: 400px) {
+  /* Container padding scales to 14px */
+  .container { padding: 0 14px; }
+}
+
+/* --- Short Landscape Phones --- */
+@media (max-height: 480px) and (orientation: landscape) {
+  /* shrink the fixed header to 56px */
+  .nav { height: 56px; }
+  
+  /* reduce bottom-nav vertical padding */
+  .bottom-nav { padding: 4px 0 env(safe-area-inset-bottom); }
+  
+  /* reduce hero section top/bottom padding */
+  .hero-section, .pd-hero-section { padding: 16px 0; }
+}
+
+/* Prevent intrinsic content (images, carousels) from blowing out grid
+   tracks. Placed last so no later stylesheet can override it. */
+.pd-hero-section > *, .pd-content-grid > *, .pd-top > *, .pd-grid > *,
+.account-grid > *, .temple-card > *, .shortcuts > *, .slide > *,
+.booking-layout > *, .names-grid > *, .hero-grid > *, .benefit-grid > *,
+.receive-grid > *, .detail-grid > *, .foot-grid > *, .info-table > *,
+.pd-alt-row > *, .dash-grid > *, .dash-stats > *, .pd-procedure-list > *,
+.pd-benefits-grid > *, .review-grid > *, .gallery > *, .why-grid > *,
+.testimonial-grid > *, .cards > * {
+  min-width: 0;
+}
+
+

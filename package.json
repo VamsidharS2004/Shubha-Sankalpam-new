@@ -1,0 +1,21 @@
+{
+  "name": "shubha-sankalpam",
+  "version": "1.0.0",
+  "description": "Shubha Sankalpam Website",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.115.0",
+    "dotenv": "^17.4.2",
+    "jsdom": "^30.0.1",
+    "nodemailer": "^9.0.5",
+    "razorpay": "^2.9.8",
+    "resend": "^6.26.0"
+  }
+}

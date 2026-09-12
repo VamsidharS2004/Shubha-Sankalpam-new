@@ -1,0 +1,1190 @@
+let KEY = "";
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Auth
+    const loginBtn = document.getElementById("loginBtn");
+    const pwInput = document.getElementById("pw");
+    
+    if (loginBtn && pwInput) {
+        loginBtn.addEventListener("click", doLogin);
+        pwInput.addEventListener("keydown", e => {
+            if (e.key === "Enter") doLogin();
+        });
+    }
+
+    // Navigation
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute('data-target');
+            if (targetId) {
+                switchTab(targetId, link);
+            }
+        });
+    });
+
+    // Drawers
+    document.querySelectorAll('[data-drawer]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openDrawer(btn.getAttribute('data-drawer'));
+        });
+    });
+    document.querySelectorAll('.close-drawer').forEach(btn => {
+        btn.addEventListener('click', closeAllDrawers);
+    });
+    document.getElementById('drawerOverlay')?.addEventListener('click', closeAllDrawers);
+    
+    // Filter Buttons UI
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const group = btn.closest('.filters');
+            group.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            // Logic to actually filter rows would go here
+        });
+    });
+    
+    // Refresh button
+    document.getElementById('refreshBtn')?.addEventListener('click', loadBookings);
+});
+
+async function doLogin() {
+    KEY = document.getElementById("pw").value;
+    const success = await loadBookings();
+    if (success) {
+        await loadDevotees(); // Also load devotees
+        await loadPujas(); // Load Pujas CMS data
+        await loadPackages(); // Load Packages CMS data
+        await loadTemples(); // Load Temples CMS data
+        updateDashboardStats();
+        document.getElementById("loginOverlay").classList.add("hidden");
+        // default tab
+        switchTab('view-dashboard', document.querySelector('[data-target="view-dashboard"]'));
+    } else {
+        alert("Wrong password.");
+    }
+}
+
+function updateDashboardStats() {
+    if (document.getElementById("statTotalBookings")) {
+        document.getElementById("statTotalBookings").textContent = window.allBookings.length;
+    }
+    if (document.getElementById("statTotalDevotees")) {
+        document.getElementById("statTotalDevotees").textContent = window.allDevotees.length;
+    }
+    if (document.getElementById("statTotalRevenue")) {
+        const rev = window.allBookings.reduce((sum, b) => sum + (Number(b.price) || 0), 0);
+        document.getElementById("statTotalRevenue").textContent = "₹" + rev.toLocaleString("en-IN");
+    }
+}
+
+function switchTab(viewId, activeLinkElement) {
+    // Update active link
+    document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+    if (activeLinkElement) {
+        activeLinkElement.classList.add('active');
+    }
+
+    // Update active view
+    document.querySelectorAll('.view-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    const target = document.getElementById(viewId);
+    if (target) {
+        target.classList.add('active');
+    }
+}
+
+function openDrawer(drawerId) {
+    closeAllDrawers(); // Close others first
+    const drawer = document.getElementById(drawerId);
+    const overlay = document.getElementById('drawerOverlay');
+    if (drawer && overlay) {
+        drawer.classList.add('active');
+        overlay.classList.add('active');
+    }
+}
+
+function closeAllDrawers() {
+    document.querySelectorAll('.drawer').forEach(d => d.classList.remove('active'));
+    document.getElementById('drawerOverlay')?.classList.remove('active');
+}
+
+window.allBookings = [];
+
+async function loadBookings() {
+    try {
+        const res = await fetch("/api/admin/bookings?key=" + encodeURIComponent(KEY));
+        if (!res.ok) return false;
+        
+        const list = await res.json();
+        window.allBookings = list;
+        
+        const tbody = document.getElementById("bookingsTbody");
+        if (!tbody) return true;
+        
+        tbody.innerHTML = "";
+        
+        if (list.length === 0) {
+            document.getElementById("bookingsEmptyState").classList.remove("hidden");
+            tbody.closest('table').classList.add("hidden");
+        } else {
+            document.getElementById("bookingsEmptyState").classList.add("hidden");
+            tbody.closest('table').classList.remove("hidden");
+            
+            list.forEach(b => {
+                const tr = document.createElement("tr");
+                const isVideoSent = b.status === "video-sent";
+                const displayStatus = isVideoSent ? "Video Sent" : (b.status || "Confirmed");
+                
+                let actionHtml = `
+                    <button class="btn" style="padding: 4px 8px" onclick="editBooking('${b.id}')"><i class="ph ph-pencil"></i></button>
+                    <button class="btn" style="padding: 4px 8px; color: var(--red);" onclick="deleteBooking('${b.id}')"><i class="ph ph-trash"></i></button>
+                `;
+                
+                if (!isVideoSent) {
+                    actionHtml = `
+                        <div style="display:flex; gap:4px; max-width: 250px; flex-wrap: wrap;">
+                            <div style="display:flex; gap:4px; width:100%;">
+                                <input type="text" id="video_${b.id}" placeholder="Paste Video URL" style="flex:1; padding: 4px 8px; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 4px; background: transparent; color: var(--text-main);">
+                                <button class="btn" style="padding: 4px 8px; background: var(--accent); color: #fff; border:none;" onclick="sendVideo('${b.id}')">Send</button>
+                            </div>
+                            <div style="display:flex; gap:4px; margin-top:4px;">
+                                <button class="btn" style="padding: 4px 8px" onclick="editBooking('${b.id}')"><i class="ph ph-pencil"></i></button>
+                                <button class="btn" style="padding: 4px 8px; color: var(--red);" onclick="deleteBooking('${b.id}')"><i class="ph ph-trash"></i></button>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                tr.innerHTML = `
+                  <td>${esc(b.id || "—")}</td>
+                  <td>
+                    <div>${esc(b.name)}</div>
+                    <div class="text-muted">${esc(b.phone)}</div>
+                  </td>
+                  <td>${esc(b.puja)}</td>
+                  <td>₹${b.price.toLocaleString("en-IN")}</td>
+                  <td>${new Date(b.createdAt).toLocaleString("en-IN", {dateStyle: 'medium', timeStyle: 'short'})}</td>
+                  <td>
+                    <span style="color:var(--accent)">${esc(displayStatus)}</span>
+                  </td>
+                  <td>
+                    ${actionHtml}
+                  </td>`;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        const countSpan = document.getElementById("bookingCountSpan");
+        if (countSpan) countSpan.textContent = list.length + " bookings";
+        
+        if (typeof updateDashboardStats === 'function') updateDashboardStats();
+        return true;
+    } catch (e) {
+        console.error("Error loading bookings:", e);
+        return false;
+    }
+}
+
+async function sendVideo(bookingId) {
+    const input = document.getElementById(`video_${bookingId}`);
+    const videoUrl = input ? input.value.trim() : "";
+    if (!videoUrl) {
+        alert("Please enter a video URL first.");
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/admin/bookings/video', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                key: KEY,
+                bookingId: bookingId,
+                videoUrl: videoUrl
+            })
+        });
+
+        if (res.ok) {
+            alert("Video attached successfully! The user can now see it in their portal.");
+            loadBookings(); // refresh list
+        } else {
+            const data = await res.json();
+            alert("Error: " + (data.error || "Failed to attach video"));
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Error sending video");
+    }
+}
+
+window.allDevotees = [];
+
+async function loadDevotees() {
+    try {
+        const res = await fetch("/api/admin/devotees?key=" + encodeURIComponent(KEY));
+        if (!res.ok) return false;
+        
+        const list = await res.json();
+        window.allDevotees = list;
+        const tbody = document.getElementById("devoteesTbody"); // Ensure this ID exists in your devotees table
+        if (!tbody) return true;
+        
+        tbody.innerHTML = "";
+        
+        list.forEach(d => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>
+                    <div>${esc(d.name)}</div>
+                    <div class="text-muted" style="font-size:0.8rem">ID: ${esc((d.id||"").substring(0,8))}</div>
+                </td>
+                <td>${esc(d.phone)}</td>
+                <td>${esc(d.city || '—')}</td>
+                <td>English</td>
+                <td>${d.booking_count || 0}</td>
+                <td>${esc(d.created_by || 'system')}</td>
+                <td>
+                    <button class="btn" style="padding: 4px 8px" onclick="editDevotee('${d.phone}')"><i class="ph ph-pencil"></i></button>
+                    <button class="btn" style="padding: 4px 8px; color: var(--red);" onclick="deleteDevotee('${d.phone}')"><i class="ph ph-trash"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+        
+        if (typeof updateDashboardStats === 'function') updateDashboardStats();
+    } catch (e) {
+        console.error("Error loading devotees:", e);
+    }
+}
+
+function editDevotee(phone) {
+    const d = window.allDevotees.find(x => x.phone === phone);
+    if (!d) return;
+    document.getElementById("devoteeDrawerTitle").textContent = "Edit Devotee";
+    document.getElementById("editDevoteeOldPhone").value = d.phone;
+    document.getElementById("newDevoteeName").value = d.name || "";
+    document.getElementById("newDevoteePhone").value = d.phone || "";
+    document.getElementById("newDevoteeEmail").value = d.email || "";
+    document.getElementById("newDevoteeCity").value = d.city || "";
+    document.getElementById("newDevoteeDob").value = d.date_of_birth ? d.date_of_birth.substring(0, 10) : "";
+    document.getElementById("newDevoteeWhatsapp").value = d.whatsapp_number || "";
+    document.getElementById("newDevoteeGotra").value = d.gotra || "";
+    openDrawer('drawer-add-devotee');
+}
+
+async function deleteDevotee(phone) {
+    if (!confirm(`Are you sure you want to permanently delete the devotee with phone ${phone}?`)) return;
+    try {
+        const res = await fetch(`/api/admin/devotees?key=${encodeURIComponent(KEY)}&phone=${encodeURIComponent(phone)}`, {
+            method: "DELETE"
+        });
+        if (res.ok) {
+            loadDevotees();
+        } else {
+            const err = await res.json();
+            alert("Error: " + err.error);
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Error deleting devotee.");
+    }
+}
+
+function editBooking(id) {
+    const b = window.allBookings.find(x => x.id === id);
+    if (!b) return;
+    document.getElementById("bookingDrawerTitle").textContent = "Edit Booking";
+    document.getElementById("editBookingOldId").value = b.id;
+    document.getElementById("newBookingName").value = b.name || "";
+    document.getElementById("newBookingPhone").value = b.phone || "";
+    // Prices and pujas might not map perfectly if they are strings, but we can set the basic text fields.
+    // In a real app we'd map pujaId, packageId, etc.
+    document.getElementById("btnSaveBooking").textContent = "Save Changes";
+    openDrawer('drawer-new-booking');
+}
+
+async function createManualBooking() {
+    const oldId = document.getElementById("editBookingOldId") ? document.getElementById("editBookingOldId").value : "";
+    const payload = {
+        pujaId: document.getElementById("newBookingPujaId").value,
+        packageId: document.getElementById("newBookingPackageId").value,
+        price: document.getElementById("newBookingPrice").value,
+        name: document.getElementById("newBookingName").value,
+        gotra: document.getElementById("newBookingGotraDefault").checked ? 'Kashyap' : document.getElementById("newBookingGotra").value,
+        phone: document.getElementById("newBookingPhone").value,
+        notes: document.getElementById("newBookingNotes").value
+    };
+
+    const method = oldId ? "PUT" : "POST";
+    const url = oldId 
+        ? `/api/admin/bookings/update?key=${encodeURIComponent(KEY)}&id=${encodeURIComponent(oldId)}`
+        : `/api/admin/bookings?key=${encodeURIComponent(KEY)}`;
+
+    try {
+        const res = await fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        
+        if (!res.ok) {
+            const err = await res.json();
+            alert(err.error || "Failed to save booking");
+            return;
+        }
+        
+        closeAllDrawers();
+        loadBookings();
+    } catch (e) {
+        console.error(e);
+        alert("Error saving booking");
+    }
+}
+
+async function deleteBooking(id) {
+    if (!confirm(`Are you sure you want to permanently delete the booking with ID ${id}?`)) return;
+    try {
+        const res = await fetch(`/api/admin/bookings?key=${encodeURIComponent(KEY)}&id=${encodeURIComponent(id)}`, {
+            method: "DELETE"
+        });
+        if (res.ok) {
+            loadBookings();
+        } else {
+            const err = await res.json();
+            alert("Error: " + err.error);
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Error deleting booking.");
+    }
+}
+
+async function createDevotee() {
+    const oldPhone = document.getElementById("editDevoteeOldPhone").value;
+    const payload = {
+        name: document.getElementById("newDevoteeName").value,
+        phone: document.getElementById("newDevoteePhone").value,
+        email: document.getElementById("newDevoteeEmail").value,
+        city: document.getElementById("newDevoteeCity").value,
+        dob: document.getElementById("newDevoteeDob").value,
+        whatsapp: document.getElementById("newDevoteeWhatsapp").value,
+        gotra: document.getElementById("newDevoteeGotra").value
+    };
+
+    const method = oldPhone ? "PUT" : "POST";
+    const url = oldPhone 
+        ? `/api/admin/devotees?key=${encodeURIComponent(KEY)}&phone=${encodeURIComponent(oldPhone)}`
+        : `/api/admin/devotees?key=${encodeURIComponent(KEY)}`;
+
+    try {
+        const res = await fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        
+        if (!res.ok) {
+            const err = await res.json();
+            alert(err.error || "Failed to save devotee");
+            return;
+        }
+        
+        closeAllDrawers();
+        loadDevotees();
+    } catch (e) {
+        console.error(e);
+        alert("Error saving devotee");
+    }
+}
+
+// Bind save buttons and package selection logic after DOM loads (appended to existing bindings)
+document.addEventListener("DOMContentLoaded", () => {
+    const btnSaveBooking = document.getElementById("btnSaveBooking");
+    if (btnSaveBooking) btnSaveBooking.addEventListener("click", createManualBooking);
+    
+    const btnSaveDevotee = document.getElementById("btnSaveDevotee");
+    if (btnSaveDevotee) btnSaveDevotee.addEventListener("click", createDevotee);
+
+    const btnSavePuja = document.getElementById("btnSavePuja") || document.getElementById("savePujaBtn"); // note: we added savePackageBtn instead of btnSavePackage in html, I'll match whatever I put in html
+    if (btnSavePuja) btnSavePuja.addEventListener("click", savePuja);
+    
+    const btnNewPuja = document.getElementById("btnNewPuja");
+    if (btnNewPuja) btnNewPuja.addEventListener("click", () => openEditPuja(-1));
+
+    const savePackageBtn = document.getElementById("savePackageBtn");
+    if (savePackageBtn) savePackageBtn.addEventListener("click", savePackage);
+    const btnNewPackage = document.getElementById("btnNewPackage");
+    if (btnNewPackage) btnNewPackage.addEventListener("click", () => openEditPackage(-1));
+
+    const saveTempleBtn = document.getElementById("saveTempleBtn");
+    if (saveTempleBtn) saveTempleBtn.addEventListener("click", saveTemple);
+    const btnNewTemple = document.getElementById("btnNewTemple");
+    if (btnNewTemple) btnNewTemple.addEventListener("click", () => openEditTemple(-1));
+
+    const packageBtns = document.querySelectorAll("#newBookingPackages .btn");
+    packageBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            packageBtns.forEach(b => {
+                b.style.borderColor = "";
+                b.style.color = "";
+            });
+            btn.style.borderColor = "var(--accent)";
+            btn.style.color = "var(--accent)";
+            document.getElementById("newBookingPackageId").value = btn.getAttribute("data-val");
+            document.getElementById("newBookingPrice").value = btn.getAttribute("data-price");
+        });
+    });
+});
+
+// CMS Logic
+let allPujas = [];
+
+async function loadPujas() {
+    try {
+        const res = await fetch("/api/admin/pujas?key=" + encodeURIComponent(KEY));
+        if (!res.ok) return false;
+        
+        const data = await res.json();
+        allPujas = data.pujas || [];
+        
+        const tbody = document.getElementById("pujasTbody");
+        if (!tbody) return true;
+        
+        tbody.innerHTML = "";
+        
+        if (allPujas.length === 0) {
+            document.getElementById("pujasEmptyState").style.display = "block";
+            tbody.closest('table').style.display = "none";
+        } else {
+            document.getElementById("pujasEmptyState").style.display = "none";
+            tbody.closest('table').style.display = "table";
+            
+            allPujas.forEach((p, idx) => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>
+                        <div><strong>${esc(p.name)}</strong></div>
+                        <div class="text-muted" style="font-size:0.8rem">ID: ${esc(p.id)}</div>
+                    </td>
+                    <td>${p.language === 'te' ? 'Telugu' : (p.language === 'hi' ? 'Hindi' : 'English')}</td>
+                    <td>₹${p.price}</td>
+                    <td>
+                        <button class="btn" style="padding: 4px 8px" onclick="openEditPuja(${idx})"><i class="ph ph-pencil"></i> Edit</button>
+                        <button class="btn" style="padding: 4px 8px; color: var(--red);" onclick="deletePuja(${idx})"><i class="ph ph-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    } catch (e) {
+        console.error("Error loading pujas:", e);
+    }
+}
+
+async function deletePuja(index) {
+    if (!confirm(`Are you sure you want to permanently delete this Puja?`)) return;
+    
+    allPujas.splice(index, 1);
+    
+    try {
+        const res = await fetch("/api/admin/pujas?key=" + encodeURIComponent(KEY), {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ pujas: allPujas })
+        });
+        
+        if (!res.ok) {
+            alert("Failed to delete puja");
+            return;
+        }
+        
+        loadPujas();
+    } catch (e) {
+        console.error(e);
+        alert("Error deleting puja");
+    }
+}
+
+function openEditPuja(index) {
+    const p = index >= 0 ? allPujas[index] : { id: "", name: "", desc: "", name_te: "", desc_te: "", name_hi: "", desc_hi: "", price: 1500, cat: "All", image: "", temple: "", date: "", muhurat: "", detail: {}, packages: [], media: [] };
+    
+    document.getElementById("editPujaTitle").textContent = index >= 0 ? "Edit Puja" : "New Puja";
+    document.getElementById("editPujaIndex").value = index;
+    
+    document.getElementById("editPujaId").value = p.id || "";
+    document.getElementById("editPujaPrice").value = p.price || "";
+    
+    // General
+    document.getElementById("editPujaCat").value = p.cat || "All";
+    document.getElementById("editPujaLang").value = p.language || "en";
+    document.getElementById("editPujaImage").value = p.image || "";
+    document.getElementById("editPujaTemple").value = p.temple || "";
+    document.getElementById("editPujaDate").value = p.date || "";
+    document.getElementById("editPujaMuhurat").value = p.muhurat || "";
+    
+    // English
+    document.getElementById("editPujaNameEn").value = p.name || "";
+    document.getElementById("editPujaDescEn").value = p.desc || "";
+    const det = p.detail || {};
+    document.getElementById("editPujaMantraEn").value = det.mantra || "";
+    document.getElementById("editPujaTraditionEn").value = det.tradition || "";
+    document.getElementById("editPujaDurationEn").value = det.duration || "";
+    document.getElementById("editPujaForWhomEn").value = det.forWhom || "";
+    document.getElementById("editPujaAboutEn").value = det.about || "";
+    
+    // Dynamic Arrays
+    document.getElementById("editor-benefits").innerHTML = "";
+    if (det.benefits) det.benefits.forEach(b => addDynamicRow('benefits', b));
+    
+    document.getElementById("editor-procedure").innerHTML = "";
+    if (det.procedure) det.procedure.forEach(pr => addDynamicRow('procedure', pr));
+    
+    document.getElementById("editor-receive").innerHTML = "";
+    if (det.receive) det.receive.forEach(r => addDynamicRow('receive', r));
+    
+    openDrawer('drawer-edit-puja');
+}
+
+async function savePuja() {
+    const index = parseInt(document.getElementById("editPujaIndex").value, 10);
+    const id = document.getElementById("editPujaId").value.trim();
+    if (!id) return alert("URL Slug (ID) is required.");
+    
+    const p = index >= 0 ? allPujas[index] : { packages: [{id: "individual", label: "Individual", price: parseInt(document.getElementById("editPujaPrice").value, 10), persons: 1}], media: [{type: "image", url: "default.jpg"}] };
+    
+    p.id = id;
+    p.price = parseInt(document.getElementById("editPujaPrice").value, 10) || 0;
+    
+    p.cat = document.getElementById("editPujaCat").value;
+    p.language = document.getElementById("editPujaLang").value;
+    p.image = document.getElementById("editPujaImage").value.trim();
+    p.temple = document.getElementById("editPujaTemple").value.trim();
+    p.date = document.getElementById("editPujaDate").value.trim();
+    p.muhurat = document.getElementById("editPujaMuhurat").value.trim();
+    
+        p.name = document.getElementById("editPujaNameEn").value.trim();
+    p.desc = document.getElementById("editPujaDescEn").value.trim();
+    
+    if (!p.detail) p.detail = {};
+    p.detail.mantra = document.getElementById("editPujaMantraEn").value.trim();
+    p.detail.tradition = document.getElementById("editPujaTraditionEn").value.trim();
+    p.detail.duration = document.getElementById("editPujaDurationEn").value.trim();
+    p.detail.forWhom = document.getElementById("editPujaForWhomEn").value.trim();
+    p.detail.about = document.getElementById("editPujaAboutEn").value.trim();
+    
+    
+
+    // Extract Dynamic Arrays
+    const benRows = document.getElementById("editor-benefits").children;
+    if (benRows.length > 0) {
+        p.detail.benefits = Array.from(benRows).map(row => ({
+            t: row.querySelector('.dyn-t').value.trim(),
+            d: row.querySelector('.dyn-d').value.trim()
+        })).filter(x => x.t || x.d);
+        if (p.detail.benefits.length === 0) delete p.detail.benefits;
+    } else {
+        delete p.detail.benefits;
+    }
+
+    const procRows = document.getElementById("editor-procedure").children;
+    if (procRows.length > 0) {
+        p.detail.procedure = Array.from(procRows).map(row => ({
+            t: row.querySelector('.dyn-t').value.trim(),
+            d: row.querySelector('.dyn-d').value.trim()
+        })).filter(x => x.t || x.d);
+        if (p.detail.procedure.length === 0) delete p.detail.procedure;
+    } else {
+        delete p.detail.procedure;
+    }
+
+    const recRows = document.getElementById("editor-receive").children;
+    if (recRows.length > 0) {
+        p.detail.receive = Array.from(recRows).map(row => {
+            const inp = row.querySelector('.dyn-r');
+            return inp ? { r: inp.value.trim() } : null;
+        }).filter(x => x && x.r);
+        if (p.detail.receive.length === 0) delete p.detail.receive;
+    } else {
+        delete p.detail.receive;
+    }
+    
+    if (index === -1) {
+        allPujas.push(p);
+    }
+    
+    try {
+        const res = await fetch("/api/admin/pujas?key=" + encodeURIComponent(KEY), {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ pujas: allPujas })
+        });
+        
+        if (!res.ok) {
+            const err = await res.json();
+            alert(err.error || "Failed to save puja");
+            return;
+        }
+        
+        closeAllDrawers();
+        loadPujas();
+        alert("Saved successfully!");
+    } catch (e) {
+        console.error(e);
+        alert("Error saving puja");
+    }
+}
+
+// --- Dynamic Array Editors ---
+function addDynamicRow(type, data = null) {
+    const container = document.getElementById(`editor-${type}`);
+    const row = document.createElement("div");
+    row.style = "display:flex; gap:8px; align-items:flex-start; margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:8px;";
+    
+    if (type === 'benefits' || type === 'procedure') {
+        const title = data ? (data.t || "") : "";
+        const desc = data ? (data.d || "") : "";
+        row.innerHTML = `
+            <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                <input type="text" placeholder="Title" value="${esc(title)}" class="dyn-t" style="padding:8px; border:1px solid var(--border); border-radius:4px; font-weight:600;">
+                <textarea placeholder="Description" class="dyn-d" rows="2" style="padding:8px; border:1px solid var(--border); border-radius:4px; font-family:inherit;">${esc(desc)}</textarea>
+            </div>
+            <button class="btn" style="color:var(--red); padding:8px;" onclick="this.parentElement.remove()"><i class="ph ph-trash"></i></button>
+        `;
+    } else if (type === 'receive') {
+        const text = data ? (data.r || "") : "";
+        row.innerHTML = `
+            <input type="text" placeholder="Item description" value="${esc(text)}" class="dyn-r" style="flex:1; padding:8px; border:1px solid var(--border); border-radius:4px;">
+            <button class="btn" style="color:var(--red); padding:8px;" onclick="this.parentElement.remove()"><i class="ph ph-trash"></i></button>
+        `;
+    }
+    container.appendChild(row);
+}
+
+// ================== Packages CMS ==================
+let allPackages = [];
+
+async function loadPackages() {
+    try {
+        const res = await fetch("/api/admin/packages?key=" + encodeURIComponent(KEY));
+        if (!res.ok) return false;
+        
+        const data = await res.json();
+        allPackages = data.packages || [];
+        
+        const tbody = document.getElementById("packagesTbody");
+        if (!tbody) return true;
+        
+        tbody.innerHTML = "";
+        
+        if (allPackages.length === 0) {
+            document.getElementById("packagesEmptyState").style.display = "block";
+            tbody.closest('table').style.display = "none";
+        } else {
+            document.getElementById("packagesEmptyState").style.display = "none";
+            tbody.closest('table').style.display = "table";
+            
+            allPackages.forEach((p, idx) => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>
+                        <div><strong>${esc(p.name)}</strong></div>
+                        <div class="text-muted" style="font-size:0.8rem">Badge: ${esc(p.badge || '—')}</div>
+                    </td>
+                    <td>${esc(p.name_te || '—')}</td>
+                    <td>${esc(p.name_hi || '—')}</td>
+                    <td>₹${p.price}</td>
+                    <td>
+                        <button class="btn" style="padding: 4px 8px" onclick="openEditPackage(${idx})"><i class="ph ph-pencil"></i> Edit</button>
+                        <button class="btn" style="padding: 4px 8px; color: var(--red);" onclick="deletePackage(${idx})"><i class="ph ph-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    } catch (e) {
+        console.error("Error loading packages:", e);
+    }
+}
+
+async function deletePackage(index) {
+    if (!confirm(`Are you sure you want to permanently delete this Package?`)) return;
+    
+    allPackages.splice(index, 1);
+    
+    try {
+        const res = await fetch("/api/admin/packages?key=" + encodeURIComponent(KEY), {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ packages: allPackages })
+        });
+        
+        if (!res.ok) {
+            alert("Failed to delete package");
+            return;
+        }
+        
+        loadPackages();
+    } catch (e) {
+        console.error(e);
+        alert("Error deleting package");
+    }
+}
+
+function openEditPackage(index) {
+    const p = index >= 0 ? allPackages[index] : { id: "pkg_" + Date.now(), name: "", desc: "", name_te: "", desc_te: "", name_hi: "", desc_hi: "", price: 299, badge: "Monthly", image: "", temple: "", date: "", muhurat: "", detail: {}, packages: [] };
+    
+    document.getElementById("packageDrawerTitle").textContent = index >= 0 ? "Edit Package" : "New Package";
+    document.getElementById("editPackageIndex").value = index;
+    
+    document.getElementById("editPackageId").value = p.id || ("pkg_" + Date.now());
+    document.getElementById("editPackagePrice").value = p.price || "";
+    
+    // General
+    document.getElementById("editPackageBadge").value = p.badge || "";
+    document.getElementById("editPackageImage").value = p.image || p.media || ""; // some use media instead of image
+    document.getElementById("editPackageTemple").value = p.temple || "";
+    document.getElementById("editPackageDate").value = p.date || "";
+    document.getElementById("editPackageMuhurat").value = p.muhurat || "";
+    
+    // English
+    document.getElementById("editPackageNameEn").value = p.name || "";
+    document.getElementById("editPackageDescEn").value = p.desc || "";
+    const det = p.detail || {};
+    document.getElementById("editPackageMantraEn").value = det.mantra || "";
+    document.getElementById("editPackageAboutEn").value = det.about || "";
+    
+    // Telugu
+    document.getElementById("editPackageNameTe").value = p.name_te || "";
+    document.getElementById("editPackageDescTe").value = p.desc_te || "";
+    
+    // Hindi
+    document.getElementById("editPackageNameHi").value = p.name_hi || "";
+    document.getElementById("editPackageDescHi").value = p.desc_hi || "";
+    
+    openDrawer('drawer-edit-package');
+}
+
+async function savePackage() {
+    const index = parseInt(document.getElementById("editPackageIndex").value, 10);
+    
+    const p = index >= 0 ? allPackages[index] : { detail: {}, packages: [] };
+    
+    p.price = parseInt(document.getElementById("editPackagePrice").value, 10) || 0;
+    p.badge = document.getElementById("editPackageBadge").value.trim();
+    p.media = document.getElementById("editPackageImage").value.trim();
+    p.temple = document.getElementById("editPackageTemple").value.trim();
+    p.date = document.getElementById("editPackageDate").value.trim();
+    p.muhurat = document.getElementById("editPackageMuhurat").value.trim();
+    
+    p.name = document.getElementById("editPackageNameEn").value.trim();
+    p.desc = document.getElementById("editPackageDescEn").value.trim();
+    
+    p.name_te = document.getElementById("editPackageNameTe").value.trim();
+    p.desc_te = document.getElementById("editPackageDescTe").value.trim();
+    
+    p.name_hi = document.getElementById("editPackageNameHi").value.trim();
+    p.desc_hi = document.getElementById("editPackageDescHi").value.trim();
+    
+    if (!p.detail) p.detail = {};
+    p.detail.mantra = document.getElementById("editPackageMantraEn").value.trim();
+    p.detail.about = document.getElementById("editPackageAboutEn").value.trim();
+    
+    if (index === -1) {
+        allPackages.push(p);
+    }
+    
+    try {
+        const res = await fetch("/api/admin/packages?key=" + encodeURIComponent(KEY), {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ packages: allPackages })
+        });
+        
+        if (!res.ok) {
+            const err = await res.json();
+            alert(err.error || "Failed to save package");
+            return;
+        }
+        
+        closeAllDrawers();
+        loadPackages();
+        alert("Saved successfully!");
+    } catch (e) {
+        console.error(e);
+        alert("Error saving package");
+    }
+}
+
+// ================== Temples CMS ==================
+let allTemples = [];
+
+async function loadTemples() {
+    try {
+        const res = await fetch("/api/admin/temples?key=" + encodeURIComponent(KEY));
+        if (!res.ok) return false;
+        
+        const data = await res.json();
+        allTemples = data.temples || [];
+        
+        const tbody = document.getElementById("templesTbody");
+        if (!tbody) return true;
+        
+        tbody.innerHTML = "";
+        
+        if (allTemples.length === 0) {
+            document.getElementById("templesEmptyState").style.display = "block";
+            tbody.closest('table').style.display = "none";
+        } else {
+            document.getElementById("templesEmptyState").style.display = "none";
+            tbody.closest('table').style.display = "table";
+            
+            allTemples.forEach((t, idx) => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td><strong>${esc(t.name)}</strong></td>
+                    <td>${esc(t.name_te || '—')}</td>
+                    <td>${esc(t.name_hi || '—')}</td>
+                    <td><img src="/${esc(t.image)}" alt="temple" style="width:40px; height:40px; object-fit:cover; border-radius:4px;"></td>
+                    <td>
+                        <button class="btn" style="padding: 4px 8px" onclick="openEditTemple(${idx})"><i class="ph ph-pencil"></i> Edit</button>
+                        <button class="btn" style="padding: 4px 8px; color: var(--red);" onclick="deleteTemple(${idx})"><i class="ph ph-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    } catch (e) {
+        console.error("Error loading temples:", e);
+    }
+}
+
+async function deleteTemple(index) {
+    if (!confirm(`Are you sure you want to permanently delete this Temple?`)) return;
+    
+    allTemples.splice(index, 1);
+    
+    try {
+        const res = await fetch("/api/admin/temples?key=" + encodeURIComponent(KEY), {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ temples: allTemples })
+        });
+        
+        if (!res.ok) {
+            alert("Failed to delete temple");
+            return;
+        }
+        
+        loadTemples();
+    } catch (e) {
+        console.error(e);
+        alert("Error deleting temple");
+    }
+}
+
+function openEditTemple(index) {
+    const t = index >= 0 ? allTemples[index] : { name: "", blurb: "", name_te: "", blurb_te: "", name_hi: "", blurb_hi: "", image: "" };
+    
+    document.getElementById("templeDrawerTitle").textContent = index >= 0 ? "Edit Temple" : "New Temple";
+    document.getElementById("editTempleIndex").value = index;
+    
+    document.getElementById("editTempleImage").value = t.image || "";
+    
+    document.getElementById("editTempleNameEn").value = t.name || "";
+    document.getElementById("editTempleBlurbEn").value = t.blurb || "";
+    
+    document.getElementById("editTempleNameTe").value = t.name_te || "";
+    document.getElementById("editTempleBlurbTe").value = t.blurb_te || "";
+    
+    document.getElementById("editTempleNameHi").value = t.name_hi || "";
+    document.getElementById("editTempleBlurbHi").value = t.blurb_hi || "";
+    
+    openDrawer('drawer-edit-temple');
+}
+
+async function saveTemple() {
+    const index = parseInt(document.getElementById("editTempleIndex").value, 10);
+    
+    const t = index >= 0 ? allTemples[index] : {};
+    
+    t.image = document.getElementById("editTempleImage").value.trim();
+    t.name = document.getElementById("editTempleNameEn").value.trim();
+    t.blurb = document.getElementById("editTempleBlurbEn").value.trim();
+    t.name_te = document.getElementById("editTempleNameTe").value.trim();
+    t.blurb_te = document.getElementById("editTempleBlurbTe").value.trim();
+    t.name_hi = document.getElementById("editTempleNameHi").value.trim();
+    t.blurb_hi = document.getElementById("editTempleBlurbHi").value.trim();
+    
+    if (index === -1) {
+        allTemples.push(t);
+    }
+    
+    try {
+        const res = await fetch("/api/admin/temples?key=" + encodeURIComponent(KEY), {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ temples: allTemples })
+        });
+        
+        if (!res.ok) {
+            const err = await res.json();
+            alert(err.error || "Failed to save temple");
+            return;
+        }
+        
+        closeAllDrawers();
+        loadTemples();
+        alert("Saved successfully!");
+    } catch (e) {
+        console.error(e);
+        alert("Error saving temple");
+    }
+}
+
+
+
+// ==========================================
+// WEBSITE CONTENT (PHASE 4 CMS INTEGRATION)
+// ==========================================
+
+let cmsData = null;
+let currentCmsPage = "";
+let currentCmsLang = "en";
+
+document.addEventListener("DOMContentLoaded", () => {
+    const cmsPageSelect = document.getElementById("cmsPageSelect");
+    const cmsLangSelect = document.getElementById("cmsLangSelect");
+    const cmsSaveBtn = document.getElementById("cmsSaveBtn");
+    const navLink = document.querySelector('[data-target="view-cms"]');
+    
+    if (navLink) {
+        navLink.addEventListener('click', async () => {
+            await fetchCmsData();
+        });
+    }
+
+    if (cmsPageSelect) {
+        cmsPageSelect.addEventListener("change", (e) => {
+            currentCmsPage = e.target.value;
+            renderCmsEditor();
+        });
+    }
+
+    if (cmsLangSelect) {
+        cmsLangSelect.addEventListener("change", (e) => {
+            currentCmsLang = e.target.value;
+            document.getElementById("cmsCurrentLangName").innerText = 
+                currentCmsLang === 'en' ? 'English' : (currentCmsLang === 'te' ? 'Telugu' : 'Hindi');
+            renderCmsEditor();
+        });
+    }
+
+    if (cmsSaveBtn) {
+        cmsSaveBtn.addEventListener("click", saveCmsContent);
+    }
+});
+
+async function fetchCmsData() {
+    const loading = document.getElementById("cmsLoadingIndicator");
+    if (loading) loading.style.display = "block";
+    
+    try {
+        const res = await fetch("/api/content/global");
+        const data = await res.json();
+        if (data.ok) {
+            cmsData = data.content;
+            populateCmsPageSelect();
+            if (currentCmsPage) renderCmsEditor();
+        } else {
+            alert("Failed to load CMS data: " + (data.error || "Unknown error"));
+        }
+    } catch (e) {
+        alert("Error fetching CMS data: " + e.message);
+    } finally {
+        if (loading) loading.style.display = "none";
+    }
+}
+
+function populateCmsPageSelect() {
+    const select = document.getElementById("cmsPageSelect");
+    if (!select || !cmsData) return;
+    
+    const pages = Object.keys(cmsData);
+    
+    // Remember currently selected page if any
+    const prevVal = select.value;
+    select.innerHTML = '<option value="">Select Page...</option>';
+    
+    pages.forEach(slug => {
+        const opt = document.createElement("option");
+        opt.value = slug;
+        opt.textContent = slug.toUpperCase();
+        select.appendChild(opt);
+    });
+    
+    if (pages.includes(prevVal)) {
+        select.value = prevVal;
+    } else {
+        select.value = "";
+        currentCmsPage = "";
+        renderCmsEditor();
+    }
+}
+
+function renderCmsEditor() {
+    const editor = document.getElementById("cmsEditorContainer");
+    const emptyState = document.getElementById("cmsEmptyState");
+    const container = document.getElementById("cmsFieldsContainer");
+    
+    if (!currentCmsPage || !cmsData[currentCmsPage]) {
+        editor.style.display = "none";
+        emptyState.style.display = "block";
+        return;
+    }
+    
+    emptyState.style.display = "none";
+    editor.style.display = "block";
+    document.getElementById("cmsCurrentPageName").innerText = currentCmsPage.toUpperCase();
+    
+    container.innerHTML = "";
+    const sections = cmsData[currentCmsPage];
+    
+    Object.keys(sections).forEach(sectionKey => {
+        const section = sections[sectionKey];
+        const val = section.translations[currentCmsLang] || "";
+        const isMissing = !val.trim();
+        
+        const fieldGroup = document.createElement("div");
+        fieldGroup.style.display = "flex";
+        fieldGroup.style.flexDirection = "column";
+        fieldGroup.style.gap = "8px";
+        
+        const labelRow = document.createElement("div");
+        labelRow.style.display = "flex";
+        labelRow.style.justifyContent = "space-between";
+        
+        const label = document.createElement("label");
+        label.style.fontWeight = "600";
+        label.style.fontSize = "0.95rem";
+        label.innerText = section.name || sectionKey;
+        
+        const status = document.createElement("span");
+        status.style.fontSize = "0.85rem";
+        if (isMissing) {
+            status.style.color = "var(--red)";
+            status.innerText = "Missing Translation";
+        } else {
+            status.style.color = "var(--green)";
+            status.innerText = "Translated";
+        }
+        
+        labelRow.appendChild(label);
+        labelRow.appendChild(status);
+        fieldGroup.appendChild(labelRow);
+        
+        // Simple heuristic: if text is long or multiline, use textarea
+        // However, user requested heading->text input, paragraph->textarea.
+        // We don't have explicit type from DB mapping right now, so we use string length 
+        // from English baseline to guess.
+        const enVal = section.translations['en'] || "";
+        const useTextArea = enVal.length > 80 || enVal.includes('\n');
+        
+        let input;
+        if (useTextArea) {
+            input = document.createElement("textarea");
+            input.className = "form-control cms-input-field";
+            input.style.width = "100%";
+            input.style.minHeight = "100px";
+            input.style.padding = "10px";
+            input.style.fontFamily = "inherit";
+        } else {
+            input = document.createElement("input");
+            input.type = "text";
+            input.className = "form-control cms-input-field";
+            input.style.width = "100%";
+            input.style.padding = "10px";
+        }
+        
+        input.value = val;
+        input.dataset.key = sectionKey;
+        
+        if (isMissing) {
+            input.placeholder = "Enter translation... (English: " + enVal.substring(0, 50) + (enVal.length>50?"...":"") + ")";
+        }
+        
+        fieldGroup.appendChild(input);
+        
+        // Help text with original english for context
+        if (currentCmsLang !== 'en') {
+            const help = document.createElement("div");
+            help.style.fontSize = "0.85rem";
+            help.style.color = "var(--muted)";
+            help.innerText = "EN: " + enVal;
+            fieldGroup.appendChild(help);
+        }
+        
+        container.appendChild(fieldGroup);
+    });
+}
+
+async function saveCmsContent() {
+    if (!KEY) {
+        alert("Session expired. Please log in again.");
+        return;
+    }
+    
+    if (!currentCmsPage || !cmsData[currentCmsPage]) return;
+    
+    const inputs = document.querySelectorAll(".cms-input-field");
+    const updates = [];
+    
+    inputs.forEach(input => {
+        const key = input.dataset.key;
+        const val = input.value.trim();
+        
+        // Only include if value is provided OR if we're clearing it out explicitly
+        if (val || input.value === "") {
+            updates.push({
+                section_key: key,
+                lang_code: currentCmsLang,
+                content: val
+            });
+        }
+    });
+    
+    if (updates.length === 0) {
+        alert("No changes to save.");
+        return;
+    }
+    
+    const btn = document.getElementById("cmsSaveBtn");
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Saving...';
+    
+    try {
+        const res = await fetch("/api/admin/content/global?key=" + encodeURIComponent(KEY), {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updates)
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            alert("Translations saved successfully!");
+            // Reload data from server to verify
+            await fetchCmsData();
+        } else {
+            alert("Save failed: " + (data.error || "Unknown error"));
+        }
+    } catch (e) {
+        alert("Error saving CMS data: " + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ph ph-floppy-disk"></i> Save Translations';
+    }
+}

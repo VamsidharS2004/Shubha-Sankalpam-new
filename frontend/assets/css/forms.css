@@ -1,0 +1,140 @@
+/* ================================================================
+   FORMS.CSS — login.html, booking.html, payment.html
+   ================================================================
+   Shared form-card styling, the login card, the booking modal
+   (legacy, kept for compatibility), and the payment/QR page.
+   ================================================================ */
+
+.modal-overlay{position:fixed;inset:0;background:rgba(31,36,48,.55);display:none;align-items:center;justify-content:center;z-index:100;padding:20px}
+
+.modal-overlay.show{display:flex}
+
+.modal{background:#fff;border-radius:var(--radius);max-width:480px;width:100%;max-height:90vh;overflow-y:auto;padding:30px;position:relative;border-top:6px solid var(--red)}
+
+.modal h3{font-size:1.3rem;margin-bottom:4px}
+
+.modal-puja{font-size:.88rem;font-weight:700;color:var(--red);margin-bottom:18px}
+
+.modal label{display:block;font-size:.83rem;font-weight:700;margin:15px 0 6px}
+
+.modal input,.modal textarea{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;font-family:inherit;font-size:.94rem}
+
+.modal input:focus,.modal textarea:focus{border-color:var(--red);outline:none}
+
+.hint{font-size:.76rem;color:var(--muted);margin-top:4px}
+
+/* ============================================================
+   FAMILY MEMBERS — up to 3 additional name+gotram rows on the
+   booking form, plus the "Add Family Member" button beneath them
+   ============================================================ */
+.family-section{margin:22px 0 6px;padding-top:18px;border-top:1px dashed var(--line)}
+.family-header{margin-bottom:10px}
+.hint-inline{font-weight:400;color:var(--muted);font-size:.82rem}
+.family-row{display:grid;grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) auto;gap:8px;margin-bottom:10px;align-items:center}
+.family-row input{margin-bottom:0}
+.fam-remove{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer;font-size:.95rem;flex:none}
+.fam-remove:hover{background:var(--red-soft);color:var(--red);border-color:var(--red)}
+.add-family-btn{background:none;border:1.5px dashed var(--line);border-radius:10px;padding:11px 18px;color:var(--red);font-weight:700;font-size:.88rem;cursor:pointer;width:100%;margin-top:2px}
+.add-family-btn:hover{background:var(--red-soft);border-color:var(--red)}
+
+.modal-close{position:absolute;top:12px;right:14px;background:none;border:none;font-size:1.6rem;color:var(--muted);line-height:1}
+
+.modal .btn{width:100%;justify-content:center;margin-top:22px}
+
+.success{display:none;text-align:center;padding:22px 0}
+
+.success .tick{width:64px;height:64px;margin:0 auto 16px;background:var(--red-soft);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--red)}
+
+.success p{color:var(--muted);font-size:.94rem}
+
+.login-card{max-width:460px;margin:56px auto;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 34px rgba(150,20,15,.10);padding:48px 40px;text-align:center}
+
+.login-avatar{width:78px;height:78px;border-radius:50%;background:#5A0F1C;color:#fff;font-size:2rem;display:flex;align-items:center;justify-content:center;margin:0 auto 22px}
+
+.login-card h2{font-size:1.5rem;font-weight:700;margin-bottom:10px}
+
+.login-card p{font-family:Georgia,'Times New Roman',serif;color:#4A4F5C;font-size:.98rem;margin-bottom:26px}
+
+.login-big-btn{width:100%;background:var(--red);color:#fff;border:none;border-radius:999px;padding:15px 24px;font-weight:700;font-size:1rem;font-family:inherit;position:relative;display:flex;align-items:center;justify-content:center}
+
+.login-big-btn:hover{background:var(--red-dark)}
+
+.login-big-btn .login-arrow{position:absolute;right:12px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:1rem}
+
+.login-fields input{width:100%;padding:14px 16px;border:1.5px solid var(--line);border-radius:12px;font-family:inherit;font-size:1rem;margin-bottom:16px;text-align:center}
+
+.login-fields input:focus{border-color:var(--red);outline:none}
+
+.demo-otp{background:var(--red-soft);color:var(--red);border-radius:10px;padding:10px;font-weight:700;font-size:.9rem;margin-bottom:16px!important;font-family:'Manrope',sans-serif!important}
+
+.form-page{padding:0 20px 70px;display:flex;justify-content:center}
+
+.booking-progress-container{text-align:center;padding:44px 20px 30px;}
+.booking-progress-container h2{font-family:'Noto Sans Telugu','Noto Sans Devanagari',sans-serif;font-size:1.6rem;font-weight:700;color:var(--ink);margin-bottom:24px}
+.booking-progress{display:flex;align-items:center;justify-content:center;gap:12px;max-width:400px;margin:0 auto;}
+.step{display:flex;flex-direction:column;align-items:center;gap:8px}
+.step-circle{width:34px;height:34px;border-radius:50%;border:2px solid #ddd;color:#999;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;background:#fff}
+.step-label{font-size:.85rem;color:#999;font-weight:600}
+.step.active .step-circle{border-color:var(--red);background:var(--red);color:#fff}
+.step.active .step-label{color:var(--red)}
+.step-line{flex:1;height:2px;background:#ddd;margin-bottom:20px}
+
+.booking-layout{display:grid;grid-template-columns:minmax(0, 1fr) 400px;gap:24px;padding-bottom:70px;align-items:start;}
+
+.form-card{background:#fff;border:none;border-radius:24px;box-shadow:0 20px 40px rgba(28,18,15,.08), 0 1px 3px rgba(0,0,0,.05);padding:44px;width:100%}
+
+.form-card label{display:block;font-size:.9rem;font-weight:700;margin:24px 0 10px;color:var(--ink)}
+
+.form-card input[type="text"], .form-card input[type="tel"], .form-card textarea{width:100%;padding:14px 16px;border:1px solid #EAC9A0;background:#FFF9F1;border-radius:12px;font-family:inherit;font-size:.95rem;transition:all 0.3s ease;color:var(--ink)}
+.form-card input:focus, .form-card textarea:focus{border-color:var(--red);background:#fff;box-shadow:0 0 0 4px var(--red-soft);outline:none}
+
+.wa-input-box{display:flex;align-items:center;border:1px solid #EAC9A0;background:#FFF9F1;border-radius:12px;overflow:hidden;transition:all 0.3s ease;position:relative;z-index:1}
+.wa-input-box:focus-within{border-color:var(--red);background:#fff;box-shadow:0 0 0 4px var(--red-soft);}
+.wa-input-box .flag{padding:14px 16px;border-right:1px solid #EAC9A0;font-weight:700;color:var(--ink);background:#fff;pointer-events:none}
+.wa-input-box input{border:none !important;border-radius:0 !important;background:transparent !important;flex:1;box-shadow:none !important;outline:none !important;padding:14px 16px !important;}
+.wa-input-box input:focus{box-shadow:none !important;border:none !important;background:transparent !important;outline:none !important}
+.verified-tick{padding:0 16px;color:#1DA1F2;font-size:1.2rem;pointer-events:none}
+
+.names-grid{display:grid;grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);gap:16px;}
+
+.checkbox-label{display:flex;align-items:center;gap:8px;font-weight:500;margin-top:12px;font-size:.9rem;cursor:pointer}
+.checkbox-label input[type="checkbox"]{width:18px;height:18px;accent-color:var(--red)}
+
+.summary-card{background:#fff;border-radius:16px;border:1px solid var(--line);box-shadow:var(--shadow);padding:24px;margin-bottom:16px}
+.summary-puja-header{display:flex;gap:14px;margin-bottom:18px}
+.summary-img{width:70px;height:70px;border-radius:8px;background:var(--line);flex:none;background-size:cover;background-position:center}
+.summary-title h3{font-family:'Fraunces',serif;font-weight:700;font-size:1.1rem;color:var(--ink);margin-bottom:4px;line-height:1.3}
+.summary-title p{font-size:.85rem;color:var(--muted);font-weight:600}
+.summary-date{display:flex;align-items:center;gap:8px;padding:12px 14px;background:#F7ECE2;border-radius:8px;color:var(--forest);font-weight:700;font-size:.9rem;margin-bottom:20px}
+.summary-breakdown{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:16px}
+.price-row{display:flex;justify-content:space-between;align-items:center;font-size:.88rem;color:var(--muted);margin-bottom:10px}
+.price-row b{color:var(--ink)}
+.summary-total{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:1.1rem;color:var(--ink);margin-bottom:24px}
+.total-price-box{display:flex;align-items:center;gap:10px}
+.final-price{color:var(--red);font-size:1.3rem}
+.continue-btn{width:100%;font-size:1.1rem;padding:16px;border-radius:12px;font-weight:700;display:flex;justify-content:center}
+.secure-badge{text-align:center;margin-top:14px;font-size:.8rem;color:#1FA855;font-weight:700}
+
+.trust-box{border:1px solid var(--line);border-radius:16px;background:#fff;padding:20px}
+.trust-row{display:flex;gap:12px;margin-bottom:14px;font-size:.85rem;color:var(--ink);font-weight:600;align-items:flex-start}
+.trust-row:last-child{margin-bottom:0}
+.trust-row .tick{color:#1FA855;background:#E8F6ED;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;flex:none;margin-top:2px}
+
+
+.pay-card{text-align:center}
+
+.pay-amount{font-size:2.4rem;font-weight:900;color:var(--red);letter-spacing:-.01em;margin:8px 0 18px}
+
+.qr-box{display:flex;justify-content:center;padding:18px;border:1.5px dashed #EAC9A0;border-radius:14px;background:#FFF9F1;margin-bottom:14px}
+
+.pay-upi{font-size:.95rem}
+
+.pay-upi b{color:#5A0F1C}
+
+.pay-card .success .tick{width:64px;height:64px;margin:18px auto 14px;background:var(--red-soft);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--red)}
+
+/* Safety net: whatever QRCode.js renders (canvas or img) must never
+   exceed its box width — on the smallest phones (320px), the fixed
+   220px QR code generated in JS would otherwise overflow slightly
+   after all the surrounding padding is accounted for. */
+#qrcode canvas, #qrcode img{max-width:100%;height:auto}

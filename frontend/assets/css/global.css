@@ -1,0 +1,424 @@
+/* ================================================================
+   GLOBAL.CSS — shared foundation loaded on EVERY page
+   ================================================================
+   Contains: color/font variables, CSS reset, base typography,
+   the .container/.section layout primitives, and the .btn button
+   component family used throughout the site.
+
+   Change a color here (e.g. --red) and it updates everywhere on
+   the site at once, since every other file references these same
+   variables instead of hardcoding colors.
+   ================================================================ */
+
+/* ============================================================
+   DESIGN TOKENS — deep burgundy + ivory + antique gold + forest green
+   ============================================================ */
+
+:root{
+  /* ============================================================
+     BRAND COLORS — Luxury Devotional Theme
+     ============================================================ */
+  --red: #E85D04;          /* Primary Saffron Orange */
+  --red-dark: #9B1C1C;     /* Deep Accent Temple Maroon */
+  --red-soft: #FFF8EE;     /* Warm cream for soft highlights */
+  --gold: #D4A017;         /* Antique gold */
+  --maroon: #9B1C1C;       /* Alias for deep accent */
+  --forest: #1F4D36;       /* forest green — positive/trust UI only */
+  --forest-soft: #E7F1EA;  /* pale mint tint for forest-green backgrounds */
+  --green: #25D366;        /* WhatsApp's own brand green — do NOT reskin */
+  --bg: #FFFFFF;           /* Card background */
+  --bg-soft: #FFF8EE;      /* Warm Cream Background */
+  --ink: #3B1F1F;          /* Primary body text */
+  --muted: #7C6A5C;        /* Secondary/muted text */
+  --line: #E8D9C3;         /* Borders and dividers */
+  --radius: 16px;          /* Card/button border-radius */
+  --shadow: 0 12px 36px rgba(155, 28, 28, 0.08); /* Maroon-tinted shadow */
+  --font: 'Manrope', 'Noto Sans Telugu', 'Noto Sans Devanagari', sans-serif;
+  --header-h: 78px;        /* Fixed header height offset */
+  
+  /* Gradients */
+  --brand-gradient: linear-gradient(90deg, #9B1C1C 0%, #E85D04 100%);
+  --brand-gradient-hover: linear-gradient(90deg, #E85D04 0%, #9B1C1C 100%);
+  /* warm orange/maroon gradient — "Book Now" / "Book Puja Now" CTAs only */
+  --booking-gradient: linear-gradient(135deg, #E85D04 0%, #9B1C1C 100%);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+html{scroll-behavior:smooth;overflow-x:hidden;max-width:100vw}
+
+body{font-family:var(--font);background-color:var(--bg);background-image:linear-gradient(rgba(252,250,250,0.55),rgba(252,250,250,0.55)),url('../images/bg-pattern.jpg');background-repeat:repeat;background-size:auto, 400px;background-attachment:fixed;color:var(--ink);line-height:1.6;padding-bottom:70px;max-width:100vw}
+img,svg{display:block;max-width:100%}
+
+a{color:inherit;text-decoration:none}
+
+button{font-family:inherit;cursor:pointer}
+
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+h1,h2,h3{line-height:1.22;font-weight:700;letter-spacing:-.01em}
+
+/* Full-width: content stretches edge-to-edge on large screens instead
+   of centering with side margins. Padding keeps content from touching
+   the very edge of the browser window; it scales down on phones via
+   responsive.css so it never eats too much space on small screens. */
+.container{width:100%;max-width:1280px;margin:0 auto;padding:0 40px}
+
+.section{padding:64px 0}
+
+.section-title{font-size:clamp(1.5rem,3.2vw,2.1rem);text-align:center;color:var(--ink);margin-bottom:20px;letter-spacing:-.01em;position:relative}
+
+.section-title em{font-style:normal;color:var(--red)}
+
+/* signature divider — a short gold rule with a small centered diamond,
+   used under every section heading so the whole site shares one
+   consistent, deliberate "finishing touch" instead of headings just
+   stopping bare */
+.section-title::after{
+  content:"";display:block;width:64px;height:2px;margin:18px auto 0;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.section .section-title{margin-bottom:44px}
+
+.arrow{display:inline-block;transform:translateY(1px)}
+
+/* ============ HEADER (matched to screenshot) ============ */
+
+/* position:fixed — the navbar NEVER scrolls away, unlike sticky which can
+   break if any parent element has overflow/transform set. We compensate
+   by pushing all page content down with body's padding-top (set from JS
+   to the header's real height, see layout.js:setHeaderHeight). */
+
+body{padding-top:var(--header-h, 78px)}
+
+/* header items shrink safely instead of overflowing on tiny screens */
+
+/* ============ HERO SLIDER ============ */
+
+.btn{display:inline-flex;align-items:center;gap:10px;border:none;border-radius:999px;font-weight:700;font-size:.95rem;letter-spacing:.01em;padding:14px 28px;transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden}
+
+.btn:hover{transform:translateY(-2px)}
+
+.btn-red{background:var(--red);color:#fff;box-shadow:0 10px 28px rgba(107,18,32,.28)}
+
+/* primary CTA uses flat burgundy; "Book Puja Now" cards use --booking-gradient */
+
+.btn-red:hover{background:var(--red-dark);box-shadow:0 14px 34px rgba(107,18,32,.36)}
+
+/* shimmer sweep on hover — pure CSS, purely decorative */
+.btn-red::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.35) 50%,transparent 60%);
+  transform:translateX(-120%);
+}
+.btn-red:hover::after{transform:translateX(120%);transition:transform .7s var(--ease-out, ease)}
+
+.btn-white{background:#fff;color:var(--red);border:2px solid var(--red)}
+.btn-white:hover{background:var(--red-soft)}
+
+/* ============ STATS CARD (contained inside the hero) ============ */
+
+/* ============ TRUST HIGHLIGHTS (static box inside the hero,
+   flanked by ornaments — matches the reference, no scrolling ticker) ============ */
+
+/* ============ STEPS ============ */
+
+/* ============ PUJA CARDS ============ */
+
+.tabs{display:flex;gap:10px;justify-content:center;margin-bottom:34px;flex-wrap:wrap}
+
+.tab{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:8px 22px;font-weight:600;font-size:.88rem;color:var(--muted)}
+
+.tab.active{background:var(--red);border-color:var(--red);color:#fff}
+
+/* ============ GALLERY ============ */
+
+
+
+/* ============ FAQ ============ */
+
+/* ============ RED CTA + FOOTER ============ */
+
+/* ============ MOBILE BOTTOM NAV ============ */
+
+/* ============ BOOKING MODAL ============ */
+
+/* ============ PUJA / PACKAGES / DETAIL PAGES ============ */
+
+.page-head{padding:34px 0 6px}
+
+.page-head h1{font-size:clamp(1.5rem,3vw,2.1rem)}
+
+.page-head p{color:var(--muted);margin-top:4px;max-width:560px}
+
+.detail-grid{display:grid;grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);gap:40px;padding:36px 0 60px;align-items:start}
+
+.detail-media{border-radius:var(--radius);min-height:340px;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:var(--shadow)}
+
+.detail-media svg{width:110px;height:110px;opacity:.9}
+
+.detail-info h1{font-size:clamp(1.4rem,2.8vw,2rem);margin-bottom:10px}
+
+.detail-info p{color:var(--muted);margin-bottom:14px}
+
+.benefits{margin:16px 0 22px;padding:0;list-style:none}
+
+.benefits li{display:flex;gap:10px;font-size:.94rem;margin-bottom:9px;color:var(--ink)}
+
+.benefits li::before{content:"✔";color:var(--forest);font-weight:700}
+
+.detail-price-row{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:14px;padding:16px 20px;background:#fff;box-shadow:var(--shadow)}
+
+/* ============ ACCOUNT PAGE (matched to screenshot) ============ */
+
+.page{display:none}
+
+.page.show{display:block}
+
+/* ============ RESPONSIVE ============ */
+
+/* ============ LOGIN CARD (matched to screenshot) ============ */
+
+.hidden{display:none!important}
+
+/* ============ SERIF HERO + ORNAMENTS + SLIDER ARROWS (matched to screenshot) ============ */
+
+/* ============ LANGUAGE DROPDOWN (matched to screenshot) ============ */
+
+/* ============ FONT STYLE (matched to screenshot) ============ */
+
+/* Big display headings now use the elegant serif, like the real site */
+
+.section-title{font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-weight:800;letter-spacing:-.01em}
+
+.detail-info h1{font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-weight:800;letter-spacing:-.01em;color:var(--red)}
+
+/* ============ DISCOVER BANNER (matched to screenshot) ============ */
+
+/* Bold sans listing heading, like "Upcoming Puja Packages" */
+
+/* ============ CARD HEART & SHARE BUTTONS (matched to screenshot) ============ */
+
+/* ============ FOLLOW US SOCIAL ROW (matched to screenshot) ============ */
+
+.yt svg path:first-child{fill:#fff}
+
+/* ============================================================
+   PUJA DETAILS PAGE (matched to reference screenshots)
+   ============================================================ */
+
+
+
+
+
+/* top offset = fixed header height + the sticky tabs bar below it,
+   so the sidebar starts sticking exactly where the tabs bar ends —
+   previously this was a hardcoded 150px guess that didn't track the
+   real (dynamic) header height, so it drifted out of place. */
+
+/* .pd-content is the containing block for the sticky bar below — it
+   wraps everything EXCEPT the footer, so the bar's sticky behavior
+   is bounded by it and naturally stops before the footer begins. */
+
+/* ============ FORM / PAYMENT PAGES ============ */
+
+/* ============ ABOUT POOJA — "Read More" (matched to reference) ============ */
+
+/* ============ INFO TABLE — Tradition / Duration / For (matched to reference) ============ */
+
+/* ============ STICKY NAV BARS ============ */
+
+/* Category filter tabs (Puja listing page) stick right below the header */
+
+/* Account page sidebar stays visible while the bookings list scrolls */
+
+/* ============================================================
+   FIT-TO-PAGE FIX
+   Grid/flex children default to a minimum width based on their
+   own content ("min-width: auto"). Translated Telugu/Hindi text
+   is often longer than the English it replaces, so without this
+   fix, sidebar/grid columns get pushed wider than their track and
+   spill off the right edge of the screen — the horizontal scroll
+   and cut-off text seen in Hindi/Telugu mode.
+   ============================================================ */
+
+/* Let long translated words/phrases wrap instead of overflowing */
+
+/* Belt-and-suspenders: never let the page itself scroll sideways.
+   (.gallery keeps its own intentional horizontal scroll strip —
+   this only stops accidental page-wide overflow.) */
+
+/* IMPORTANT: overflow-x must be set on html ONLY, never on body too.
+   Setting it on both creates two nested scroll containers, and any
+   position:sticky element then sticks relative to the nearest one
+   (body) instead of the real page viewport — which silently breaks
+   ALL sticky elements on the page (this is exactly what happened to
+   the puja-details tabs bar and sidebar). html alone is enough to
+   stop sideways scrolling, with none of that side effect. */
+
+html { overflow-x: clip; }
+
+body { max-width: 100%; }
+
+/* ============================================================
+   COMPREHENSIVE RESPONSIVE DESIGN
+   A proper breakpoint system covering every device class:
+     ≥1024px  desktop / laptop           (default styles above)
+     768–1023 tablets (portrait & landscape)
+     481–767  large phones / small tablets, phone landscape
+     ≤480     phones (portrait) — the tightest constraint
+   Every major section is addressed: header, hero, stats, steps,
+   cards, discover banner, puja-details (all its grids), forms,
+   login, account, payment. Tested down to a 320px-wide screen.
+   ============================================================ */
+
+/* ---------- TABLET (≤1023px) ---------- */
+
+/* ---------- TABLET PORTRAIT (≤900px) — header switches to bottom-nav ---------- */
+
+/* Bottom tab bar only makes sense once the top nav links are hidden */
+
+/* ---------- LARGE PHONE / SMALL TABLET (≤767px) ---------- */
+
+/* ---------- PHONE (≤480px) — tightest constraint ---------- */
+
+/* ---------- LANDSCAPE PHONES (short viewport height) ---------- */
+
+/* ============ REVIEWS / TESTIMONIALS (matched to reference) ============ */
+
+/* ============ HOME HERO — mantra tagline + swipe hint (matched to reference) ============ */
+
+/* ============ CARD TAGLINE (mantra line on every puja/package card) ============ */
+
+/* On very narrow phones, shrink the language button to icon+chevron
+   only (matching how the WhatsApp pill already collapses) so the
+   header never gets tight for space. Tap target stays the same size. */
+
+
+/* ============ SHARED COMPONENTS (used on multiple pages) ============ */
+.chakra{position:absolute;right:-30px;bottom:-30px;width:190px;height:190px;opacity:.14;color:#D8C6A8;pointer-events:none}
+.faq-intro{text-align:center;max-width:620px;margin:0 auto 34px;color:var(--muted)}
+.faq-list{max-width:780px;margin:0 auto}
+.faq{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
+.faq button{width:100%;background:none;border:none;text-align:left;padding:18px 48px 18px 20px;font-size:.98rem;font-weight:600;color:var(--ink);position:relative}
+.faq button::after{content:"+";position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:1.4rem;color:var(--red);transition:transform .2s}
+.faq.open button::after{transform:translateY(-50%) rotate(45deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .25s ease;color:var(--muted);font-size:.92rem}
+.faq.open .faq-a{max-height:240px}
+.faq-a p{padding:0 20px 18px}
+/* ============================================================
+   PUJA GALLERY — responsive grid (was missing layout rules
+   entirely before, causing items to stack one-per-row)
+   ============================================================ */
+.gallery{
+  display: grid;
+  grid-template-columns:repeat(4, minmax(0, 1fr));   /* desktop: 4 per row */
+  gap: 20px;
+}
+.g-item{
+  aspect-ratio: 4 / 3;                     /* equal sizes for every tile */
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.g-item span{
+  position: absolute; inset: 0;
+  display: flex; align-items: flex-end;
+  padding: 14px;
+  color: #fff;
+  font-size: .8rem;
+  font-weight: 600;
+  background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,.45) 100%);
+}
+.g-item img{ width: 100%; height: 100%; object-fit: cover; display: block; }
+/* hover: gentle zoom + lifted shadow, like premium booking sites */
+.g-item:hover{ transform: translateY(-4px); box-shadow: 0 14px 34px rgba(0,0,0,.18); }
+.g-item:hover img{ transform: scale(1.06); }
+.g-item img{ transition: transform .35s ease; }
+
+.g1{background:linear-gradient(160deg,#4A0C16,#C9A227)}
+.g2{background:linear-gradient(160deg,#4A0C16,#6B1220)}
+.g3{background:linear-gradient(160deg,#8C5A1E,#B8860B)}
+.g4{background:linear-gradient(160deg,#4A0C16,#4A0C16)}
+.g5{background:linear-gradient(160deg,#7A4A00,#B8860B)}
+.g6{background:linear-gradient(160deg,#4A0C16,#C9A227)}
+
+/* ============================================================
+   DEMO IMAGE PLACEHOLDERS (labeled, per-puja colored graphics)
+   ============================================================
+   Used everywhere a puja doesn't have a real photo yet — cards,
+   hero slides, and the details-page carousel. Once you set a real
+   file path in content/pujas.js, this is replaced by an <img> tag
+   automatically and none of this CSS applies anymore.
+   ============================================================ */
+.demo-media{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative;color:#fff;text-align:center;padding:16px}
+
+/* HERO-SPECIFIC treatment: bold text overlaid bottom-left with a dark
+   gradient scrim, matching how the reference site lays out its real
+   photos (badge + bold puja name at the bottom of the image) — so
+   this placeholder is already composed correctly for when a real
+   photo replaces it, no layout changes needed later. */
+.slide-media .demo-media{
+  align-items: flex-start;
+  justify-content: flex-end;
+  text-align: left;
+  padding: 28px;
+  background-image: linear-gradient(0deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,.15) 45%, transparent 70%);
+}
+.slide-media .demo-media-icon{ font-size: 1.8rem; margin-bottom: 4px; }
+.slide-media .demo-media-label{
+  font-size: clamp(1.3rem, 2.6vw, 1.8rem);
+  font-weight: 800;
+  line-height: 1.25;
+  max-width: 90%;
+  text-shadow: 0 2px 10px rgba(0,0,0,.5);
+}
+.demo-media-icon{font-size:2.4rem;opacity:.95;filter:drop-shadow(0 2px 6px rgba(0,0,0,.25))}
+.demo-media-label{font-weight:700;font-size:.82rem;line-height:1.3;max-width:90%;text-shadow:0 1px 4px rgba(0,0,0,.35)}
+.demo-media-tag{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.45);color:#fff;font-size:.62rem;font-weight:800;letter-spacing:.08em;padding:3px 9px;border-radius:999px}
+
+/* ============================================================
+   GALLERY LIGHTBOX — fullscreen preview when a gallery tile
+   is clicked. Works with both demo placeholders and real photos.
+   ============================================================ */
+.lightbox{
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(10,6,4,.92);
+  display: none;
+  align-items: center; justify-content: center;
+}
+.lightbox.show{ display: flex; }
+.lightbox-frame{
+  width: min(90vw, 900px);
+  aspect-ratio: 4 / 3;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+}
+.lightbox-frame img{ width: 100%; height: 100%; object-fit: cover; display: block; }
+.lightbox-frame .demo-media{ border-radius: 16px; }
+.lightbox-caption{
+  position: absolute; bottom: 28px; left: 0; right: 0;
+  text-align: center; color: #fff; font-weight: 600; font-size: .95rem;
+}
+.lightbox-close{
+  position: absolute; top: 20px; right: 24px;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(255,255,255,.12); color: #fff; border: none;
+  font-size: 1.6rem; line-height: 1; cursor: pointer;
+}
+.lightbox-close:hover{ background: rgba(255,255,255,.22); }
+.lightbox-nav{
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 50px; height: 50px; border-radius: 50%;
+  background: rgba(255,255,255,.12); color: #fff; border: none;
+  font-size: 1.8rem; line-height: 1; cursor: pointer;
+}
+.lightbox-nav:hover{ background: rgba(255,255,255,.22); }
+.lightbox-nav.prev{ left: 20px; }
+.lightbox-nav.next{ right: 20px; }

@@ -1,0 +1,138 @@
+/* ================================================================
+   NAVBAR.CSS — header, footer, and mobile bottom nav
+   ================================================================
+   Loaded on EVERY page. Covers: the logo, HOME/PUJA/PACKAGES/
+   ACCOUNT menu, WhatsApp pill, language switcher dropdown, and
+   the mobile bottom tab bar.
+   ================================================================ */
+
+header{position:fixed;top:0;left:0;right:0;width:100%;max-width:none;margin:0;
+  z-index:100;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.08);border-radius:0}
+  
+.nav{display:flex;align-items:center;justify-content:space-between;height:var(--header-h, 78px);gap:16px;padding:0 20px}
+
+.container.nav{max-width:1280px}
+
+.nav > *{min-width:0}
+
+.logo-text b{overflow-wrap:break-word}
+
+.logo{display:flex;align-items:center;gap:10px}
+
+.logo svg{width:40px;height:48px}
+
+.logo-text{line-height:1.05}
+
+.logo-text b{display:block;font-weight:700;font-size:1.65rem;color:var(--red-dark);letter-spacing:0;font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif}
+
+.logo-text small{display:block;font-weight:600;font-size:.65rem;color:var(--red-dark);letter-spacing:.42em;text-transform:lowercase;margin-top:-2px}
+
+/* .nav-links{display:flex;gap:40px;font-weight:700;font-size:.7rem;letter-spacing:.05em;margin-left:auto;justify-content:flex-end;align-items:center} */
+.nav-links{display:flex;gap:40px;font-weight:700;font-size:.85rem;letter-spacing:.05em;margin-left:auto;justify-content:flex-end;align-items:center}
+
+.nav-links .nl-icon svg{width:24px;height:24px}
+
+.nav-links a{display:flex;flex-direction:column;align-items:center;color:var(--red-dark);gap:4px;text-decoration:none;line-height:1;transition:color 0.2s}
+
+.nav-links .nl-icon{display:flex;align-items:center;justify-content:center}
+
+.nav-links a:hover{color:var(--red)}
+
+.nav-links a.active{color:var(--red)}
+
+.btn-nav-login {
+  background: var(--booking-gradient);
+  color: #fff !important;
+  border-radius: 8px;
+  padding: 10px 20px !important;
+  height: auto !important;
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(155, 28, 28, 0.2);
+}
+
+.btn-nav-login:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(155, 28, 28, 0.3);
+}
+
+.nav-right{display:flex;align-items:center;gap:16px}
+
+.floating-wa{position:fixed;bottom:24px;right:24px;width:60px;height:60px;background:#25D366;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(37,211,102,0.4);z-index:90;transition:transform 0.2s, box-shadow 0.2s}
+
+.floating-wa:hover{transform:scale(1.05);box-shadow:0 6px 20px rgba(37,211,102,0.5)}
+
+.lang{font-size:.8rem;font-weight:700;color:#111;display:flex;align-items:center;gap:6px;border:none;border-radius:999px;padding:6px 14px;background:#f5f5f5;cursor:pointer;transition:background 0.2s}
+
+.lang:hover{background:#f5f5f5}
+
+.lang-arr{font-size:0.6rem;color:#aaa;margin-left:2px}
+
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;box-shadow:0 -3px 16px rgba(0,0,0,.08);display:none;justify-content:space-around;padding:9px 0 max(9px,env(safe-area-inset-bottom));z-index:60}
+
+.bottom-nav a{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.68rem;font-weight:600;color:var(--muted)}
+
+.bottom-nav a.active{color:var(--red)}
+
+.bottom-nav .bn-icon{font-size:1.2rem}
+
+.lang-wrap{position:relative}
+
+.lang-menu{position:absolute;top:calc(100% + 12px);right:0;width:250px;max-height:420px;overflow-y:auto;background:#fff;border-radius:14px;box-shadow:0 14px 44px rgba(0,0,0,.16);padding:14px 10px;z-index:80;border-top:4px solid #5A0F1C}
+
+.lang-head{font-size:.72rem;font-weight:700;letter-spacing:.12em;color:var(--muted);padding:4px 12px 10px}
+
+.lang-item{display:flex;align-items:center;gap:12px;width:100%;background:none;border:none;text-align:left;padding:10px 12px;border-radius:12px;cursor:pointer;font-family:inherit}
+
+.lang-item:hover{background:var(--red-soft)}
+
+.lang-item.active{background:var(--red-soft)}
+
+.lang-circle{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--red);font-size:.95rem;flex:none;background:#fff}
+
+.lang-item.active .lang-circle{background:var(--red);color:#fff;border-color:var(--red)}
+
+.lang-names{flex:1;line-height:1.25}
+
+.lang-names b{display:block;font-size:.95rem;color:var(--ink);font-weight:600}
+
+.lang-names span{font-size:.76rem;color:var(--muted)}
+
+.lang-check{color:var(--red);font-weight:700}
+
+.lang-soon{opacity:.45;cursor:default}
+
+.lang-soon-tag{font-size:.62rem;background:var(--line);color:var(--muted);border-radius:999px;padding:2px 8px;font-weight:700}
+
+
+/* ================================================================
+   FOOTER — the premium dark CTA band + footer links
+   ================================================================ */
+.footer-wrap{background:radial-gradient(circle at center top, #7A1425 0%, #4A0C16 50%, #1A0408 100%);color:#E8D2B8;margin-top:70px;width:100%;border-top:3px solid var(--gold);position:relative;overflow:hidden;box-shadow:inset 0 4px 20px rgba(0,0,0,0.5)}
+
+/* Remove the subtle pattern overlay since we now use a rich image background */
+.footer-wrap::after{display:none}
+
+.cta-band{text-align:center;padding:72px 20px 48px;position:relative;z-index:1}
+.cta-band h2{color:var(--gold);font-size:clamp(1.6rem,3.4vw,2.4rem);margin-bottom:12px;font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-weight:700;letter-spacing:0.02em}
+.cta-band p{color:#E8D2B8;margin-bottom:30px;font-size:1.05rem;max-width:600px;margin-left:auto;margin-right:auto}
+.cta-note{margin-top:22px;font-size:.85rem;font-weight:600;color:var(--gold);display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+
+/* "Follow us" social row */
+.follow-row{display:flex;align-items:center;justify-content:center;gap:16px;margin:12px 0 34px;flex-wrap:wrap;position:relative;z-index:1}
+.follow-label{font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-size:clamp(1.4rem,3vw,1.8rem);color:var(--gold);margin-right:8px}
+.soc{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;transition:transform .2s,box-shadow .2s;flex:none;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
+.soc:hover{transform:translateY(-3px);box-shadow:0 6px 16px rgba(0,0,0,0.4)}
+.fb{background:#1877F2;}
+.ig{background:radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);}
+.x{background:#000;}
+.th{background:#111;}
+.yt{background:#FF0000;}
+
+/* Quick Links / Legal / Contact columns */
+.foot-grid{display:grid;grid-template-columns:minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr);gap:40px;padding:50px 0 40px;border-top:1px solid rgba(201,162,39,0.15);position:relative;z-index:1}
+.foot-grid h4{color:#fff;margin-bottom:18px;font-size:1.05rem;font-family:'Fraunces','Noto Serif Devanagari',Georgia,serif;font-weight:600;letter-spacing:0.04em}
+.foot-grid a{display:block;font-size:.9rem;margin-bottom:12px;color:#E8D2B8;overflow-wrap:break-word;transition:color 0.2s;opacity: 0.85;}
+.foot-grid a:hover{color:#fff;opacity: 1;}
+.foot-brand p{font-size:.9rem;max-width:290px;margin-top:12px;color:#E8D2B8;line-height:1.7;opacity: 0.85;}
+
+.copyright{border-top:1px solid rgba(201,162,39,0.15);padding:24px 20px;font-size:.82rem;text-align:center;color:var(--gold);overflow-wrap:break-word;position:relative;z-index:1;font-weight:500;letter-spacing:0.02em}

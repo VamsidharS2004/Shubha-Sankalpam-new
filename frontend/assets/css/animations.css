@@ -1,0 +1,215 @@
+/* ================================================================
+   ANIMATIONS.CSS — sitewide motion layer
+   ================================================================
+   Loaded on EVERY page, right before responsive.css. Covers:
+     - page-load fade-in (no flash of unstyled content)
+     - hero entrance animation (headline/CTA/media)
+     - scroll-reveal for sections/cards (paired with animations.js,
+       which adds/removes the "in-view" class via IntersectionObserver)
+     - refined hover/press feedback for buttons, cards, nav, tabs
+     - a gentle floating drift for the gold ornament flourishes
+
+   Nothing here changes layout, only opacity/transform/timing, so it
+   cannot affect navigation, forms, or any existing functionality.
+   Everyone gets the plain, un-animated result if they've asked their
+   OS for reduced motion (see the media query at the bottom).
+   ================================================================ */
+
+:root{
+  --ease-out: cubic-bezier(.16,1,.3,1);
+  --ease-soft: cubic-bezier(.4,0,.2,1);
+  --dur-fast: .22s;
+  --dur-med: .5s;
+  --dur-slow: .8s;
+}
+
+/* ---------- landing splash (home page only) ----------
+   Plays once on first paint: the full logo illustration (brand
+   name is baked into the artwork itself) settles into place through
+   real 3D space — starts tilted back and to the side, rocks through
+   a slight overshoot, and comes to rest flat, like it's being set
+   down on a shelf. A soft contact shadow grows underneath it in
+   sync. The rotation is deliberately kept well short of 90° on any
+   axis — past that point a flat image would appear mirrored/edge-on
+   rather than "spinning," which reads as a glitch, not a 3D effect.
+   Holds briefly, then the whole overlay fades and is removed.
+   pointer-events:none from the very first frame — decorative only,
+   can never block a click on the real page underneath, even
+   mid-animation. animations.js adds .skip if the visitor has
+   already seen it this session, or if they've asked for reduced
+   motion — in both cases it never appears at all rather than
+   flashing in and immediately hiding. */
+.site-splash{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;align-items:center;justify-content:center;
+  background:#ffffff;
+  pointer-events:none;
+  animation:splashOut .8s cubic-bezier(.7,0,.3,1) 1.5s forwards;
+}
+.site-splash.skip{display:none;animation:none}
+
+.site-splash-stage{
+  text-align:center;
+  perspective:1200px;
+}
+
+.site-splash-mark{
+  display:block;
+  width:clamp(200px,50vw,280px);height:auto;margin:0 auto;
+  max-width:90vw;
+  transform-style:preserve-3d;
+  animation:markReveal 1.2s cubic-bezier(.16,1,.3,1) .15s both;
+}
+
+.site-splash-shadow{
+  display:none;
+}
+
+@keyframes markReveal{
+  0%  {opacity:0; transform:rotateY(-180deg) scale(0.7); filter:blur(8px)}
+  100%{opacity:1; transform:rotateY(0deg) scale(1); filter:blur(0)}
+}
+@keyframes splashOut{
+  0%{opacity:1; visibility:visible}
+  100%{opacity:0; visibility:hidden; transform:translateY(-20px)}
+}
+
+/* ---------- page load: soft fade so nothing "pops" in ----------
+   Pure CSS (not gated behind a JS-added class) so it plays
+   immediately on first paint and still works if JS is disabled. */
+body{animation: pageFadeIn .5s var(--ease-soft) both}
+@keyframes pageFadeIn{from{opacity:0}to{opacity:1}}
+
+/* ---------- generic scroll-reveal primitive ----------
+   animations.js adds class="reveal" to sections/cards/etc. and then
+   toggles "in-view" once each element scrolls into the viewport. */
+.reveal{
+  opacity:0;
+  transform:translateY(26px);
+  transition:opacity var(--dur-slow) var(--ease-out),
+             transform var(--dur-slow) var(--ease-out);
+  will-change:opacity,transform;
+}
+.reveal.in-view{opacity:1;transform:none}
+
+/* staggered children (cards, steps, faq items, gallery tiles...) —
+   animations.js sets --reveal-i on each child so this delay fans out */
+.reveal-stagger > *{
+  opacity:0;
+  transform:translateY(22px);
+  transition:opacity var(--dur-med) var(--ease-out),
+             transform var(--dur-med) var(--ease-out);
+  transition-delay:calc(var(--reveal-i, 0) * 70ms);
+}
+.reveal-stagger.in-view > *{opacity:1;transform:none}
+
+/* ---------- hero entrance (plays once on load, not on scroll) ---------- */
+@keyframes heroFadeUp{
+  from{opacity:0;transform:translateY(22px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.hero .slide.active > div:first-child > *{
+  animation:heroFadeUp .7s var(--ease-out) both;
+}
+.hero .slide.active > div:first-child > *:nth-child(1){animation-delay:.02s}
+.hero .slide.active > div:first-child > *:nth-child(2){animation-delay:.08s}
+.hero .slide.active > div:first-child > *:nth-child(3){animation-delay:.14s}
+.hero .slide.active > div:first-child > *:nth-child(4){animation-delay:.2s}
+.hero .slide.active .slide-media{
+  animation:heroFadeUp .8s var(--ease-out) both;
+  animation-delay:.1s;
+}
+.hero .stats-card,.hero .trust-box{animation:heroFadeUp .7s var(--ease-out) both;animation-delay:.3s}
+
+/* gentle floating drift for the gold flourish ornaments — subtle,
+   not distracting, echoes temple-flag movement */
+@keyframes ornamentDrift{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-5px)}
+}
+.ornament{animation:ornamentDrift 5s ease-in-out infinite}
+
+/* ---------- buttons ---------- */
+.btn{transition:transform var(--dur-fast) var(--ease-soft),
+                box-shadow var(--dur-fast) var(--ease-soft),
+                background var(--dur-fast) var(--ease-soft)}
+.btn:active{transform:translateY(0) scale(.97)}
+
+/* ---------- cards (puja/package cards) ---------- */
+.card{transition:transform var(--dur-fast) var(--ease-soft),
+                 box-shadow var(--dur-fast) var(--ease-soft)}
+.card:hover{box-shadow:0 16px 40px rgba(107,18,32,.16)}
+.card-media img{transition:transform .5s var(--ease-out)}
+.card:hover .card-media img{transform:scale(1.06)}
+
+/* ---------- nav links: animated underline instead of a hard snap ---------- */
+.nav-links a{position:relative;transition:color var(--dur-fast) var(--ease-soft)}
+.nav-links a::after{
+  content:"";position:absolute;left:0;right:100%;bottom:-2px;height:2.5px;
+  background:#C9A227;transition:right var(--dur-med) var(--ease-out);
+}
+.nav-links a:hover::after,.nav-links a.active::after{right:0}
+
+/* ---------- logo: a small, tasteful lift on hover ---------- */
+.logo{transition:transform var(--dur-fast) var(--ease-soft)}
+.logo:hover{transform:translateY(-1px)}
+
+/* ---------- tabs (category filters) ---------- */
+.tab{transition:background var(--dur-fast) var(--ease-soft),
+                color var(--dur-fast) var(--ease-soft),
+                border-color var(--dur-fast) var(--ease-soft),
+                transform var(--dur-fast) var(--ease-soft)}
+.tab:hover{transform:translateY(-1px)}
+
+/* ---------- language dropdown: scale+fade instead of an instant pop ---------- */
+.lang-menu{
+  transform-origin:top right;
+  transition:opacity var(--dur-fast) var(--ease-out),
+             transform var(--dur-fast) var(--ease-out);
+}
+.lang-menu.hidden{opacity:0;transform:scale(.96) translateY(-4px);pointer-events:none;display:block}
+.lang-menu:not(.hidden){opacity:1;transform:scale(1) translateY(0)}
+
+/* ---------- whatsapp pill: subtle pulse to draw the eye without nagging ---------- */
+@keyframes waPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,.35)}
+  50%{box-shadow:0 0 0 6px rgba(37,211,102,0)}
+}
+.whatsapp-pill{transition:transform var(--dur-fast) var(--ease-soft)}
+.whatsapp-pill:hover{transform:translateY(-1px);animation:none}
+.whatsapp-pill .wa-icon{animation:waPulse 2.4s ease-in-out infinite}
+
+/* ---------- FAQ accordion: icon + panel already animate; add a soft lift ---------- */
+.faq{transition:box-shadow var(--dur-fast) var(--ease-soft),border-color var(--dur-fast) var(--ease-soft)}
+.faq.open{box-shadow:var(--shadow);border-color:transparent}
+.faq button::after{transition:transform var(--dur-fast) var(--ease-soft)}
+
+/* ---------- step icons (home page "4 steps") ---------- */
+.step{transition:transform var(--dur-fast) var(--ease-soft),box-shadow var(--dur-fast) var(--ease-soft)}
+.step:hover{transform:translateY(-4px);box-shadow:0 16px 36px rgba(107,18,32,.14)}
+.step .icon{transition:transform var(--dur-fast) var(--ease-soft)}
+.step:hover .icon{transform:scale(1.08)}
+
+/* ---------- social icons already scale; keep it snappy ---------- */
+.soc{transition:transform var(--dur-fast) var(--ease-soft)}
+
+/* ---------- dots (hero slider) ---------- */
+.dot{transition:width var(--dur-med) var(--ease-out),background var(--dur-fast) var(--ease-soft)}
+
+/* ---------- lightbox ---------- */
+.lightbox{transition:opacity var(--dur-fast) var(--ease-soft)}
+.lightbox-frame{animation:heroFadeUp .35s var(--ease-out) both}
+
+/* ---------- respect reduced motion: kill everything above ---------- */
+@media (prefers-reduced-motion: reduce){
+  html.js-ready body{animation:none}
+  .site-splash{display:none!important}
+  .reveal,.reveal-stagger > *{opacity:1!important;transform:none!important;transition:none!important}
+  .hero .slide.active > div:first-child > *,
+  .hero .slide.active .slide-media,
+  .hero .stats-card,.hero .trust-box{animation:none!important}
+  .ornament{animation:none!important}
+  .whatsapp-pill .wa-icon{animation:none!important}
+  .lightbox-frame{animation:none!important}
+  *{scroll-behavior:auto!important}
+}

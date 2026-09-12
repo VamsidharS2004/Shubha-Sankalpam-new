@@ -1,0 +1,271 @@
+
+## account.html
+- Devotee
+- Preferred Language:
+- Saved Wishlist
+- ✆ Chat on WhatsApp
+- Add email address
+- Support
+- Gotram
+- Language
+- English (Default)
+- Save Changes
+- Devotee Wallet
+- Nothing saved yet — tap the ♡ on any puja or package to add it here.
+- Wishlist
+- ACTIVE SUBSCRIPTIONS
+- Pending
+- Browse Packages
+- You don't have any active subscriptions yet.
+- Wallet credits (from cancellations/refunds) will appear here once that feature is enabled.
+- Most pujas don't need a delivery address — this is here for future features like prasadam delivery.
+- My Bookings
+- Email Address:
+- Ongoing
+- Completed
+- Edit Profile
+- ✎ Edit Profile
+- • Verified Account
+- Browse Pujas
+- Saved Address
+- HOME
+- Devotee Information
+- Full Name:
+- Verified Phone:
+- Gotram:
+- Language Switcher
+- About
+- Saved Addresses
+- Full Name
+- No saved addresses yet.
+- Not provided
+- Email Address (Optional)
+- DEVOTEE
+- Need help with a booking or have a question?
+- My Account | Shubha Sankalpam
+- Profile Summary
+- Account
+- SAVED ADDRESSES
+- TOTAL BOOKINGS
+- My Bookings & Tracker
+- Wallet
+- My Subscriptions
+- Wallet balance:
+- Logout
+
+## admin.html
+- Enter the master password to manage bookings.
+- Date
+- Devotee
+- Status
+- Access Dashboard
+- Admin Dashboard
+- Admin Access
+- Action
+- Puja
+- Admin Dashboard | Shubha Sankalpam
+
+## booking.html
+- I don't know my gotra
+- పాల్గొనేవారి గోత్రాన్ని భర్తీ చేయండి
+- Convenience Fee
+- పూజ సంకల్పం సమయంలో ఈ పేరు చేర్చబడుతుంది.
+- Friday, 14 August
+- Total
+- పూజ వీడియో 24 గంటల్లో అందుతుంది
+- పవిత్ర దేవాలయాల్లో పూజలు నిర్వహించబడతాయి
+- Booking — Enter Sankalpam Details | Shubha Sankalpam
+- Photo and video recording Fee
+- మీ వాట్సాప్ నంబర్ ✏️
+- మీ ఆకాంక్ష జోడించండి
+- Payment
+- సమీక్ష
+- ₹150
+- పూజ వీడియో మరియు ఆశీర్వాద వివరాలు ఈ నంబర్‌కు పంపబడతాయి.
+- ₹500
+- ధృవీకరించబడిన, అనుభవజ్ఞులైన పురోహితులు
+- (ఐచ్ఛికం)
+- భక్తుల వివరాలు
+- Free
+- Pandit Fee
+- Family Puja
+- Please enter at least one devotee name
+- పూజలో పాల్గొనబోయే సభ్యుల పేర్లు
+- Continue
+- 100% ప్రామాణిక వైదిక పూజలు
+- 🔒 100% Secure
+- పూజ కోసం మీ వివరాలు నమోదు చేయండి
+- Puja Title
+
+## home.html
+- Gallery
+- Puja is Performed
+- Receive Puja video & Blessings
+- Booking
+- Select the puja you wish to perform and provide your details.
+- 1000+
+- to Divine
+- Puja
+- The temples where your pujas are performed, by verified purohits.
+- View All Pujas
+- Doubts?
+- Wealth
+- Protection
+- Online Puja Booking — Book Vedic Pujas & Homams | Shubha Sankalpam
+- Our devotee care team is available on WhatsApp, phone, and email. Meanwhile, here are answers to common questions.
+- 250K+
+- Pujas
+- Graha Shanti
+- Pujas Performed
+- Devotee Rating
+- Sacred Temples
+- Devotees
+- We're Here.
+- Blessings
+- Choose Your Puja
+- Complete Booking
+- Our verified purohits perform the puja with devotion on your behalf.
+- Sacred
+- Marriage
+- Special
+- Happy Devotees
+- 4.8/5
+- Shubha Sankalpam
+- Temples
+- Health
+- From
+- Education
+- Receive the divine blessings and Puja video
+- What
+- Choose your preferred date and complete the payment securely.
+
+## index.html
+- home
+- Redirecting to
+
+## login.html
+- Verify OTP
+- Complete Profile
+- We'll email you a one-time password (OTP) to verify it's you.
+- Resend OTP in
+- Resend OTP
+- Login or Sign Up
+- Login | Shubha Sankalpam
+- Send OTP
+
+## package.html
+- Upcoming Puja Packages
+- Discover Sacred Pujas & Divine Blessings
+- Find authentic temple rituals performed by qualified priests and receive personalized sankalpam, puja videos, and divine blessings.
+- Puja Packages — Monthly Subscriptions | Shubha Sankalpam
+
+## payment.html
+- 📋 How to complete your monthly subscription:
+- Open GPay / PhonePe / Paytm or any UPI app and scan this code, or pay directly to the UPI ID above.
+- Enable AutoPay
+- Set up AutoPay so future months are automatic 🔄
+- ✓ I've Paid — Set Up AutoPay Now
+- Step 3:
+- Scan & Pay
+- using GPay / PhonePe / Paytm
+- 🔐 Enable AutoPay
+- Step 2:
+- Come back here and click the button below
+- We will verify your payment and send a confirmation on WhatsApp. Your sankalpam video will follow within 48 hours of the puja.
+- Payment — Scan & Pay | Shubha Sankalpam
+- Scan the QR & pay ₹
+- View My Bookings
+- UPI ID
+- Your first payment is done! Enable AutoPay so you're
+- Thank you! Booking received.
+- Skip for now
+- 🔒 Secured by Razorpay · Cancel anytime from My Account
+- never charged manually again — every month, automatically.
+- Step 1:
+
+## puja-details.html
+- Maha Rudrabhishekam
+- Booking closes in
+- Gallery
+- Live Streaming Available
+- What's Included in the Puja
+- /- per puja
+- 2 Hours
+- Seconds
+- Inclusive of all puja samagri & seva
+- Home
+- Need Help with Booking?
+- Sanskrit
+- 06:00 AM - 08:00 AM
+- Frequently Asked Questions
+- Book Puja Now
+- Includes All Samagri & Vastra
+- Puja Completion Certificate
+- Minutes
+- Reviews
+- Duration:
+- Benefits
+- What You'll Receive
+- Language:
+- Book Now
+- Call Us
+- Days
+- Hours
+- Puja Details | Shubha Sankalpam
+- Temple Details
+- 🔥 Most Popular
+- Maha Pujas
+- Performed by Vedic Scholars
+- Notify Me
+- Puja Highlights
+- Chat on WhatsApp
+- About Puja
+- Procedure
+- Booking Closed
+- Puja
+
+## puja.html
+- Upcoming Pujas
+- Find authentic temple rituals performed by qualified priests and receive personalized sankalpam, puja videos, and divine blessings.
+- Discover Sacred Pujas & Divine Blessings
+- Finance
+- Health
+- Our Pujas — Book Online | Shubha Sankalpam
+
+## vedamandir.html
+- Seek the divine blessings of Lord Shiva for health, wealth, and the removal of negativities.
+- Twitter / X
+- View Details
+- Blog
+- Support
+- VedaMandir - Vedic Puja Booking
+- Contact Us
+- Instagram
+- Connect
+- Home
+- Sri Satyanarayan Puja
+- Book verified Pandits for your ceremonies. Complete transparency, pure samagri, and authentic rituals performed exactly as prescribed in the Shastras.
+- Press
+- Experience Divine Blessings with Authentic Vedic Pujas
+- Company
+- VedaMandir
+- Navagraha Shanti
+- Careers
+- Pacify the nine planetary deities to resolve astrological doshas and ensure success.
+- YouTube
+- Connecting devotees with authentic Vedic traditions. We ensure every ritual is performed with pure devotion, right procedures, and highest quality samagri.
+- Chadhava
+- Facebook
+- Popular Pujas
+- © 2026 VedaMandir. All rights reserved.
+- A sacred ritual performed to invite abundance, prosperity, and peace into your home.
+- Book Now
+- About Us
+- Account
+- Packages
+- FAQs
+- Privacy Policy
+- Cancellation Policy
+- Temples
+- Maha Rudra Abhishek
+- Puja

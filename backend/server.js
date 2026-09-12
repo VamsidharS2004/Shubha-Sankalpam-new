@@ -1,0 +1,73 @@
+/* ============================================================
+   SERVER ENTRY POINT — small on purpose. It only:
+     1. hands /api/... requests to routes/api.js
+     2. serves /admin (the dashboard)
+     3. serves the frontend files for everything else
+
+   HOW TO RUN:  open a terminal in this folder →  node server.js
+   Website:  http://localhost:3000
+   Admin:    http://localhost:3000/admin
+
+   STRUCTURE:
+     routes/       which URL goes to which controller
+     controllers/  what each API actually does
+     middleware/   login & admin checks that run first
+     models/       reading/writing users.json & bookings.json
+     utils/        shared helpers
+     config.js     port, admin password, demo mode
+   ============================================================ */
+const http = require("http");
+const fs = require("fs");
+const path = require("path");
+const { PORT, FRONTEND_DIR, ADMIN_PASSWORD } = require("./config");
+const { send, MIME } = require("./utils/http");
+const { handleApi } = require("./routes/api");
+
+const server = http.createServer(async (req, res) => {
+  try {
+    /* URL parsing must be INSIDE the try block — a malformed request
+       path (e.g. a bot probing "//" or other odd paths) would throw
+       here, and if that throw isn't caught, it takes down the ENTIRE
+       server for every visitor, not just that one request. */
+    const url = new URL(req.url, "http://localhost");
+
+    /* 1. API */
+    if (await handleApi(req, res, url)) return;
+
+    /* 2. Admin dashboard */
+    if (req.method === "GET" && url.pathname === "/admin") {
+      const html = fs.readFileSync(path.join(__dirname, "admin.html"), "utf8");
+      return send(res, 200, html, "text/html");
+    }
+
+    /* 3. Frontend static files */
+    let filePath = path.join(FRONTEND_DIR, decodeURIComponent(url.pathname));
+    if (url.pathname === "/") filePath = path.join(FRONTEND_DIR, "home.html");
+    if (!filePath.startsWith(FRONTEND_DIR)) return send(res, 403, { error: "Forbidden" });
+    fs.readFile(filePath, (err, data) => {
+      if (err) return send(res, 404, "<h1>404 — Page not found</h1>", "text/html");
+      send(res, 200, data, MIME[path.extname(filePath)] || "application/octet-stream");
+    });
+  } catch (e) {
+    send(res, 400, { error: e.message || "Bad request" });
+  }
+});
+
+/* Safety net: if any bug anywhere in the code throws an error that
+   nothing else caught, log it instead of crashing the whole server.
+   One broken request should never take the site down for everyone. */
+process.on("uncaughtException", (err) => {
+  console.error("⚠️  Unexpected error (server stayed running):", err.message);
+});
+
+const SERVER_PORT = process.env.PORT || PORT;
+
+server.listen(SERVER_PORT, "0.0.0.0", () => {
+  console.log("");
+  console.log("🪔  Puja booking site is running!");
+  console.log(`    Website:  http://0.0.0.0:${SERVER_PORT}`);
+  console.log(`    Admin:    http://0.0.0.0:${SERVER_PORT}/admin`);
+  console.log("");
+  console.log("    OTPs are printed here (and shown on screen in demo mode).");
+  console.log("    Press Ctrl+C to stop the server.");
+});
