@@ -111,7 +111,7 @@ function renderFooter() {
           <a href="https://wa.me/${SITE.WHATSAPP}">+${SITE.WHATSAPP}</a>
         </div>
       </div>
-      <div class="copyright">© 2026 ${SITE.BRAND}. All rights reserved.</div>
+      <div class="copyright">© 2026 ${SITE.BRAND}. All rights reserved.<br>Operated by Gowthrix Innovations Private Limited</div>
     </footer>
   </div>`;
 }
