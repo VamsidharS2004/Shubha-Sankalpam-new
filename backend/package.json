@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "config.js",
-  "scripts": {"migrate": "node migrate.js", "seed": "node seed.js",
+  "scripts": {
+    "migrate": "node migrate.js",
+    "seed": "node seed.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
@@ -14,6 +16,6 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",
     "razorpay": "^2.9.8",
-    "resend": "^6.26.0"
+    "resend": "^6.28.0"
   }
 }
