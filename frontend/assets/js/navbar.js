@@ -187,7 +187,7 @@ async function checkAbandonedBooking() {
 
   try {
     const me = await api("/api/me");
-    const pendings = (me.bookings || []).filter(b => b.status === "Pending" || b.status === "payment-pending");
+    const pendings = (me.bookings || []).filter(b => b.status === "Pending" || b.status === "payment-pending" || b.status === "failed");
     if (pendings.length > 0) {
       // Get language for translation
       const lang = localStorage.getItem("lang") || "en";
@@ -255,7 +255,7 @@ async function checkAbandonedBooking() {
         style.id = "abandoned-style";
         style.innerHTML = `
           .abandoned-fab { 
-            position: fixed; bottom: 100px; right: 24px; z-index: 9999;
+            position: fixed; bottom: 120px; right: 24px; z-index: 9999;
             width: 60px; height: 60px; border-radius: 50%;
             background: #d32f2f; color: white; display: flex; justify-content: center; align-items: center;
             box-shadow: 0 6px 20px rgba(211,47,47,0.4); text-decoration: none;
@@ -277,7 +277,7 @@ async function checkAbandonedBooking() {
             opacity: 1; visibility: visible; transform: translateY(0);
           }
           @media (max-width: 900px) { 
-            .abandoned-fab { bottom: 160px; right: 16px; width: 54px; height: 54px; }
+            .abandoned-fab { bottom: 190px; right: 16px; width: 54px; height: 54px; }
             .abandoned-tooltip { bottom: 65px; font-size: 14px; }
           }
         `;

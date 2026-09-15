@@ -115,6 +115,30 @@ async function adminDeleteBooking(req, res, url) {
   send(res, 200, { ok: true });
 }
 
+async function deleteMyBooking(req, res, url) {
+  const id = url.searchParams.get("id");
+  if (!id) return send(res, 400, { error: "Missing booking id" });
+  if (!req.userPhone) return send(res, 401, { error: "Unauthorized" });
+
+  const b = await bookingModel.findById(id);
+  if (!b) return send(res, 404, { error: "Not found" });
+  if (b.userPhone !== req.userPhone && b.devotee_phone !== req.userPhone) return send(res, 403, { error: "Forbidden" });
+
+  const ok = await bookingModel.deleteBooking(id);
+  if (!ok) return send(res, 500, { error: "Failed to delete booking" });
+  send(res, 200, { ok: true });
+}
+
+async function recoverBooking(req, res, url) {
+  const id = url.searchParams.get("id");
+  if (!id) return send(res, 400, { error: "Missing booking id" });
+
+  const b = await bookingModel.findById(id);
+  if (!b) return send(res, 404, { error: "Not found" });
+  
+  send(res, 200, b);
+}
+
 module.exports = {
-  create, claimPayment, listAll, adminCreateBooking, updateVideo, adminUpdateBooking, adminDeleteBooking
+  create, claimPayment, listAll, adminCreateBooking, updateVideo, adminUpdateBooking, adminDeleteBooking, deleteMyBooking, recoverBooking
 };

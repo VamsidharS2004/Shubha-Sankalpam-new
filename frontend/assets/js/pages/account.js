@@ -164,7 +164,7 @@ function renderBookingsList() {
       const foot = card.querySelector(".card-foot");
       if (foot) {
         let actionBtn = "";
-        if (b.status === "payment-pending") {
+        if (b.status === "payment-pending" || b.status === "failed") {
              actionBtn = `
               <div style="display:flex; align-items:center; gap:8px;">
                 <button onclick="window.deleteBooking('${b.id}')" style="background:#fff; border:1px solid #ddd; color: #d32f2f; padding: 8px 12px; border-radius: 999px; cursor: pointer; display:flex; align-items:center; justify-content:center; gap:4px; font-weight:600; font-size:0.85rem; transition: background 0.15s;" title="Delete Booking">
