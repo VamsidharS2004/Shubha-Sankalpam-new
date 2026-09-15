@@ -10,6 +10,8 @@
 const pujas = [
   {
     "name": "అష్టభైరవ ఆపదుద్ధారక రక్షాహోమం",
+    "title_te": "అష్టభైరవ ఆపదుద్ధారక రక్షాహోమం",
+    "title_en": "Ashtabhairava Homam",
     "desc": "కాలాష్టమి ప్రత్యేకం — భైరవ మూలమంత్రాల నడుమ 8 కిలోల మిరియాలతో అష్టభైరవులకు హోమాహుతులు, ఆపదల నుండి రక్షణ కోసం.",
     "temple": "Vikranta Bhairava Temple",
     "date": "Saturday, 20 September",

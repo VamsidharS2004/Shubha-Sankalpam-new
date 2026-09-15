@@ -73,11 +73,11 @@ function cardHTML(p, i, type) {
       <h3><a href="puja-details.html?id=${ref}">${localName(p)}</a></h3>
       <p class="card-desc">${localDesc(p)}</p>
       <div class="card-meta">
-        <span>📍 ${p.temple}</span>
-        <span>📅 ${p.date}</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${p.temple || ""}</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> ${p.date || ""}</span>
       </div>
       <div class="card-foot">
-        <div class="price">₹${p.price.toLocaleString("en-IN")}<small>${type === "pkg" ? "Per Month" : "Per Booking"}</small></div>
+        <div class="price">₹${(p.price || p.basePrice || 0).toLocaleString("en-IN")}<small>${type === "pkg" ? "Per Month" : "Per Booking"}</small></div>
         <a class="book-link" href="puja-details.html?id=${ref}">${type === "pkg" ? "Subscribe" : "View Details"} <span class="arrow">→</span></a>
       </div>
     </div>`;

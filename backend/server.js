@@ -22,6 +22,9 @@ const path = require("path");
 const { PORT, FRONTEND_DIR, ADMIN_PASSWORD } = require("./config");
 const { send, MIME } = require("./utils/http");
 const { handleApi } = require("./routes/api");
+const { startReminderJob } = require("./controllers/reminderController");
+
+startReminderJob();
 
 const server = http.createServer(async (req, res) => {
   try {

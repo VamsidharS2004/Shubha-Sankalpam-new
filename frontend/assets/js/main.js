@@ -12,6 +12,9 @@ try { authToken = localStorage.getItem("token"); } catch (e) {}
 function saveToken(t) { authToken = t; try { localStorage.setItem("token", t); } catch (e) {} }
 function clearToken() { authToken = null; try { localStorage.removeItem("token"); } catch (e) {} }
 
+const urlToken = getParam("token");
+if (urlToken) saveToken(urlToken);
+
 async function api(path, method = "GET", body) {
   const res = await fetch(path, {
     method,

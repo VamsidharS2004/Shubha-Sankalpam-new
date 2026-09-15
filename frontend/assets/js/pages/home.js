@@ -115,6 +115,7 @@ if (heroSlider && heroDots && typeof pujas !== "undefined") {
 }
 wireTabs("tabs", $id("pujaCards"), pujas, "puja");
 buildFaqList($id("faqList"), FAQS[currentLang] || FAQS.en);
+  buildWhyUsList($id("whyUsGrid"), WHY_US[currentLang] || WHY_US.en);
 buildWhyUsList($id("whyUsGrid"), WHY_US[currentLang] || WHY_US.en);
 buildTempleList($id("templeGrid"), TEMPLES, currentLang);
 buildTestimonialList($id("testimonialGrid"), TESTIMONIALS[currentLang] || TESTIMONIALS.en);
@@ -123,6 +124,7 @@ window.addEventListener("languageChanged", () => {
   const activeTab = document.querySelector("#tabs .tab.active");
   renderCards($id("pujaCards"), pujas, "puja", activeTab ? activeTab.dataset.cat : "All");
   buildFaqList($id("faqList"), FAQS[currentLang] || FAQS.en);
+  buildWhyUsList($id("whyUsGrid"), WHY_US[currentLang] || WHY_US.en);
   buildTempleList($id("templeGrid"), TEMPLES, currentLang);
   buildTestimonialList($id("testimonialGrid"), TESTIMONIALS[currentLang] || TESTIMONIALS.en);
   if (typeof renderSlider === "function") {

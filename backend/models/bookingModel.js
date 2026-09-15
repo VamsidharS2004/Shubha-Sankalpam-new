@@ -152,9 +152,8 @@ async function getUserBookings(phone) {
   const { data, error } = await supabase
     .from("bookings")
     .select(`
-      id, price, status, created_at,
-      devotees!inner ( phone ),
-      pujas ( title_en ),
+      id, price, status, created_at, notes,
+      devotees!inner ( phone, name ),
       booking_names ( name )
     `)
     .eq("devotee_phone", p)
@@ -170,7 +169,7 @@ async function getUserBookings(phone) {
     videoUrl  : null,
     name      : b.booking_names?.length > 0 ? b.booking_names[0].name : (b.devotees?.name || "Unknown"),
     phone     : b.devotees?.phone || "",
-    puja      : b.pujas?.title_en || "Unknown Puja"
+    puja      : b.notes ? b.notes.replace(/^Puja:\s*/i, "").split("\n")[0] : "Unknown Puja"
   }));
 }
 
@@ -256,28 +255,38 @@ async function attachOrder(id, orderId) {
     const bookings = readLocalBookings();
     const idx = bookings.findIndex(b => b.id === id);
     if (idx === -1) return false;
-    bookings[idx].notes = `razorpay_order:${orderId}`;
+    const existingNotes = bookings[idx].notes || "";
+    bookings[idx].notes = existingNotes ? existingNotes + "\nrazorpay_order:" + orderId : "razorpay_order:" + orderId;
     writeLocalBookings(bookings);
     return true;
   }
 
   /* ---- Supabase ---- */
-  const { error } = await supabase.from("bookings").update({ notes: `razorpay_order:${orderId}` }).eq("id", id);
+  // We need to fetch existing notes to append
+  const { data: b } = await supabase.from("bookings").select("notes").eq("id", id).single();
+  const existingNotes = b?.notes || "";
+  const newNotes = existingNotes ? existingNotes + "\nrazorpay_order:" + orderId : "razorpay_order:" + orderId;
+  const { error } = await supabase.from("bookings").update({ notes: newNotes }).eq("id", id);
   return !error;
 }
 
 async function findByOrderId(orderId) {
   /* ---- LOCAL fallback ---- */
   if (!supabase) {
-    const b = readLocalBookings().find(b => b.notes === `razorpay_order:${orderId}`);
+    const b = readLocalBookings().find(b => (b.notes || "").includes(`razorpay_order:${orderId}`));
     if (!b) return null;
-    return { id: b.id, price: b.price };
+    return { id: b.id, price: b.price, userPhone: b.devotee_phone };
   }
 
   /* ---- Supabase ---- */
-  const { data, error } = await supabase.from("bookings").select("*").eq("notes", `razorpay_order:${orderId}`).single();
-  if (error) return null;
-  return { id: data.id, price: data.price };
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("id, price, devotee_phone")
+    .ilike("notes", `%razorpay_order:${orderId}%`)
+    .limit(1);
+
+  if (error || !data || data.length === 0) return null;
+  return { id: data[0].id, price: data[0].price, userPhone: data[0].devotee_phone };
 }
 
 async function markPaid(id, paymentId) {

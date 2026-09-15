@@ -18,7 +18,9 @@ const routes = [
   { method: "GET",  path: "/api/me",            middleware: [requireLogin],  handler: user.getMe      },
   { method: "PUT",  path: "/api/me",            middleware: [requireLogin],  handler: user.updateMe   },
   { method: "POST", path: "/api/bookings",      middleware: [optionalLogin], handler: booking.create  },
+  { method: "DELETE", path: "/api/bookings",    middleware: [requireLogin],  handler: booking.deleteMyBooking },
   { method: "POST", path: "/api/bookings/claim", middleware: [],             handler: booking.claimPayment },
+  { method: "GET",  path: "/api/bookings/recover", middleware: [],           handler: booking.recoverBooking },
   
   // --- Admin Endpoints ---
   { method: "GET",  path: "/api/admin/bookings", middleware: [adminOnly],    handler: booking.listAll },

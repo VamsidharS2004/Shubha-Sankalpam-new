@@ -18,6 +18,19 @@ function renderHeader() {
   const isBookingFlow = (page === "booking.html" || page === "payment.html");
   const act = p => (page === p ? ' class="active"' : "");
   
+  // Smart Go Back: uses history to preserve form states, with fallback if no history
+  let fallbackUrl = "home.html";
+  const params = new URLSearchParams(window.location.search);
+  const refId = params.get("id");
+  
+  if (page === "payment.html" && refId) {
+    fallbackUrl = `booking.html?id=${refId}`;
+  } else if (page === "booking.html" && refId) {
+    fallbackUrl = `puja-details.html?id=${refId}`;
+  }
+  
+  const backScript = `if(document.referrer && document.referrer.includes(window.location.host)){window.history.back();}else{window.location.href='${fallbackUrl}';}`;
+
   $id("site-header").innerHTML = `
   <header>
     <div class="container nav">
@@ -27,7 +40,7 @@ function renderHeader() {
       </a>
       <nav class="nav-links" aria-label="Main">
         ${isBookingFlow ? `
-        <a href="javascript:history.back()" style="display:flex; align-items:center; gap:6px; font-weight:600; color:var(--text); text-decoration:none; padding:8px 0;">
+        <a href="javascript:void(0)" onclick="${backScript}" style="display:flex; align-items:center; gap:6px; font-weight:600; color:var(--text); text-decoration:none; padding:8px 0;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           Go Back
         </a>
@@ -163,4 +176,128 @@ function initLayout() {
   };
   setHeaderHeight();
   window.addEventListener("resize", setHeaderHeight);
+  checkAbandonedBooking();
+}
+
+async function checkAbandonedBooking() {
+  if (typeof authToken === 'undefined' || !authToken) return;
+  // Don't show the banner if we are already in the checkout, booking flow, or account page
+  const page = location.pathname.split("/").pop() || "";
+  if (page === "payment.html" || page === "booking.html" || page === "account.html") return;
+
+  try {
+    const me = await api("/api/me");
+    const pendings = (me.bookings || []).filter(b => b.status === "Pending" || b.status === "payment-pending");
+    if (pendings.length > 0) {
+      // Get language for translation
+      const lang = localStorage.getItem("lang") || "en";
+      const isTe = lang === "te";
+      const isHi = lang === "hi";
+      
+      let btnMsg = isTe ? "బుకింగ్ కొనసాగించండి:" : (isHi ? "बुकिंग जारी रखें:" : "Continue Booking:");
+      let displayName = "";
+      let targetUrl = "";
+
+      if (pendings.length === 1) {
+        const pending = pendings[0];
+        let refId = "puja:0";
+        let matchedItem = null;
+  
+        if (typeof pujas !== 'undefined') {
+          let idx = pujas.findIndex(p => p.name === pending.puja);
+          if (idx === -1 && pending.puja.includes("razorpay_order:")) idx = pujas.findIndex(p => p.price === pending.price);
+          if (idx !== -1) { 
+             matchedItem = pujas[idx];
+             if (matchedItem.id) {
+               const baseId = matchedItem.id.split("-")[0];
+               const localIdx = pujas.findIndex(p => p.id === baseId + "-" + lang);
+               if (localIdx !== -1) {
+                 matchedItem = pujas[localIdx];
+                 refId = "puja:" + localIdx;
+               } else refId = "puja:" + idx;
+             } else refId = "puja:" + idx;
+          }
+        }
+  
+        if (typeof packages !== 'undefined' && !matchedItem) {
+          let idx = packages.findIndex(p => p.name === pending.puja);
+          if (idx === -1 && pending.puja.includes("razorpay_order:")) idx = packages.findIndex(p => p.price === pending.price);
+          if (idx !== -1) { 
+             matchedItem = packages[idx];
+             if (matchedItem.id) {
+               const baseId = matchedItem.id.split("-")[0];
+               const localIdx = packages.findIndex(p => p.id === baseId + "-" + lang);
+               if (localIdx !== -1) {
+                 matchedItem = packages[localIdx];
+                 refId = "pkg:" + localIdx;
+               } else refId = "pkg:" + idx;
+             } else refId = "pkg:" + idx;
+          }
+        }
+  
+        displayName = matchedItem ? (matchedItem["title_" + lang] || matchedItem.title_en || matchedItem.name) : (pending.puja.includes("razorpay_order:") ? "Puja" : pending.puja);
+        targetUrl = `payment.html?bookingId=${pending.id}&id=${refId}`;
+      } else {
+        // Multiple pendings
+        displayName = isTe ? `${pendings.length} అసంపూర్ణ బుకింగ్‌లు` : (isHi ? `${pendings.length} अधूरी बुकिंग` : `${pendings.length} unfinished bookings`);
+        btnMsg = isTe ? "బుకింగ్‌లను చూడండి:" : (isHi ? "बुकिंग देखें:" : "View Bookings:");
+        targetUrl = `account.html?panel=bookings&tab=pending`;
+      }
+
+      // Floating container
+      const widget = document.createElement("a");
+      widget.className = "abandoned-fab";
+      widget.href = targetUrl;
+      
+      // Inject responsive styles for the widget
+      if (!document.getElementById("abandoned-style")) {
+        const style = document.createElement("style");
+        style.id = "abandoned-style";
+        style.innerHTML = `
+          .abandoned-fab { 
+            position: fixed; bottom: 100px; right: 24px; z-index: 9999;
+            width: 60px; height: 60px; border-radius: 50%;
+            background: #d32f2f; color: white; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 6px 20px rgba(211,47,47,0.4); text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
+          }
+          .abandoned-fab:hover {
+            transform: translateY(-2px); box-shadow: 0 8px 24px rgba(211,47,47,0.5);
+          }
+          .abandoned-tooltip {
+            position: absolute; bottom: 75px; right: 0;
+            background: white; color: #1a1a1a; padding: 12px 18px; border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15); border: 1px solid #f0f0f0;
+            white-space: nowrap; max-width: 85vw; overflow: hidden; text-overflow: ellipsis;
+            opacity: 0; visibility: hidden; transform: translateY(10px);
+            transition: all 0.2s ease-out; font-size: 15px; font-weight: 600;
+            pointer-events: none;
+          }
+          .abandoned-fab:hover .abandoned-tooltip {
+            opacity: 1; visibility: visible; transform: translateY(0);
+          }
+          @media (max-width: 900px) { 
+            .abandoned-fab { bottom: 160px; right: 16px; width: 54px; height: 54px; }
+            .abandoned-tooltip { bottom: 65px; font-size: 14px; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      widget.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="28" height="28" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <span style="position: absolute; top: 14px; right: 16px; width: 10px; height: 10px; background: #fff; border-radius: 50%; border: 2px solid #d32f2f;"></span>
+        <div class="abandoned-tooltip">
+          ${btnMsg} <strong style="color: #d32f2f;">${displayName}</strong>
+        </div>
+      `;
+      
+      document.body.appendChild(widget);
+    }
+  } catch (e) {
+    console.error("Failed to check abandoned bookings:", e);
+  }
 }

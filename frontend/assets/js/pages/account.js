@@ -39,6 +39,14 @@ document.querySelectorAll("[data-goto]").forEach(el => {
   el.addEventListener("click", () => showPanel(el.dataset.goto));
 });
 
+/* --- URL Routing --- */
+const urlParams = new URLSearchParams(window.location.search);
+const startPanel = urlParams.get("panel");
+if (startPanel) {
+  showPanel(startPanel);
+}
+const startTab = urlParams.get("tab");
+
 /* ---------------------------------------------------------------
    PROFILE + MY BOOKINGS (real data from the backend)
    --------------------------------------------------------------- */
@@ -61,8 +69,13 @@ const BK_TAB_STATUSES = {
   pending: ["payment-pending", "failed"],
   completed: ["video-sent"]
 };
-let currentBkTab = "ongoing";
+let currentBkTab = startTab || "ongoing";
 let allBookings = [];
+
+// Initialize the correct tab styling on load
+if (startTab) {
+  document.querySelectorAll("#bkTabs .bk-tab").forEach(t => t.classList.toggle("active", t.dataset.bktab === startTab));
+}
 
 document.querySelectorAll("#bkTabs .bk-tab").forEach(tab => {
   tab.addEventListener("click", () => {
@@ -73,111 +86,111 @@ document.querySelectorAll("#bkTabs .bk-tab").forEach(tab => {
 });
 
 function renderBookingsList() {
-  const list = $id("myBookingsList");
-  list.innerHTML = "";
-  const filtered = allBookings.filter(b => BK_TAB_STATUSES[currentBkTab].includes(b.status));
+    const list = $id("myBookingsList");
+    list.innerHTML = "";
+    const filtered = allBookings.filter(b => BK_TAB_STATUSES[currentBkTab].includes(b.status));
+  
+    if (filtered.length === 0) {
+      const emptyText = {
+        ongoing: "No ongoing bookings — once a payment is confirmed, it'll appear here until your puja video is ready.",
+        pending: "No pending bookings — bookings awaiting payment appear here.",
+        completed: "No completed bookings yet — once your puja video is delivered, it'll appear here."
+      }[currentBkTab];
+      list.innerHTML = `<div class="bk-empty" style="grid-column: 1 / -1; padding: 2rem; text-align: center; color: var(--muted);">${emptyText}</div>`;
+      return;
+    }
+  
+    filtered.forEach(b => {
+      const statusLabel = {
+        "payment-pending": "Payment Pending",
+        "payment-claimed": "Verifying Payment",
+        "paid": "Confirmed",
+        "failed": "Payment Failed",
+        "video-sent": "Video Sent"
+      }[b.status] || b.status;
 
-  if (filtered.length === 0) {
-    const emptyText = {
-      ongoing: "No ongoing bookings — once a payment is confirmed, it'll appear here until your puja video is ready.",
-      pending: "No pending bookings — bookings awaiting payment appear here.",
-      completed: "No completed bookings yet — once your puja video is delivered, it'll appear here."
-    }[currentBkTab];
-    list.innerHTML = `<div class="bk-empty">${emptyText}</div>`;
-    return;
-  }
-
-  filtered.forEach(b => {
-    const div = document.createElement("div");
-    div.className = "bk-item";
-
-    const statusLabel = {
-      "payment-pending": "Payment Pending",
-      "payment-claimed": "Verifying Payment",
-      "paid": "Confirmed",
-      "failed": "Payment Failed",
-      "video-sent": "Video Sent"
-    }[b.status] || b.status;
-
-    div.innerHTML = `
-      <div class="bk-summary">
-        <div><b></b><small></small></div>
-        <span class="bk-status bk-status-${b.status}"></span>
-      </div>
-      <div class="bk-details" style="display:none">
-        <div class="bk-detail-row"><span>Booking ID</span><span></span></div>
-        <div class="bk-detail-row"><span>Gotram</span><span></span></div>
-        <div class="bk-detail-row"><span>WhatsApp Number</span><span></span></div>
-        <div class="bk-detail-row"><span>Family Members</span><span></span></div>
-        <div class="bk-detail-row"><span>Booked On</span><span></span></div>
-        <div class="bk-video"></div>
-        <div class="bk-actions"></div>
-      </div>`;
-
-    div.querySelector(".bk-summary b").textContent = b.puja;
-    div.querySelector(".bk-summary small").textContent =
-      new Date(b.createdAt).toLocaleString("en-IN") + " • ₹" + b.price.toLocaleString("en-IN");
-    div.querySelector(".bk-status").textContent = statusLabel;
-
-    const rows = div.querySelectorAll(".bk-detail-row span:last-child");
-    rows[0].textContent = b.id;
-    rows[1].textContent = b.gotram || "—";
-    rows[2].textContent = b.phone;
-    rows[3].textContent = b.family || "—";
-    rows[4].textContent = new Date(b.createdAt).toLocaleString("en-IN");
-
-    /* PUJA VIDEO — shown for completed bookings once uploaded.
-       The upload/storage system itself is a planned follow-up
-       (needs a cloud storage decision) — this is the ready-to-go
-       frontend for whenever that data exists on a booking. */
-    if (b.status === "video-sent") {
-      const videoBox = div.querySelector(".bk-video");
-      if (b.videoUrl) {
-        const vid = document.createElement("video");
-        vid.controls = true;
-        vid.className = "bk-video-player";
-        vid.src = b.videoUrl;
-        videoBox.appendChild(vid);
-        if (Array.isArray(b.videoTimestamps) && b.videoTimestamps.length) {
-          const jumps = document.createElement("div");
-          jumps.className = "bk-video-jumps";
-          b.videoTimestamps.forEach(t => {
-            const jbtn = document.createElement("button");
-            jbtn.type = "button";
-            jbtn.className = "bk-video-jump";
-            jbtn.textContent = t.label;
-            jbtn.addEventListener("click", () => { vid.currentTime = t.seconds; vid.play(); });
-            jumps.appendChild(jbtn);
-          });
-          videoBox.appendChild(jumps);
+      let displayPuja = b.puja;
+      let matchedItem = null;
+      let refId = "puja:0";
+      let type = "puja";
+      
+      if (typeof pujas !== 'undefined') {
+        let idx = pujas.findIndex(p => p.name === b.puja || p.title_en === b.puja || p.title_te === b.puja);
+        if (idx === -1 && b.puja.includes("razorpay_order:")) {
+           idx = pujas.findIndex(p => p.price === b.price);
         }
-      } else {
-        videoBox.innerHTML = '<p class="hint">Your puja video is being processed and will appear here shortly.</p>';
+        if (idx !== -1) {
+           matchedItem = pujas[idx];
+           refId = matchedItem.id || `puja:${idx}`;
+        }
       }
-    }
-
-    /* CONTINUE PAYMENT — only shown for bookings still awaiting
-       payment, taking the devotee straight back to the payment
-       page for that exact booking */
-    if (b.status === "payment-pending") {
-      const ref = findRefByPujaName(b.puja);
-      if (ref) {
-        const btn = document.createElement("a");
-        btn.className = "btn btn-red";
-        btn.href = `payment.html?bookingId=${b.id}&id=${ref}`;
-        btn.innerHTML = 'Continue Payment <span class="arrow">→</span>';
-        div.querySelector(".bk-actions").appendChild(btn);
+      
+      if (typeof packages !== 'undefined' && !matchedItem) {
+        let idx = packages.findIndex(p => p.name === b.puja || p.title_en === b.puja || p.title_te === b.puja);
+        if (idx === -1 && b.puja.includes("razorpay_order:")) {
+           idx = packages.findIndex(p => p.price === b.price);
+        }
+        if (idx !== -1) {
+           matchedItem = packages[idx];
+           refId = matchedItem.id || `pkg:${idx}`;
+           type = "pkg";
+        }
       }
-    }
 
-    /* click the summary row to expand/collapse the full details */
-    div.querySelector(".bk-summary").addEventListener("click", () => {
-      const details = div.querySelector(".bk-details");
-      details.style.display = details.style.display === "none" ? "block" : "none";
+      if (!matchedItem) {
+        matchedItem = {
+          name: displayPuja.includes("razorpay_order:") ? "Puja / Package" : displayPuja,
+          price: b.price,
+          image: "cm-a",
+          temple: "",
+          date: new Date(b.createdAt).toLocaleDateString("en-IN")
+        };
+      }
+
+      const card = document.createElement("article");
+      card.className = "card";
+      card.innerHTML = cardHTML(matchedItem, refId.split(":")[1] || 0, type);
+
+      // 1. Replace the meta info (Temple/Date) with Booking specific info (Gotram/Family/Booking Date)
+      const meta = card.querySelector(".card-meta");
+      if (meta) {
+        meta.innerHTML = `
+          <span title="Booking Date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> ${new Date(b.createdAt).toLocaleDateString("en-IN")}</span>
+          <span title="Gotram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px; margin-right:4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> ${b.gotram || 'N/A'}</span>
+        `;
+      }
+
+      // 2. Redesign the footer to look exactly like the standard footer, but with booking actions
+      const foot = card.querySelector(".card-foot");
+      if (foot) {
+        let actionBtn = "";
+        if (b.status === "payment-pending") {
+             actionBtn = `
+              <div style="display:flex; align-items:center; gap:8px;">
+                <button onclick="window.deleteBooking('${b.id}')" style="background:#fff; border:1px solid #ddd; color: #d32f2f; padding: 8px 12px; border-radius: 999px; cursor: pointer; display:flex; align-items:center; justify-content:center; gap:4px; font-weight:600; font-size:0.85rem; transition: background 0.15s;" title="Delete Booking">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  Delete
+                </button>
+                <a class="book-link" href="#" onclick="event.preventDefault(); location.href='payment.html?bookingId=${b.id}&id=${refId}'">Continue <span class="arrow">&rarr;</span></a>
+              </div>`;
+        } else if (b.status === "video-sent" && b.videoUrl) {
+           actionBtn = `<a class="book-link" href="${b.videoUrl}">Watch Video <span class="arrow">&rarr;</span></a>`;
+        } else {
+           // For Ongoing/Completed without video yet, just show status as text on the right
+           actionBtn = `<span style="font-weight: 600; color: var(--text);">${statusLabel}</span>`;
+        }
+        
+        foot.innerHTML = `
+          <div class="price" style="display:flex; flex-direction:column; align-items:flex-start; gap:4px;">
+            <span style="font-size: 1.1rem; font-weight: 700;">₹${b.price.toLocaleString("en-IN")}</span>
+            <small style="color:${b.status === 'payment-pending' ? '#d32f2f' : 'var(--muted)'}; font-weight:600; font-size: 0.8rem;">${statusLabel}</small>
+          </div>
+          ${actionBtn}
+        `;
+      }
+
+      list.appendChild(card);
     });
-
-    list.appendChild(div);
-  });
 }
 
 async function loadProfile() {
@@ -315,6 +328,24 @@ function renderLanguagePanel() {
     list.appendChild(btn);
   });
 }
+
+// Define deleteBooking globally so the inline onclick works
+window.deleteBooking = async function(id) {
+  if (!confirm("Are you sure you want to delete this pending booking?")) return;
+  try {
+    const res = await api(`/api/bookings?id=${id}`, "DELETE");
+    if (res.ok) {
+      if (typeof allBookings !== 'undefined') {
+        allBookings = allBookings.filter(b => b.id !== id);
+      }
+      renderBookingsList();
+    } else {
+      alert(res.error || "Failed to delete booking.");
+    }
+  } catch (e) {
+    alert("Error deleting booking: " + e.message);
+  }
+};
 
 /* ---------------------------------------------------------------
    ABOUT + SUPPORT PANELS — filled in from your real site settings

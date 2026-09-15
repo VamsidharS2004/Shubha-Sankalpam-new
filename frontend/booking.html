@@ -17,28 +17,28 @@
 <link rel="stylesheet" href="assets/css/forms.css">
 <link rel="stylesheet" href="assets/css/animations.css">
 <link rel="stylesheet" href="assets/css/responsive.css">  <!-- always last -->
-<title data-cms-key="booking.title.main">Booking — Enter Sankalpam Details | Shubha Sankalpam</title>
+<title data-i18n="bk_heading">Booking — Enter Sankalpam Details | Shubha Sankalpam</title>
 <meta name="description" content="Complete your puja booking with your sankalpam details — name, gotra, and family members to be blessed.">
 </head>
 <body>
 <div id="site-header"></div>
 
 <div class="booking-progress-container">
-  <h2 data-cms-key="booking.heading.main" class="desktop-booking-header">పూజ కోసం మీ వివరాలు నమోదు చేయండి</h2>
+  <h2 data-i18n="bk_heading" class="desktop-booking-header">పూజ కోసం మీ వివరాలు నమోదు చేయండి</h2>
   <div class="booking-progress">
     <div class="step active">
       <div class="step-circle">1</div>
-      <div class="step-label" data-cms-key="booking.step.1">భక్తుల వివరాలు</div>
+      <div class="step-label" data-i18n="bk_step1">భక్తుల వివరాలు</div>
     </div>
     <div class="step-line"></div>
     <div class="step">
       <div class="step-circle">2</div>
-      <div class="step-label" data-cms-key="booking.step.2">సమీక్ష</div>
+      <div class="step-label" data-i18n="bk_step2">సమీక్ష</div>
     </div>
     <div class="step-line"></div>
     <div class="step">
       <div class="step-circle">3</div>
-      <div class="step-label" data-cms-key="booking.step.3">Payment</div>
+      <div class="step-label" data-i18n="bk_step3">Payment</div>
     </div>
   </div>
 </div>
@@ -47,35 +47,35 @@
   <div class="booking-main">
     <div class="form-card">
       <div class="wa-display">
-        <label data-cms-key="booking.label.whatsapp">మీ వాట్సాప్ నంబర్ ✏️</label>
-        <input id="fPhone" type="tel" placeholder="+91 1234567890 (Enter WhatsApp Number)" data-cms-key="booking.placeholder.phone" data-cms-attr="placeholder">
-        <p class="hint" data-cms-key="booking.hint.whatsapp">పూజ వీడియో మరియు ఆశీర్వాద వివరాలు ఈ నంబర్‌కు పంపబడతాయి.</p>
+        <label data-i18n="bk_wa_label">మీ వాట్సాప్ నంబర్ ✏️</label>
+        <input id="fPhone" type="tel" placeholder="+91 1234567890 (Enter WhatsApp Number)" data-i18n-placeholder="bk_wa_label" data-cms-attr="placeholder">
+        <p class="hint" data-i18n="bk_wa_hint">పూజ వీడియో మరియు ఆశీర్వాద వివరాలు ఈ నంబర్‌కు పంపబడతాయి.</p>
       </div>
 
       <div class="family-names-section">
-        <label data-cms-key="booking.label.names">పూజలో పాల్గొనబోయే సభ్యుల పేర్లు</label>
+        <label data-i18n="bk_names_label">పూజలో పాల్గొనబోయే సభ్యుల పేర్లు</label>
         <div class="names-grid">
-          <input type="text" id="famName1" placeholder="" data-cms-key="booking.placeholder.devotee_name" data-cms-attr="placeholder">
-          <input type="text" id="famName2" placeholder="" data-cms-key="booking.placeholder.devotee_name" data-cms-attr="placeholder">
-          <input type="text" id="famName3" placeholder="" data-cms-key="booking.placeholder.devotee_name" data-cms-attr="placeholder">
-          <input type="text" id="famName4" placeholder="" data-cms-key="booking.placeholder.devotee_name" data-cms-attr="placeholder">
+          <input type="text" id="famName1" placeholder="" data-i18n-placeholder="bk_name_placeholder" data-cms-attr="placeholder">
+          <input type="text" id="famName2" placeholder="" data-i18n-placeholder="bk_name_placeholder" data-cms-attr="placeholder">
+          <input type="text" id="famName3" placeholder="" data-i18n-placeholder="bk_name_placeholder" data-cms-attr="placeholder">
+          <input type="text" id="famName4" placeholder="" data-i18n-placeholder="bk_name_placeholder" data-cms-attr="placeholder">
         </div>
-        <p class="hint required-hint" style="color: var(--red); font-weight: 600;" data-cms-key="booking.hint.names_required">Please enter at least one devotee name</p>
-        <p class="hint" data-cms-key="booking.hint.names">పూజ సంకల్పం సమయంలో ఈ పేరు చేర్చబడుతుంది.</p>
+        <p class="hint required-hint" style="color: var(--red); font-weight: 600;" data-i18n="bk_names_req">Please enter at least one devotee name</p>
+        <p class="hint" data-i18n="bk_names_hint">పూజ సంకల్పం సమయంలో ఈ పేరు చేర్చబడుతుంది.</p>
       </div>
 
       <div class="gotram-section">
-        <label for="fGotram"><span data-cms-key="booking.label.gotram">పాల్గొనేవారి గోత్రాన్ని భర్తీ చేయండి</span></label>
-        <input id="fGotram" type="text" placeholder="Gotram" required="" data-cms-key="booking.placeholder.gotram" data-cms-attr="placeholder">
+        <label for="fGotram"><span data-i18n="bk_gotram_label">పాల్గొనేవారి గోత్రాన్ని భర్తీ చేయండి</span></label>
+        <input id="fGotram" type="text" placeholder="Gotram" required="" data-i18n-placeholder="bk_gotram_label" data-cms-attr="placeholder">
         <label class="checkbox-label">
           <input type="checkbox" id="noGotramCheck">
-          <span data-cms-key="booking.label.gotram_unknown">I don't know my gotra</span>
+          <span data-i18n="bk_gotram_unknown">I don't know my gotra</span>
         </label>
       </div>
 
       <div class="sankalpam-section">
-        <label for="fSankalpam"><span data-cms-key="booking.label.sankalpam">మీ ఆకాంక్ష జోడించండి</span> <span class="hint-inline" data-cms-key="booking.label.optional">(ఐచ్ఛికం)</span></label>
-        <textarea id="fSankalpam" rows="3" placeholder="ఉదాహరణ: ఆరోగ్యం, ఐశ్వర్యం, కుటుంబ శ్రేయస్సు కోసం" data-cms-key="booking.placeholder.sankalpam_hint" data-cms-attr="placeholder"></textarea>
+        <label for="fSankalpam"><span data-i18n="bk_sankalpam_label">మీ ఆకాంక్ష జోడించండి</span> <span class="hint-inline" data-i18n="bk_optional">(ఐచ్ఛికం)</span></label>
+        <textarea id="fSankalpam" rows="3" placeholder="ఉదాహరణ: ఆరోగ్యం, ఐశ్వర్యం, కుటుంబ శ్రేయస్సు కోసం" data-i18n-placeholder="bk_sankalpam_hint" data-cms-attr="placeholder"></textarea>
       </div>
     </div>
   </div>
@@ -86,7 +86,7 @@
         <div class="summary-img" id="bkImg"></div>
         <div class="summary-title">
           <h3 id="bkTitle">Puja Title</h3>
-          <p><span data-cms-key="booking.summary.family_puja">Family Puja</span> - <span id="bkPriceBase">₹0</span></p>
+          <p><span data-i18n="bk_family_puja">Family Puja</span> - <span id="bkPriceBase">₹0</span></p>
         </div>
       </div>
       <div class="summary-date">
@@ -95,25 +95,25 @@
 
       <div class="summary-breakdown">
         <div class="price-row">
-          <span data-cms-key="booking.summary.family_puja">Family Puja</span>
+          <span data-i18n="bk_family_puja">Family Puja</span>
           <b id="bkPriceBreakdown">₹0</b>
         </div>
         <div class="price-row">
-          <span data-cms-key="booking.summary.convenience">Convenience Fee</span>
-          <span><s style="color:var(--muted)">₹25</s> <b data-cms-key="booking.summary.free">Free</b></span>
+          <span data-i18n="bk_convenience_fee">Convenience Fee</span>
+          <span><s style="color:var(--muted)">₹25</s> <b data-i18n="bk_free">Free</b></span>
         </div>
         <div class="price-row">
-          <span data-cms-key="booking.summary.pandit">Pandit Fee</span>
-          <span><s style="color:var(--muted)">₹150</s> <b data-cms-key="booking.summary.free">Free</b></span>
+          <span data-i18n="bk_pandit_fee">Pandit Fee</span>
+          <span><s style="color:var(--muted)">₹150</s> <b data-i18n="bk_free">Free</b></span>
         </div>
         <div class="price-row">
-          <span data-cms-key="booking.summary.media">Photo and video recording Fee</span>
-          <span><s style="color:var(--muted)">₹500</s> <b data-cms-key="booking.summary.free">Free</b></span>
+          <span data-i18n="bk_media_fee">Photo and video recording Fee</span>
+          <span><s style="color:var(--muted)">₹500</s> <b data-i18n="bk_free">Free</b></span>
         </div>
       </div>
 
       <div class="summary-total">
-        <span data-cms-key="booking.summary.total">Total</span>
+        <span data-i18n="bk_summary_total">Total</span>
         <div class="total-price-box">
           <b id="bkTotalFinal" class="final-price">₹0</b>
           <s id="bkTotalStrike" class="strike-price">₹0</s>
@@ -122,34 +122,34 @@
 
       <button class="btn btn-red continue-btn" id="payBtn" data-i18n="bk_continue">Continue</button>
       <div class="secure-badge">
-        🔒 <span data-cms-key="booking.badge.secure">100% Secure</span>
+        🔒 <span data-i18n="bk_secure">100% Secure</span>
       </div>
     </div>
 
     <div class="trust-box">
-      <div class="trust-row"><span class="tick">✔</span><span data-cms-key="global.trust.video">పూజ వీడియో 24 గంటల్లో అందుతుంది</span></div>
-      <div class="trust-row"><span class="tick">✔</span><span data-cms-key="global.trust.purohits">ధృవీకరించబడిన, అనుభవజ్ఞులైన పురోహితులు</span></div>
-      <div class="trust-row"><span class="tick">✔</span><span data-cms-key="global.trust.temples">పవిత్ర దేవాలయాల్లో పూజలు నిర్వహించబడతాయి</span></div>
-      <div class="trust-row"><span class="tick">✔</span><span data-cms-key="global.trust.authentic">100% ప్రామాణిక వైదిక పూజలు</span></div>
+      <div class="trust-row"><span class="tick">✔</span><span data-i18n="trust1">పూజ వీడియో 24 గంటల్లో అందుతుంది</span></div>
+      <div class="trust-row"><span class="tick">✔</span><span data-i18n="trust2">ధృవీకరించబడిన, అనుభవజ్ఞులైన పురోహితులు</span></div>
+      <div class="trust-row"><span class="tick">✔</span><span data-i18n="trust3">పవిత్ర దేవాలయాల్లో పూజలు నిర్వహించబడతాయి</span></div>
+      <div class="trust-row"><span class="tick">✔</span><span data-i18n="trust4">100% ప్రామాణిక వైదిక పూజలు</span></div>
     </div>
   </div>
 </div>
 
 <div id="site-footer"></div>
 <!-- ============ CONTENT (edit these files to change text/prices/images) ============ -->
-<script defer src="content/site-settings.js"></script>
-<script defer src="content/pujas.js"></script>
-<script defer src="content/packages.js"></script>
-<script defer src="content/puja-detail-defaults.js"></script>
-<script defer src="content/trust-highlights.js"></script>
-<script defer src="content/faq.js"></script>
+<script src="content/site-settings.js"></script>
+<script src="content/pujas.js"></script>
+<script src="content/packages.js"></script>
+<script src="content/puja-detail-defaults.js"></script>
+<script src="content/trust-highlights.js"></script>
+<script src="content/faq.js"></script>
 
 <!-- ============ SITE CODE (do not need to edit for content changes) ============ -->
-<script defer src="assets/js/language.js"></script>
-<script defer src="assets/js/main.js"></script>
-<script defer src="assets/js/navbar.js"></script>
-<script defer src="assets/js/animations.js"></script>
-<script defer src="assets/js/cards.js"></script>
-<script defer src="assets/js/booking.js"></script>
+<script src="assets/js/language.js"></script>
+<script src="assets/js/main.js"></script>
+<script src="assets/js/navbar.js"></script>
+<script src="assets/js/animations.js"></script>
+<script src="assets/js/cards.js"></script>
+<script src="assets/js/booking.js"></script>
 
 </body></html>
