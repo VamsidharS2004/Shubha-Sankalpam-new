@@ -268,23 +268,34 @@ async function attachOrder(id, orderId) {
   return !error;
 }
 
+function paymentNotificationBooking(b) {
+  return {
+    id: b.id,
+    price: b.price,
+    userPhone: b.devotee_phone,
+    phone: b.devotee_phone || b.devotees?.phone || "",
+    name: b.booking_names?.[0]?.name || b.name || b.devotees?.name || "Devotee",
+    puja: (b.notes || "").match(/^Puja:\s*([^\r\n]+)/mi)?.[1]?.trim() || "Puja booking"
+  };
+}
+
 async function findByOrderId(orderId) {
   /* ---- LOCAL fallback ---- */
   if (!supabase) {
     const b = readLocalBookings().find(b => (b.notes || "").includes(`razorpay_order:${orderId}`));
     if (!b) return null;
-    return { id: b.id, price: b.price, userPhone: b.devotee_phone };
+    return paymentNotificationBooking(b);
   }
 
   /* ---- Supabase ---- */
   const { data, error } = await supabase
     .from("bookings")
-    .select("id, price, devotee_phone")
+    .select("id, price, devotee_phone, notes, devotees(name, phone), booking_names(name)")
     .ilike("notes", `%razorpay_order:${orderId}%`)
     .limit(1);
 
   if (error || !data || data.length === 0) return null;
-  return { id: data[0].id, price: data[0].price, userPhone: data[0].devotee_phone };
+  return paymentNotificationBooking(data[0]);
 }
 
 async function markPaid(id, paymentId) {
