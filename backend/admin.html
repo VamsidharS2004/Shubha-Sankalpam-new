@@ -471,6 +471,14 @@
                     <div class="form-group">
                         <label>Image (Path or Theme)</label>
                         <input type="text" id="editPujaImage" placeholder="assets/images/pujas/...">
+                        <div class="img-upload-widget" data-target="editPujaImage" data-entity="pujas">
+                            <img id="prevPujaImage" class="img-preview" src="" alt="" style="display:none; max-width:120px; max-height:80px; object-fit:cover; border-radius:6px; margin-top:8px; border:1px solid var(--line);">
+                            <div style="display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap;">
+                                <input type="file" id="filePujaImage" accept="image/jpeg,image/png,image/webp" style="flex:1; min-width:0;">
+                                <button type="button" class="btn btn-primary upload-img-btn" style="padding:6px 14px; font-size:0.85rem;" data-file="filePujaImage" data-text="editPujaImage" data-prev="prevPujaImage" data-entity="pujas">Upload Image</button>
+                            </div>
+                            <span id="statusPujaImage" style="font-size:0.8rem; margin-top:4px; display:block;"></span>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Temple Name</label>
@@ -619,6 +627,14 @@
             <div class="form-group">
                 <label>Image (Path or Keyword)</label>
                 <input type="text" id="editPackageImage" placeholder="assets/images/packages/... OR ganesha">
+                <div class="img-upload-widget" data-target="editPackageImage" data-entity="packages">
+                    <img id="prevPackageImage" class="img-preview" src="" alt="" style="display:none; max-width:120px; max-height:80px; object-fit:cover; border-radius:6px; margin-top:8px; border:1px solid var(--line);">
+                    <div style="display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap;">
+                        <input type="file" id="filePackageImage" accept="image/jpeg,image/png,image/webp" style="flex:1; min-width:0;">
+                        <button type="button" class="btn btn-primary upload-img-btn" style="padding:6px 14px; font-size:0.85rem;" data-file="filePackageImage" data-text="editPackageImage" data-prev="prevPackageImage" data-entity="packages">Upload Image</button>
+                    </div>
+                    <span id="statusPackageImage" style="font-size:0.8rem; margin-top:4px; display:block;"></span>
+                </div>
             </div>
             
             <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
@@ -671,6 +687,14 @@
                 <label>Short Description (Telugu)</label>
                 <textarea id="editPackageDescTe" rows="2"></textarea>
             </div>
+            <div class="form-group">
+                <label>Mantra (Telugu)</label>
+                <input type="text" id="editPackageMantraTe">
+            </div>
+            <div class="form-group">
+                <label>About this Package (Telugu)</label>
+                <textarea id="editPackageAboutTe" rows="3"></textarea>
+            </div>
             
             <h4 style="margin-top:24px; margin-bottom:12px; color:var(--text-main); border-bottom:1px solid #eee; padding-bottom:4px;">4. Hindi Content</h4>
             <div class="form-group">
@@ -680,6 +704,14 @@
             <div class="form-group">
                 <label>Short Description (Hindi)</label>
                 <textarea id="editPackageDescHi" rows="2"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Mantra (Hindi)</label>
+                <input type="text" id="editPackageMantraHi">
+            </div>
+            <div class="form-group">
+                <label>About this Package (Hindi)</label>
+                <textarea id="editPackageAboutHi" rows="3"></textarea>
             </div>
 
             <div style="margin-top:24px; display:flex; gap:12px;">
@@ -704,6 +736,14 @@
             <div class="form-group">
                 <label>Image (Path or Keyword)</label>
                 <input type="text" id="editTempleImage" placeholder="assets/images/temples/name.jpg">
+                <div class="img-upload-widget" data-target="editTempleImage" data-entity="temples">
+                    <img id="prevTempleImage" class="img-preview" src="" alt="" style="display:none; max-width:120px; max-height:80px; object-fit:cover; border-radius:6px; margin-top:8px; border:1px solid var(--line);">
+                    <div style="display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap;">
+                        <input type="file" id="fileTempleImage" accept="image/jpeg,image/png,image/webp" style="flex:1; min-width:0;">
+                        <button type="button" class="btn btn-primary upload-img-btn" style="padding:6px 14px; font-size:0.85rem;" data-file="fileTempleImage" data-text="editTempleImage" data-prev="prevTempleImage" data-entity="temples">Upload Image</button>
+                    </div>
+                    <span id="statusTempleImage" style="font-size:0.8rem; margin-top:4px; display:block;"></span>
+                </div>
             </div>
             
             <h4 style="margin-top:24px; margin-bottom:12px; color:var(--text-main); border-bottom:1px solid #eee; padding-bottom:4px;">English Content</h4>
@@ -743,7 +783,7 @@
         </div>
     </aside>
 
-    <script src="/assets/js/admin.js"></script>
+    <script src="/content/pujas.js"></script><script src="/content/packages.js"></script><script src="/assets/js/admin.js"></script>
 </body>
 </html>
 

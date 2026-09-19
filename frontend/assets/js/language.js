@@ -11,6 +11,7 @@
    ============================================================ */
 const DETAIL_UI = {
   en: {
+    language_label: "Language", sanskrit: "Sanskrit", inclusive: "Inclusive of all puja samagri & seva", per_puja: "/- per puja", highlights: "Puja Highlights", bc_home: "Home", bc_puja: "Puja", bc_maha: "Maha Pujas",
     tab_about: "About Pooja", tab_benefits: "Pooja Benefits", tab_procedure: "Pooja Procedure",
     tab_temple: "Temple Details", tab_receive: "What You Will Receive",
     tab_faqs: "Frequently Asked Questions (FAQs)", tab_gallery: "Gallery", tab_reviews: "Reviews",
@@ -56,6 +57,7 @@ const DETAIL_UI = {
     bk_secure: "100% Secure"
   },
   te: {
+    language_label: "భాష", sanskrit: "సంస్కృతం", inclusive: "పూజా సామాగ్రి మరియు సేవలు అన్నీ కలిపి", per_puja: "/- పూజకు", highlights: "పూజ యొక్క ముఖ్యాంశాలు", bc_home: "హోమ్", bc_puja: "పూజ", bc_maha: "మహా పూజలు",
     tab_about: "పూజ గురించి", tab_benefits: "పూజ ప్రయోజనాలు", tab_procedure: "పూజ ప్రక్రియ",
     tab_temple: "ఆలయ వివరాలు", tab_receive: "మీకు లభించేవి",
     tab_faqs: "తరచుగా అడిగే ప్రశ్నలు", tab_gallery: "గ్యాలరీ", tab_reviews: "రివ్యూలు",
@@ -64,9 +66,9 @@ const DETAIL_UI = {
     h_faqs: "తరచుగా అడిగే ప్రశ్నలు", h_gallery: "పూజ గ్యాలరీ", h_reviews: "రివ్యూలు",
     lbl_ratings: "రేటింగ్‌లు", lbl_conducted: "పూజలు నిర్వహించబడ్డాయి", lbl_avg: "సగటు రేటింగ్",
     wishlist: "విష్‌లిస్ట్", share: "షేర్", copied: "కాపీ చేయబడింది",
-    muhurat_ends: "ముహూర్తం ముగియు సమయం", reserve_sankalp: "మీ సంకల్పాన్ని రిజర్వ్ చేయండి",
-    u_days: "రోజులు", u_hours: "గంటలు", u_min: "నిమి", u_sec: "సెక",
-    book_now: "Book Now", book_wa: "వాట్సాప్‌లో బుక్ చేయండి", book_call: "కాల్ ద్వారా బుక్ చేయండి",
+    muhurat_ends: "ముహూర్తం ముగియడానికి", reserve_sankalp: "సంకల్పాన్ని బుక్ చేయండి",
+    u_days: "రోజులు", u_hours: "గంటలు", u_min: "నిమిషాలు", u_sec: "సెకన్లు",
+    book_now: "బుక్ చేయండి", book_wa: "WhatsApp లో బుక్ చేయండి", book_call: "కాల్ ద్వారా బుక్ చేయండి",
     included_title: "ఈ పూజలో చేర్చబడినవి", no_hidden: "దాచిన ఛార్జీలు లేవు",
     advisor_title: "ఏ పూజ బుక్ చేయాలో తెలియదా?",
     advisor_body: "సరైన పూజ ఎంచుకోవడంలో సహాయం కావాలా? మా ఆధ్యాత్మిక సలహాదారులతో మాట్లాడండి — ఎలాంటి నిర్బంధం లేదు.",
@@ -101,6 +103,7 @@ const DETAIL_UI = {
     bk_secure: "100% సురక్షితం"
   },
   hi: {
+    language_label: "भाषा", sanskrit: "संस्कृत", inclusive: "सभी पूजा सामग्री और सेवा सहित", per_puja: "/- प्रति पूजा", highlights: "पूजा की मुख्य विशेषताएं", bc_home: "होम", bc_puja: "पूजा", bc_maha: "महा पूजा",
     tab_about: "पूजा के बारे में", tab_benefits: "पूजा के लाभ", tab_procedure: "पूजा विधि",
     tab_temple: "मंदिर विवरण", tab_receive: "आपको क्या मिलेगा",
     tab_faqs: "अक्सर पूछे जाने वाले प्रश्न (FAQs)", tab_gallery: "गैलरी", tab_reviews: "समीक्षाएँ",
@@ -109,9 +112,9 @@ const DETAIL_UI = {
     h_faqs: "अक्सर पूछे जाने वाले प्रश्न (FAQs)", h_gallery: "पूजा गैलरी", h_reviews: "समीक्षाएँ",
     lbl_ratings: "रेटिंग", lbl_conducted: "पूजाएँ संपन्न", lbl_avg: "औसत रेटिंग",
     wishlist: "इच्छा-सूची", share: "शेयर", copied: "कॉपी हो गया",
-    muhurat_ends: "मुहूर्त समाप्ति में", reserve_sankalp: "अपना संकल्प आरक्षित करें",
+    muhurat_ends: "मुहूर्त समाप्ति में", reserve_sankalp: "अपना संकल्प सुरक्षित करें",
     u_days: "दिन", u_hours: "घंटे", u_min: "मिनट", u_sec: "सेकंड",
-    book_now: "Book Now", book_wa: "WhatsApp से बुक करें", book_call: "कॉल से बुक करें",
+    book_now: "अभी बुक करें", book_wa: "WhatsApp से बुक करें", book_call: "कॉल से बुक करें",
     included_title: "इस पूजा में शामिल", no_hidden: "कोई छिपा शुल्क नहीं",
     advisor_title: "कौन सी पूजा बुक करें, तय नहीं कर पा रहे?",
     advisor_body: "सही पूजा चुनने में मदद चाहिए? हमारे आध्यात्मिक सलाहकारों से बात करें — कोई बाध्यता नहीं।",

@@ -111,6 +111,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }).join("");
   }
 
+  window.markCompleted = async (bookingId) => {
+    const pwd = localStorage.getItem("adminKey");
+    if (!pwd) return alert("Session expired.");
+    if (!confirm("Mark this booking as Completed?")) return;
+    try {
+      const res = await fetch(`/api/admin/bookings/complete?id=${bookingId}&key=${encodeURIComponent(pwd)}`, { method: "PUT" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed.");
+      const listRes = await fetch("/api/admin/bookings?key=" + encodeURIComponent(pwd));
+      const listData = await listRes.json();
+      if (listRes.ok) renderDashboard(listData);
+    } catch (e) { alert(e.message); }
+  };
+
   window.attachVideo = async (bookingId) => {
     const input = document.getElementById(`vid_${bookingId}`);
     const videoUrl = input.value.trim();

@@ -12,7 +12,7 @@ async function getPujas(req, res) {
     const resolvePath = require.resolve("../../frontend/content/pujas");
     delete require.cache[resolvePath];
     const { pujas } = require("../../frontend/content/pujas");
-    
+
     send(res, 200, { ok: true, pujas });
   } catch (err) {
     console.error("Error reading pujas:", err);
@@ -49,7 +49,7 @@ if (typeof module !== "undefined") module.exports = { pujas };
 
     // Write back to frontend/content/pujas.js
     fs.writeFileSync(PUJAS_FILE_PATH, fileContent, "utf8");
-    
+
     // Clear the cache so future requests use the new data
     const resolvePath = require.resolve("../../frontend/content/pujas");
     delete require.cache[resolvePath];
@@ -157,4 +157,170 @@ if (typeof module !== "undefined") module.exports = { TEMPLES };
   }
 }
 
-module.exports = { getPujas, updatePujas, getPackages, updatePackages, getTemples, updateTemples };
+
+
+const crypto = require('crypto');
+const Busboy = require('busboy');
+const { imageSize: sizeOf } = require('image-size');
+
+async function uploadImage(req, res) {
+  if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
+
+  const { supabase: activeSupabase } = require('../utils/supabase');
+  if (!activeSupabase) return send(res, 503, { error: 'Storage configuration missing' });
+
+  const contentType = req.headers['content-type'] || '';
+  if (!contentType.includes('multipart/form-data')) {
+    return send(res, 400, { error: 'Invalid content type' });
+  }
+
+  const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+
+  let busboy;
+  try {
+    busboy = Busboy({
+      headers: req.headers,
+      limits: {
+        files: 1, // Exactly 1 file allowed
+        fields: 5, // Controlled field coun
+        fileSize: MAX_BYTES, // Exactly 5 MB
+        fieldSize: 1024, // 1 KB max per text field
+        parts: 6 // 5 fields + 1 file
+      }
+    });
+  } catch (err) {
+    return send(res, 400, { error: 'Invalid multipart payload' });
+  }
+
+  let fileBuffer = null;
+  let entityType = null;
+  let hasResponded = false;
+
+  const abortRequest = (statusCode, message) => {
+    if (hasResponded) return;
+    hasResponded = true;
+    req.unpipe(busboy);
+    busboy.removeAllListeners();
+    res.statusCode = statusCode;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    if (!req.headers['content-length']) {
+      res.setHeader('Connection', 'close');
+      res.end(JSON.stringify({ error: message }));
+      req.destroy();
+    } else {
+      res.end(JSON.stringify({ error: message }));
+      req.on('data', () => {});
+      req.resume();
+    }
+  };
+
+  busboy.on('error', (err) => {
+    abortRequest(400, 'Malformed stream');
+  });
+
+  busboy.on('partsLimit', () => {
+    abortRequest(400, 'Too many parts');
+  });
+
+  busboy.on('fieldsLimit', () => {
+    abortRequest(400, 'Too many fields');
+  });
+
+  busboy.on('filesLimit', () => {
+    abortRequest(400, 'Multiple files are not allowed');
+  });
+
+  busboy.on('field', (name, val) => {
+    if (name === 'entity_type') {
+      entityType = val;
+    }
+  });
+
+  let bytesReceived = 0;
+  req.on('data', chunk => {
+    bytesReceived += chunk.length;
+    if (bytesReceived > MAX_BYTES && !hasResponded) {
+      abortRequest(413, 'Payload too large. Maximum 5MB.');
+    }
+  });
+
+  busboy.on('file', (name, file, info) => {
+    const buffers = [];
+    file.on('data', data => {
+      buffers.push(data);
+    });
+
+    file.on('limit', () => {
+      abortRequest(413, 'Payload too large. Maximum 5MB.');
+    });
+
+    file.on('end', () => {
+      if (!hasResponded) {
+        fileBuffer = Buffer.concat(buffers);
+      }
+    });
+  });
+
+  busboy.on('finish', async () => {
+    if (hasResponded) return;
+
+    if (!entityType || !['pujas', 'packages', 'temples'].includes(entityType)) {
+      return abortRequest(400, 'Invalid entity_type. Allowed: pujas, packages, temples.');
+    }
+    if (!fileBuffer) {
+      return abortRequest(400, 'No image file provided.');
+    }
+
+    try {
+      const fileTypeModule = await import('file-type');
+      const fileType = await fileTypeModule.fileTypeFromBuffer(fileBuffer);
+
+      if (!fileType || !['image/jpeg', 'image/png', 'image/webp'].includes(fileType.mime)) {
+        return abortRequest(415, 'Invalid file type. Only JPG, PNG, WEBP allowed.');
+      }
+
+      let dimensions;
+      try {
+        dimensions = sizeOf(fileBuffer);
+      } catch (err) {
+        return abortRequest(400, 'Invalid or missing image dimensions.');
+      }
+
+      if (!dimensions || !dimensions.width || !dimensions.height) {
+        return abortRequest(400, 'Invalid or missing image dimensions.');
+      }
+
+      if (dimensions.width > 4000 || dimensions.height > 4000) {
+        return abortRequest(400, 'Image dimensions too large. Max 4000x4000.');
+      }
+
+      const ext = fileType.ext;
+      const uuid = crypto.randomUUID();
+      const filename = `${uuid}.${ext}`;
+      const storagePath = `${entityType}/${filename}`;
+
+      const { error } = await activeSupabase.storage.from('media').upload(storagePath, fileBuffer, {
+        contentType: fileType.mime,
+        upsert: false
+      });
+
+      if (error) {
+        console.error('Supabase upload error:', error);
+        return abortRequest(502, 'Storage upload failed.');
+      }
+
+      const { data: publicUrlData } = activeSupabase.storage.from('media').getPublicUrl(storagePath);
+
+      if (hasResponded) return;
+      hasResponded = true;
+      send(res, 200, { success: true, url: publicUrlData.publicUrl, path: storagePath });
+    } catch (err) {
+      console.error('Upload validation error:', err);
+      return abortRequest(400, 'Invalid image payload.');
+    }
+  });
+
+  req.pipe(busboy);
+}
+
+module.exports = { getPujas, updatePujas, getPackages, updatePackages, getTemples, updateTemples, uploadImage };

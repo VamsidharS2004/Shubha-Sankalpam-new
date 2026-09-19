@@ -8,6 +8,7 @@ const user = require("../controllers/userController");
 const booking = require("../controllers/bookingController");
 const payment = require("../controllers/paymentController");
 const cms = require("../controllers/cmsController");
+const video = require("../controllers/videoController");
 const subscription = require("../controllers/subscriptionController");
 const websiteContent = require("../controllers/websiteContentController");
 const { requireLogin, optionalLogin, adminOnly } = require("../middleware/auth");
@@ -23,9 +24,11 @@ const routes = [
   { method: "GET",  path: "/api/bookings/recover", middleware: [],           handler: booking.recoverBooking },
   
   // --- Admin Endpoints ---
+  { method: "POST", path: "/api/admin/upload",   middleware: [adminOnly],    handler: cms.uploadImage },
   { method: "GET",  path: "/api/admin/bookings", middleware: [adminOnly],    handler: booking.listAll },
   { method: "POST", path: "/api/admin/bookings", middleware: [adminOnly],    handler: booking.adminCreateBooking },
   { method: "PUT",  path: "/api/admin/bookings/video", middleware: [adminOnly], handler: booking.updateVideo },
+  { method: "POST", path: "/api/admin/upload-video", middleware: [adminOnly], handler: video.uploadLocalVideo },
   { method: "GET",  path: "/api/admin/devotees", middleware: [adminOnly],    handler: user.adminListDevotees },
   { method: "POST", path: "/api/admin/devotees", middleware: [adminOnly],    handler: user.adminCreateDevotee },
   { method: "PUT",  path: "/api/admin/devotees", middleware: [adminOnly],    handler: user.adminUpdateDevotee },

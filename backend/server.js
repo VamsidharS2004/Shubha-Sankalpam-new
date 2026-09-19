@@ -43,6 +43,39 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, html, "text/html");
     }
 
+    
+    /* 2.5 Local Video Uploads (Streaming) */
+    if (url.pathname.startsWith("/uploads/")) {
+      const uploadPath = path.join(__dirname, decodeURIComponent(url.pathname));
+      if (!uploadPath.startsWith(path.join(__dirname, "uploads"))) return send(res, 403, { error: "Forbidden" });
+      
+      return fs.stat(uploadPath, (err, stats) => {
+          if (err || !stats.isFile()) return send(res, 404, "Not found", "text/plain");
+          
+          const range = req.headers.range;
+          if (range) {
+              const parts = range.replace(/bytes=/, "").split("-");
+              const start = parseInt(parts[0], 10);
+              const end = parts[1] ? parseInt(parts[1], 10) : stats.size - 1;
+              const chunksize = (end - start) + 1;
+              const file = fs.createReadStream(uploadPath, {start, end});
+              res.writeHead(206, {
+                  'Content-Range': `bytes ${start}-${end}/${stats.size}`,
+                  'Accept-Ranges': 'bytes',
+                  'Content-Length': chunksize,
+                  'Content-Type': 'video/mp4'
+              });
+              file.pipe(res);
+          } else {
+              res.writeHead(200, {
+                  'Content-Length': stats.size,
+                  'Content-Type': 'video/mp4'
+              });
+              fs.createReadStream(uploadPath).pipe(res);
+          }
+      });
+    }
+
     /* 3. Frontend static files */
     let filePath = path.join(FRONTEND_DIR, decodeURIComponent(url.pathname));
     if (url.pathname === "/") filePath = path.join(FRONTEND_DIR, "home.html");

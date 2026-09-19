@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- ================================================================
+﻿<!DOCTYPE html><!-- ================================================================
      LOGIN PAGE (login.html)
      ================================================================
      The login card text below can be edited directly in this file.
@@ -22,13 +22,13 @@
 
 <div class="container">
   <div class="login-card" id="loginCard">
-    <div class="login-avatar" id="loginAvatar">✉️</div>
+    <div class="login-avatar" id="loginAvatar">&#128241;</div>
     <h2 id="loginStepTitle">Login or Sign Up</h2>
-    <p id="loginStepHint">We'll email you a one-time password (OTP) to verify it's you.</p>
+    <p id="loginStepHint">We'll text you a one-time password (OTP) to verify it's you.</p>
     
     <!-- Step 1: Email + Phone -->
     <div class="login-fields" id="phoneStep">
-      <input type="email" id="loginEmail" placeholder="Enter your Email ID" autocomplete="email" required="" data-cms-key="login.placeholder.email" data-cms-attr="placeholder">
+      <input type="email" id="loginEmail" style="display:none;" value="devotee@example.com" placeholder="Enter your Email ID" autocomplete="email" required="" data-cms-key="login.placeholder.email" data-cms-attr="placeholder">
       <input type="tel" id="loginPhone" placeholder="+91 XXXXX XXXXX" autocomplete="tel" required="" data-cms-key="login.placeholder.phone" data-cms-attr="placeholder">
       <button class="login-big-btn" id="sendOtpBtn"><span data-cms-key="login.button.send_otp">Send OTP</span> <span class="login-arrow">&#8594;</span></button>
     </div>
@@ -71,5 +71,6 @@
 <script src="assets/js/auth.js?v=3"></script>
 
 </body></html>
+
 
 

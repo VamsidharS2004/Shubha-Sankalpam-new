@@ -151,19 +151,19 @@ async function sendViaEmail(email, otp) {
    { sent: true/false, channel: "email"|"demo" } */
 async function deliverOtp(phone, email, otp) {
   if (DEMO_MODE) {
-    console.log(`📧 [DEMO MODE] OTP for ${email}: ${otp}`);
+    console.log(`[DEMO MODE] OTP for ${phone}: ${otp}`);
     return { sent: false, channel: "demo" };
   }
 
   try {
-    if (await sendViaEmail(email, otp)) {
-      return { sent: true, channel: "email" };
+    if (await sendViaMsg91(phone, otp)) {
+      return { sent: true, channel: "sms" };
     }
   } catch (e) {
-    console.error("⚠️  Email send failed:", e.message);
+    console.error("SMS send failed:", e.message);
   }
 
-  return { sent: false, channel: "email_failed" };
+  return { sent: false, channel: "sms_failed" };
 }
 
 /* ---------------------------------------------------------------
@@ -172,8 +172,7 @@ async function deliverOtp(phone, email, otp) {
 async function requestOtp(req, res) {
   const { phone, email } = await readBody(req);
   const p = normalizePhone(phone);
-  if (!email || !email.includes("@"))
-    return send(res, 400, { error: "Please enter a valid email ID." });
+  // email validation removed
   if (p.replace(/\D/g, "").length < 10)
     return send(res, 400, { error: "Please enter a valid phone number." });
 
@@ -191,7 +190,7 @@ async function requestOtp(req, res) {
   const result = await deliverOtp(p, email, otp);
 
   if (result.sent) {
-    console.log(`📧 OTP sent to ${email} via ${result.channel}`);
+    console.log(`[OTP] Sent to ${phone} via ${result.channel}`);
     return send(res, 200, { ok: true });
   }
 

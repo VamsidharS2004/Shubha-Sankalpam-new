@@ -190,7 +190,7 @@ async function checkAbandonedBooking() {
     const pendings = (me.bookings || []).filter(b => b.status === "Pending" || b.status === "payment-pending" || b.status === "failed");
     if (pendings.length > 0) {
       // Get language for translation
-      const lang = localStorage.getItem("lang") || "en";
+      const lang = (typeof currentLang !== 'undefined' ? currentLang : null) || localStorage.getItem("ss_lang") || "en";
       const isTe = lang === "te";
       const isHi = lang === "hi";
       

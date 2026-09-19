@@ -14,7 +14,7 @@ let D = Object.assign({}, DETAIL_DEFAULTS, item.detail || {});
 function renderDetails() {
   document.title = localName(item) + " — Puja Details";
   $id("pdCaption").textContent = localName(item).toUpperCase();
-  $id("pdMantra").textContent = D.mantra;
+  $id("pdMantra").textContent = D["mantra_" + currentLang] || D.mantra;
   $id("pdTitle").textContent = localName(item);
   $id("pdTemple").textContent = item.temple;
   const templeParts = item.temple.split(",");

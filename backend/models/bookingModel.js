@@ -100,7 +100,7 @@ async function all() {
       videoUrl  : b.video_url  || null,
       name      : b.name       || "Unknown",
       phone     : b.devotee_phone || "",
-      puja      : b.notes ? b.notes.replace(/^Puja: /, "").split("\n")[0] : "Unknown Puja"
+      gotram: b.devotees?.gotra || '', puja: b.notes ? (b.notes.match(/^Puja:\s*(.*)$/m)?.[1]?.trim() || b.notes.split('\n')[0]) : 'Unknown Puja', videoUrl: b.video_url || null
     }));
   }
 
@@ -108,10 +108,8 @@ async function all() {
   const { data, error } = await supabase
     .from("bookings")
     .select(`
-      id, price, status, created_at,
-      devotees ( name, phone ),
-      pujas ( title_en ),
-      booking_names ( name )
+      id, price, status, created_at, notes, video_url,
+      devotees ( name, phone, gotra ),\n        booking_names ( name )
     `)
     .order("created_at", { ascending: false });
 
@@ -125,7 +123,7 @@ async function all() {
     videoUrl  : null,
     name      : b.booking_names?.length > 0 ? b.booking_names[0].name : (b.devotees?.name || "Unknown"),
     phone     : b.devotees?.phone || "",
-    puja      : b.pujas?.title_en || "Unknown Puja"
+    gotram: b.devotees?.gotra || '', puja: b.notes ? (b.notes.match(/^Puja:\s*(.*)$/m)?.[1]?.trim() || b.notes.split('\n')[0]) : 'Unknown Puja', videoUrl: b.video_url || null
   }));
 }
 
@@ -153,7 +151,7 @@ async function getUserBookings(phone) {
     .from("bookings")
     .select(`
       id, price, status, created_at, notes,
-      devotees!inner ( phone, name ),
+      devotees!inner ( phone, name, gotra ),
       booking_names ( name )
     `)
     .eq("devotee_phone", p)
@@ -297,7 +295,7 @@ async function markPaid(id, paymentId) {
     if (idx === -1) return false;
     bookings[idx].payment_status = "Paid";
     bookings[idx].status         = "Confirmed";
-    bookings[idx].notes          = `razorpay_payment:${paymentId}`;
+    bookings[idx].notes = (bookings[idx].notes || "") + "\nrazorpay_payment:" + paymentId;;
     writeLocalBookings(bookings);
     return true;
   }
@@ -306,7 +304,7 @@ async function markPaid(id, paymentId) {
   const { error } = await supabase.from("bookings").update({
     payment_status : "Paid",
     status         : "Confirmed",
-    notes          : `razorpay_payment:${paymentId}`
+    notes: "razorpay_payment:" + paymentId
   }).eq("id", id);
   return !error;
 }

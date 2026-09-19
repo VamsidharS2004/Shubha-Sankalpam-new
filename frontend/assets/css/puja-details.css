@@ -15,7 +15,7 @@
 
 .pd-slide svg{width:110px;height:110px;opacity:.9}
 
-.pd-loc{position:absolute;bottom:64px;left:16px;background:var(--red);color:#fff;padding:5px 14px;border-radius:999px;font-size:.78rem;font-weight:700}
+
 
 .pd-arrow{position:absolute;top:42%;z-index:5;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.85);border:none;font-size:1.4rem;color:var(--ink);box-shadow:0 3px 10px rgba(0,0,0,.2)}
 
