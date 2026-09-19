@@ -116,7 +116,7 @@ function renderBookingsList() {
       
       if (typeof pujas !== 'undefined') {
         let idx = pujas.findIndex(p => p.name === b.puja || p.title_en === b.puja || p.title_te === b.puja);
-        if (idx === -1 && b.puja.includes("razorpay_order:")) {
+        if (idx === -1 && b.puja.includes("razorpay_")) {
            idx = pujas.findIndex(p => p.price === b.price);
         }
         if (idx !== -1) {
@@ -127,7 +127,7 @@ function renderBookingsList() {
       
       if (typeof packages !== 'undefined' && !matchedItem) {
         let idx = packages.findIndex(p => p.name === b.puja || p.title_en === b.puja || p.title_te === b.puja);
-        if (idx === -1 && b.puja.includes("razorpay_order:")) {
+        if (idx === -1 && b.puja.includes("razorpay_")) {
            idx = packages.findIndex(p => p.price === b.price);
         }
         if (idx !== -1) {
@@ -139,7 +139,7 @@ function renderBookingsList() {
 
       if (!matchedItem) {
         matchedItem = {
-          name: displayPuja.includes("razorpay_order:") ? "Puja / Package" : displayPuja,
+          name: displayPuja.includes("razorpay_") ? "Puja / Package" : displayPuja,
           price: b.price,
           image: "cm-a",
           temple: "",
@@ -177,7 +177,7 @@ function renderBookingsList() {
            actionBtn = `<a class="book-link" href="${b.videoUrl}">Watch Video <span class="arrow">&rarr;</span></a>`;
         } else {
            // For Ongoing/Completed without video yet, just show status as text on the right
-           actionBtn = `<span style="font-weight: 600; color: var(--text);">${statusLabel}</span>`;
+           actionBtn = "";
         }
         
         foot.innerHTML = `
@@ -322,7 +322,7 @@ function renderLanguagePanel() {
       <span class="lang-names"><b>${l.native}</b><span>${l.en}</span></span>
       <span class="lang-check">${l.code === currentLang ? "✔" : ""}</span>`;
     btn.addEventListener("click", () => {
-      try { localStorage.setItem("lang", l.code); } catch (e) {}
+      try { localStorage.setItem("ss_lang", l.code); } catch (e) {}
       location.reload(); // same pattern the header switcher uses
     });
     list.appendChild(btn);

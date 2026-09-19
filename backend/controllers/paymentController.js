@@ -14,8 +14,9 @@
    at payment time.
    ================================================================ */
 const crypto = require("crypto");
+const { sendAiSensyMessage } = require("../utils/whatsapp");
 const { send, readBody, readRawBody } = require("../utils/http");
-const { RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET } = require("../config");
+const { RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, DEMO_MODE } = require("../config");
 const bookingModel = require("../models/bookingModel");
 
 const razorpayConfigured = Boolean(RAZORPAY_KEY_ID && RAZORPAY_KEY_SECRET);
@@ -25,7 +26,8 @@ const razorpayConfigured = Boolean(RAZORPAY_KEY_ID && RAZORPAY_KEY_SECRET);
 async function getPaymentConfig(req, res) {
   send(res, 200, {
     razorpayEnabled: razorpayConfigured,
-    keyId: razorpayConfigured ? RAZORPAY_KEY_ID : null
+    keyId: razorpayConfigured ? RAZORPAY_KEY_ID : null,
+    demoMode: Boolean(DEMO_MODE)
   });
 }
 
@@ -44,6 +46,25 @@ async function createOrder(req, res) {
   }
 
   const amountPaise = Math.round(booking.price * 100); // Razorpay wants paise, not rupees
+
+  if (DEMO_MODE) {
+    const mockOrderId = "order_demo_" + (booking.id ? String(booking.id).replace(/[^a-zA-Z0-9]/g, "") + "_" : "") + Date.now();
+    await bookingModel.attachOrder(booking.id, mockOrderId);
+    return send(res, 200, {
+      ok: true,
+      orderId: mockOrderId,
+      amount: amountPaise,
+      currency: "INR",
+      keyId: RAZORPAY_KEY_ID || "rzp_test_demo",
+      bookingId: booking.id,
+      order: {
+        id: mockOrderId,
+        amount: amountPaise,
+        currency: "INR"
+      }
+    });
+  }
+
   const auth = Buffer.from(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`).toString("base64");
 
   const r = await fetch("https://api.razorpay.com/v1/orders", {
@@ -88,9 +109,10 @@ async function webhook(req, res) {
     if (booking) {
       await bookingModel.markPaid(booking.id, payment.id);
       console.log(`✅ Payment CONFIRMED via webhook: booking ${booking.id} (₹${booking.price})`);
-      /* WHATSAPP CONFIRMATION GOES HERE: once AiSensy is fully wired
-         for outbound messages (not just OTP), send the devotee a
-         booking-confirmed template here using booking.phone. */
+      // WhatsApp Success Notification (AiSensy)
+      const campaign = process.env.AISENSY_SUCCESS_TEMPLATE || "payment_success";
+      // We pass the user's name, the puja name, and the order ID as variables
+      await sendAiSensyMessage(booking.phone, campaign, booking.name, [booking.name, booking.puja, payment.order_id]);
     }
   }
 
@@ -99,6 +121,10 @@ async function webhook(req, res) {
     if (booking) {
       await bookingModel.setStatus(booking.id, "failed");
       console.log(`❌ Payment FAILED via webhook: booking ${booking.id}`);
+      
+      // WhatsApp Failure Notification (AiSensy)
+      const campaign = process.env.AISENSY_FAILURE_TEMPLATE || "payment_failed";
+      await sendAiSensyMessage(booking.phone, campaign, booking.name, [booking.name, booking.puja]);
     }
   }
 

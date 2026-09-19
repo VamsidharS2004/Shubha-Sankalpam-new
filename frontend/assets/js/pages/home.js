@@ -1,6 +1,6 @@
 /* ===== HOME PAGE =====
-   ?? SITE CODE — not content. Hero slide text, trust items, and
-   puja cards are pulled from /content — edit them there, not here. */
+   ðŸª” SITE CODE ï¿½ not content. Hero slide text, trust items, and
+   puja cards are pulled from /content ï¿½ edit them there, not here. */
 initLayout();
 
 /* cards + tabs + faq */
@@ -32,7 +32,7 @@ function renderSlider() {
 
         <div class="hero-copy">
           <div class="hero-tagline">
-            <span class="ht-icon">??</span> ${p.detail?.mantra || 'OM NAMA SHIVAYA'}
+            <span class="ht-icon">ðŸª”</span> ${typeof localMantra === 'function' ? localMantra(p) : (p.detail && p.detail.mantra) || 'OM NAMA SHIVAYA'}
           </div>
           <h1>${twoToneHeadline(localName(p))}</h1>
           <p class="hero-desc">${localDesc(p)}</p>
@@ -53,7 +53,7 @@ function renderSlider() {
             <a href="puja-details.html?id=${p.id}" class="btn hero-btn-primary">
               ${typeof dt === 'function' ? dt('book_now') : 'Book Puja Now'} &rarr;
             </a>
-            <a href="#pujas" class="btn hero-btn-secondary">View all specials</a>
+            <a href="#pujas" class="btn hero-btn-secondary">${typeof lt === 'function' ? lt('view_all_specials') : 'View all specials'}</a>
           </div>
 
           <div class="hero-meta">
@@ -62,7 +62,7 @@ function renderSlider() {
           </div>
         </div>
 
-        <div class="hero-swipe">Swipe &raquo;</div>
+        <div class="hero-swipe">${typeof lt === 'function' ? lt('hero_swipe') : 'Swipe Â»'}</div>
       </div>
     </div>
   `).join('');

@@ -37,7 +37,7 @@ function startOtpTimer() {
 async function requestOtpFlow() {
   const email = $id("loginEmail").value.trim();
   const phone = $id("loginPhone").value.trim();
-  if (!email || !email.includes("@")) { alert("Please enter a valid email ID."); return; }
+  // email validation removed
   if (phone.length < 10) { alert("Please enter a valid phone number."); return; }
   
   try {
@@ -45,7 +45,7 @@ async function requestOtpFlow() {
     $id("phoneStep").classList.add("hidden");
     $id("otpStep").classList.remove("hidden");
     $id("loginStepTitle").textContent = "Enter the OTP";
-    $id("loginStepHint").textContent = "We sent a 4-digit code to " + email;
+    $id("loginStepHint").textContent = "We sent a 4-digit code to " + phone;
     if (out.demoOtp) $id("demoOtp").textContent = "Demo OTP: " + out.demoOtp;
     $id("loginOtp").focus();
     startOtpTimer();

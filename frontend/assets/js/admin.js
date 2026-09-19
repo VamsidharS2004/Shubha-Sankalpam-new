@@ -42,13 +42,46 @@ document.addEventListener("DOMContentLoaded", () => {
             const group = btn.closest('.filters');
             group.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            // Logic to actually filter rows would go here
+            renderBookings();
         });
     });
     
     // Refresh button
     document.getElementById('refreshBtn')?.addEventListener('click', loadBookings);
+
+    const searchInput = document.querySelector('#view-bookings .search-bar input');
+    if (searchInput) {
+        searchInput.addEventListener('input', renderBookings);
+    }
+
 });
+
+
+// Populate dropdowns from local content
+function populateContentDropdowns() {
+    const pujaSelect = document.getElementById("newBookingPujaId");
+    if (pujaSelect && typeof pujas !== "undefined") {
+        pujaSelect.innerHTML = '<option value="">-- Select a Puja --</option>';
+        pujas.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.id || p.title_en || p.name; // Fallback logic
+            opt.textContent = p.title_en || p.name;
+            pujaSelect.appendChild(opt);
+        });
+    }
+
+    const pkgSelect = document.getElementById("newBookingPackageId");
+    if (pkgSelect && typeof packages !== "undefined") {
+        pkgSelect.innerHTML = '<option value="">-- Select a Package --</option>';
+        packages.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.id || p.title_en || p.name;
+            opt.textContent = p.title_en || p.name;
+            pkgSelect.appendChild(opt);
+        });
+    }
+}
+document.addEventListener("DOMContentLoaded", populateContentDropdowns);
 
 async function doLogin() {
     KEY = document.getElementById("pw").value;
@@ -119,109 +152,128 @@ async function loadBookings() {
         const res = await fetch("/api/admin/bookings?key=" + encodeURIComponent(KEY));
         if (!res.ok) return false;
         
-        const list = await res.json();
-        window.allBookings = list;
-        
-        const tbody = document.getElementById("bookingsTbody");
-        if (!tbody) return true;
-        
-        tbody.innerHTML = "";
-        
-        if (list.length === 0) {
-            document.getElementById("bookingsEmptyState").classList.remove("hidden");
-            tbody.closest('table').classList.add("hidden");
-        } else {
-            document.getElementById("bookingsEmptyState").classList.add("hidden");
-            tbody.closest('table').classList.remove("hidden");
-            
-            list.forEach(b => {
-                const tr = document.createElement("tr");
-                const isVideoSent = b.status === "video-sent";
-                const displayStatus = isVideoSent ? "Video Sent" : (b.status || "Confirmed");
-                
-                let actionHtml = `
-                    <button class="btn" style="padding: 4px 8px" onclick="editBooking('${b.id}')"><i class="ph ph-pencil"></i></button>
-                    <button class="btn" style="padding: 4px 8px; color: var(--red);" onclick="deleteBooking('${b.id}')"><i class="ph ph-trash"></i></button>
-                `;
-                
-                if (!isVideoSent) {
-                    actionHtml = `
-                        <div style="display:flex; gap:4px; max-width: 250px; flex-wrap: wrap;">
-                            <div style="display:flex; gap:4px; width:100%;">
-                                <input type="text" id="video_${b.id}" placeholder="Paste Video URL" style="flex:1; padding: 4px 8px; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 4px; background: transparent; color: var(--text-main);">
-                                <button class="btn" style="padding: 4px 8px; background: var(--accent); color: #fff; border:none;" onclick="sendVideo('${b.id}')">Send</button>
-                            </div>
-                            <div style="display:flex; gap:4px; margin-top:4px;">
-                                <button class="btn" style="padding: 4px 8px" onclick="editBooking('${b.id}')"><i class="ph ph-pencil"></i></button>
-                                <button class="btn" style="padding: 4px 8px; color: var(--red);" onclick="deleteBooking('${b.id}')"><i class="ph ph-trash"></i></button>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                tr.innerHTML = `
-                  <td>${esc(b.id || "—")}</td>
-                  <td>
-                    <div>${esc(b.name)}</div>
-                    <div class="text-muted">${esc(b.phone)}</div>
-                  </td>
-                  <td>${esc(b.puja)}</td>
-                  <td>₹${b.price.toLocaleString("en-IN")}</td>
-                  <td>${new Date(b.createdAt).toLocaleString("en-IN", {dateStyle: 'medium', timeStyle: 'short'})}</td>
-                  <td>
-                    <span style="color:var(--accent)">${esc(displayStatus)}</span>
-                  </td>
-                  <td>
-                    ${actionHtml}
-                  </td>`;
-                tbody.appendChild(tr);
-            });
-        }
-        
-        const countSpan = document.getElementById("bookingCountSpan");
-        if (countSpan) countSpan.textContent = list.length + " bookings";
-        
-        if (typeof updateDashboardStats === 'function') updateDashboardStats();
+        window.allBookings = await res.json();
+        renderBookings();
         return true;
     } catch (e) {
-        console.error("Error loading bookings:", e);
+        console.error(e);
         return false;
     }
 }
 
-async function sendVideo(bookingId) {
-    const input = document.getElementById(`video_${bookingId}`);
-    const videoUrl = input ? input.value.trim() : "";
-    if (!videoUrl) {
-        alert("Please enter a video URL first.");
-        return;
+function renderBookings() {
+    const tbody = document.getElementById("bookingsTbody");
+    if (!tbody) return;
+    
+    // Find active filter
+    const activeFilterBtn = document.querySelector('#view-bookings .filters .filter-btn.active');
+    const filterText = activeFilterBtn ? activeFilterBtn.textContent.trim().toLowerCase() : "all";
+    
+    
+    let list = window.allBookings || [];
+    
+    const searchInput = document.querySelector('#view-bookings .search-bar input');
+    const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    
+    if (query) {
+        list = list.filter(b => {
+            const id = (b.id || "").toLowerCase();
+            const name = (b.name || "").toLowerCase();
+            const phone = (b.phone || "").toLowerCase();
+            const puja = (b.puja || "").toLowerCase();
+            return id.includes(query) || name.includes(query) || phone.includes(query) || puja.includes(query);
+        });
     }
 
-    try {
-        const res = await fetch('/api/admin/bookings/video', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                key: KEY,
-                bookingId: bookingId,
-                videoUrl: videoUrl
-            })
+    
+    if (filterText !== "all") {
+        list = list.filter(b => {
+            const status = (b.status || "").toLowerCase();
+            if (filterText === "confirmed") return status === "confirmed" || status === "paid";
+            if (filterText === "scheduled") return status === "scheduled";
+            if (filterText === "video delivered") return status === "video-sent";
+            if (filterText === "cancelled") return status === "cancelled" || status === "failed";
+            return true;
         });
+    }
+    
+    // Update count
+    const countSpan = document.querySelector('#bookingCountSpan');
+    if (countSpan) countSpan.textContent = list.length + " bookings";
+    
+    tbody.innerHTML = "";
+    
+    if (list.length === 0) {
+        document.getElementById("bookingsEmptyState").classList.remove("hidden");
+        tbody.closest('table').classList.add("hidden");
+    } else {
+        document.getElementById("bookingsEmptyState").classList.add("hidden");
+        tbody.closest('table').classList.remove("hidden");
+        
+        list.forEach(b => {
+            const tr = document.createElement("tr");
+            const isVideoSent = b.status === "video-sent";
+            const displayStatus = isVideoSent ? "Video Sent" : (b.status || "Confirmed");
+            
+            let actionHtml = `
+                <div style="display:flex; gap:4px; max-width: 250px; flex-wrap: wrap;">
+                    <div style="display:flex; gap:4px; width:100%;">
+                        <input type="file" id="video_file_${b.id}" accept="video/*" style="flex:1; padding: 4px; font-size: 0.8rem; background: transparent; color: var(--text-main);">
+                        <button class="btn" style="padding: 4px 8px; background: var(--accent); color: #fff; border:none;" onclick="sendVideo('${b.id}')">Send</button>
+                    </div>
+                    <div id="video_progress_${b.id}" style="display:none; flex-basis: 100%; margin-top: 4px; font-size: 0.75rem; color: var(--accent);">Uploading: 0%</div>
+                    <div style="display:flex; gap:4px; margin-top:4px;">
+                        <button class="btn" style="padding: 4px 8px" onclick="editBooking('${b.id}')"><i class="ph ph-pencil"></i></button>
+                        <button class="btn" style="padding: 4px 8px; color: var(--red);" onclick="deleteBooking('${b.id}')"><i class="ph ph-trash"></i></button>
+                    </div>
+                </div>
+            `;
+            
+            if (isVideoSent) {
+                actionHtml = `
+                    <div style="display:flex; gap:8px;">
+                        <a href="${b.videoUrl || '#'}" target="_blank" style="color:var(--accent); text-decoration:none; font-weight:500;">View Video</a>
+                        <button class="btn" style="padding: 4px 8px" onclick="editBooking('${b.id}')"><i class="ph ph-pencil"></i></button>
+                        <button class="btn" style="padding: 4px 8px; color: var(--red);" onclick="deleteBooking('${b.id}')"><i class="ph ph-trash"></i></button>
+                    </div>
+                `;
+            }
 
-        if (res.ok) {
-            alert("Video attached successfully! The user can now see it in their portal.");
-            loadBookings(); // refresh list
-        } else {
-            const data = await res.json();
-            alert("Error: " + (data.error || "Failed to attach video"));
-        }
-    } catch (e) {
-        console.error(e);
-        alert("Error sending video");
+            const dt = new Date(b.createdAt);
+            const dateStr = isNaN(dt) ? "" : dt.toLocaleDateString("en-IN", { day:'numeric', month:'short', year:'numeric'});
+            const timeStr = isNaN(dt) ? "" : dt.toLocaleTimeString("en-IN", { hour:'numeric', minute:'2-digit'});
+            
+            const devoteeName = b.name || "Unknown Devotee";
+            const devoteePhone = b.phone ? "+" + b.phone : "";
+
+            // Format price cleanly
+            const displayPrice = isNaN(b.price) ? b.price : "₹" + Number(b.price).toLocaleString("en-IN");
+            
+            let badgeClass = "badge-neutral";
+            if (displayStatus.toLowerCase().includes("confirmed") || displayStatus.toLowerCase().includes("paid")) badgeClass = "badge-success";
+            if (displayStatus.toLowerCase().includes("sent")) badgeClass = "badge-success";
+            if (displayStatus.toLowerCase().includes("failed") || displayStatus.toLowerCase().includes("cancelled")) badgeClass = "badge-error";
+            if (displayStatus.toLowerCase().includes("pending")) badgeClass = "badge-warning";
+            
+            tr.innerHTML = `
+                <td style="font-family: monospace; font-size: 0.85rem; color: var(--text-muted);">${esc(b.id ? b.id.substring(0,8).toUpperCase() : '-')}</td>
+                <td>
+                    <div style="font-weight: 500;">${esc(devoteeName)}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">${esc(devoteePhone)}</div>
+                </td>
+                <td style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${esc(b.puja || '-')}">${esc(b.puja || "-")}</td>
+                <td style="font-weight: 600;">${displayPrice}</td>
+                <td>
+                    <div>${dateStr}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">${timeStr}</div>
+                </td>
+                <td><span class="badge ${badgeClass}">${esc(displayStatus)}</span></td>
+                <td>${actionHtml}</td>
+            `;
+            tbody.appendChild(tr);
+        });
     }
 }
-
-window.allDevotees = [];
 
 async function loadDevotees() {
     try {
@@ -301,7 +353,7 @@ function editBooking(id) {
     document.getElementById("editBookingOldId").value = b.id;
     document.getElementById("newBookingName").value = b.name || "";
     document.getElementById("newBookingPhone").value = b.phone || "";
-    // Prices and pujas might not map perfectly if they are strings, but we can set the basic text fields.
+    if(b.puja) { const pujaSel = document.getElementById('newBookingPujaId'); for(let i=0; i<pujaSel.options.length; i++) { if(pujaSel.options[i].text === b.puja || pujaSel.options[i].value === b.puja) pujaSel.selectedIndex = i; } } document.getElementById('newBookingPrice').value = b.price || '';
     // In a real app we'd map pujaId, packageId, etc.
     document.getElementById("btnSaveBooking").textContent = "Save Changes";
     openDrawer('drawer-new-booking');
@@ -554,6 +606,13 @@ async function savePuja() {
     const id = document.getElementById("editPujaId").value.trim();
     if (!id) return alert("URL Slug (ID) is required.");
     
+    // Check if user selected an image but forgot to click Upload
+    const fileInput = document.getElementById("filePujaImage");
+    const textInput = document.getElementById("editPujaImage");
+    if (fileInput.files.length > 0 && !textInput.value) {
+        return alert("You selected an image file but forgot to click 'Upload Image'! Please click 'Upload Image' and wait for it to finish before saving.");
+    }
+    
     const p = index >= 0 ? allPujas[index] : { packages: [{id: "individual", label: "Individual", price: parseInt(document.getElementById("editPujaPrice").value, 10), persons: 1}], media: [{type: "image", url: "default.jpg"}] };
     
     p.id = id;
@@ -760,10 +819,14 @@ function openEditPackage(index) {
     // Telugu
     document.getElementById("editPackageNameTe").value = p.name_te || "";
     document.getElementById("editPackageDescTe").value = p.desc_te || "";
+    document.getElementById("editPackageMantraTe").value = det.mantra_te || "";
+    document.getElementById("editPackageAboutTe").value = det.about_te || "";
     
     // Hindi
     document.getElementById("editPackageNameHi").value = p.name_hi || "";
     document.getElementById("editPackageDescHi").value = p.desc_hi || "";
+    document.getElementById("editPackageMantraHi").value = det.mantra_hi || "";
+    document.getElementById("editPackageAboutHi").value = det.about_hi || "";
     
     openDrawer('drawer-edit-package');
 }
@@ -792,6 +855,10 @@ async function savePackage() {
     if (!p.detail) p.detail = {};
     p.detail.mantra = document.getElementById("editPackageMantraEn").value.trim();
     p.detail.about = document.getElementById("editPackageAboutEn").value.trim();
+    p.detail.mantra_te = document.getElementById("editPackageMantraTe").value.trim();
+    p.detail.about_te = document.getElementById("editPackageAboutTe").value.trim();
+    p.detail.mantra_hi = document.getElementById("editPackageMantraHi").value.trim();
+    p.detail.about_hi = document.getElementById("editPackageAboutHi").value.trim();
     
     if (index === -1) {
         allPackages.push(p);
@@ -1188,3 +1255,49 @@ async function saveCmsContent() {
         btn.innerHTML = '<i class="ph ph-floppy-disk"></i> Save Translations';
     }
 }
+
+
+  // Generic Image Upload Logic
+  document.querySelectorAll(".upload-img-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+          const fileInputId = btn.getAttribute("data-file");
+          const targetInputId = btn.getAttribute("data-text");
+          const entity = btn.getAttribute("data-entity"); // pujas, packages, temples
+          
+          const fileInput = document.getElementById(fileInputId);
+          if (!fileInput.files || fileInput.files.length === 0) {
+              alert("Please select an image file first.");
+              return;
+          }
+          
+          const file = fileInput.files[0];
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("entity_type", entity || "pujas");
+          
+          btn.textContent = "Uploading...";
+          btn.disabled = true;
+          
+          try {
+              const res = await fetch("/api/admin/upload?key=" + encodeURIComponent(KEY), {
+                  method: "POST",
+                  body: formData
+              });
+              
+              if (!res.ok) {
+                  const err = await res.json();
+                  throw new Error(err.error || "Upload failed");
+              }
+              
+              const data = await res.json();
+              document.getElementById(targetInputId).value = data.url || data.path;
+              alert("Image uploaded successfully!");
+          } catch (e) {
+              console.error(e);
+              alert("Upload Error: " + e.message);
+          } finally {
+              btn.textContent = "Upload Image";
+              btn.disabled = false;
+          }
+      });
+  });

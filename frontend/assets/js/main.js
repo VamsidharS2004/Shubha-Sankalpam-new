@@ -45,3 +45,37 @@ let currentLang = "en";
 try { currentLang = localStorage.getItem("ss_lang") || "en"; } catch (e) {}
 const localName = p => p["title_" + currentLang] || p.title_en || p.title || p["name_" + currentLang] || p.name_en || p.name;
 const localDesc = p => p["desc_" + currentLang] || p.desc_en || p.desc;
+const localMantra = p => (p.detail && p.detail["mantra_" + currentLang]) || (p.detail && p.detail.mantra) || "";
+const localAbout = p => (p.detail && p.detail["about_" + currentLang]) || (p.detail && p.detail.about) || "";
+
+/* ── Devotional Audio Player ─────────────────────────────── */
+document.addEventListener("DOMContentLoaded", () => {
+  const audioWrap = document.getElementById("templeAudioWrap");
+  if (!audioWrap) return;
+
+  audioWrap.innerHTML = `
+    <audio id="templeAudio" preload="auto">
+      <source src="assets/temple_bell.wav" type="audio/wav">
+    </audio>
+    <button id="templeAudioBtn" aria-label="Play devotional audio" title="Devotional Bell">
+      🔔
+    </button>
+  `;
+
+  const audio = document.getElementById("templeAudio");
+  const btn   = document.getElementById("templeAudioBtn");
+  if (!audio || !btn) return;
+
+  btn.addEventListener("click", () => {
+    if (audio.paused) {
+      audio.play().catch(() => {});
+      btn.textContent = "⏸️";
+    } else {
+      audio.pause();
+      audio.currentTime = 0;
+      btn.textContent = "🔔";
+    }
+  });
+  audio.addEventListener("ended", () => { btn.textContent = "🔔"; });
+});
+

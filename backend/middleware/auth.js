@@ -37,8 +37,9 @@ function optionalLogin(req) {
 }
 
 function adminOnly(req, res, url) {
-  if (url.searchParams.get("key") !== ADMIN_PASSWORD) {
-    send(res, 401, { error: "Wrong or missing admin password." });
+  const key = url.searchParams.get("key");
+  if (key !== ADMIN_PASSWORD) {
+    send(res, 401, { error: "Unauthorized" });
     return false;
   }
   return true;

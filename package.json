@@ -4,16 +4,25 @@
   "description": "Shubha Sankalpam Website",
   "main": "backend/server.js",
   "scripts": {
-    "start": "node backend/server.js"
+    "start": "node backend/server.js",
+    "preflight": "node backend/scripts/node_preflight.js",
+    "test:e2e": "node test/e2e/runner.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@supabase/supabase-js": "^2.112.3",
+    "@supabase/supabase-js": "^2.116.0",
+    "busboy": "^1.6.0",
+    "dotenv": "^17.4.2",
+    "file-type": "^22.1.0",
+    "image-size": "^2.0.4",
     "nodemailer": "^9.0.5",
     "razorpay": "^2.9.8",
     "resend": "^6.28.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
