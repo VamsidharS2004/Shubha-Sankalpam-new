@@ -29,6 +29,22 @@ const record = {
   notes: 'Puja: Test Puja\nrazorpay_order:order_test',
   booking_names: [{ name: 'Test Devotee' }]
 };
+const templates = load(source('utils/paymentTemplates.js'), {
+  '../../frontend/content/pujas': { pujas: [{ name: 'Test Puja', muhurat: '2026-09-25T09:00:00+05:30', temple: 'Test Temple' }] }
+});
+test('template fallback does not invent schedule or failure details', () => {
+  const booking = { ...record, name: 'Test', puja: 'Unknown catalogue entry' };
+  const success = templates.paymentTemplateParams(booking, {});
+  assert.equal(success.length, 8);
+  assert.equal(success[2], 'To be confirmed');
+  assert.equal(success[3], 'To be confirmed');
+  assert.equal(success[4], 'To be confirmed');
+  const failed = templates.paymentTemplateParams(booking, {}, true);
+  assert.equal(failed.length, 7);
+  assert.equal(failed[3], 'Not available');
+  assert.equal(failed[5], 'Payment could not be completed');
+  assert.equal(failed[6], '9121296262');
+});
 function bookingModel(remote) {
   const query = {
     select(fields) {
@@ -83,11 +99,12 @@ for (const eventName of ['payment.captured', 'payment.failed']) {
     model.markPaid = model.setStatus = async () => { marked = true; };
     const controller = load(source('controllers/paymentController.js'), {
       '../utils/whatsapp': sender,
+      '../utils/paymentTemplates': templates,
       '../utils/http': { send: (_res, code) => { status = code; } },
       '../config': { RAZORPAY_WEBHOOK_SECRET: 'test-secret' },
       '../models/bookingModel': model
     });
-    const raw = JSON.stringify({ event: eventName, payload: { payment: { entity: { id: 'pay_test', order_id: 'order_test' } } } });
+    const raw = JSON.stringify({ event: eventName, payload: { payment: { entity: { id: 'pay_test', order_id: 'order_test', amount: 100, method: 'upi', error_description: 'Bank declined the transaction' } } } });
     await controller.webhook({ _rawBody: raw, headers: {
       'x-razorpay-signature': crypto.createHmac('sha256', 'test-secret').update(raw).digest('hex')
     } }, {});
@@ -96,6 +113,7 @@ for (const eventName of ['payment.captured', 'payment.failed']) {
     assert.equal(payload.destination, '919999999999');
     assert.equal(payload.userName, 'Test Devotee');
     assert.deepEqual(payload.templateParams, eventName === 'payment.captured'
-      ? ['Test Devotee', 'Test Puja', 'order_test'] : ['Test Devotee', 'Test Puja']);
+      ? ['Test Devotee', 'Test Puja', '25 September 2026', '09:00 am IST', 'Test Temple', 'booking-test', '1.00', 'UPI']
+      : ['Test Devotee', 'Test Puja', 'booking-test', '1.00', 'UPI', 'Bank declined the transaction', '9121296262']);
   });
 }

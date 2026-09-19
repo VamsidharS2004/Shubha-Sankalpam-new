@@ -15,6 +15,7 @@
    ================================================================ */
 const crypto = require("crypto");
 const { sendAiSensyMessage } = require("../utils/whatsapp");
+const { paymentTemplateParams } = require("../utils/paymentTemplates");
 const { send, readBody, readRawBody } = require("../utils/http");
 const { RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET, DEMO_MODE } = require("../config");
 const bookingModel = require("../models/bookingModel");
@@ -111,8 +112,7 @@ async function webhook(req, res) {
       console.log(`✅ Payment CONFIRMED via webhook: booking ${booking.id} (₹${booking.price})`);
       // WhatsApp Success Notification (AiSensy)
       const campaign = process.env.AISENSY_SUCCESS_TEMPLATE || "payment_success";
-      // We pass the user's name, the puja name, and the order ID as variables
-      await sendAiSensyMessage(booking.phone, campaign, booking.name, [booking.name, booking.puja, payment.order_id]);
+      await sendAiSensyMessage(booking.phone, campaign, booking.name, paymentTemplateParams(booking, payment));
     }
   }
 
@@ -124,7 +124,7 @@ async function webhook(req, res) {
       
       // WhatsApp Failure Notification (AiSensy)
       const campaign = process.env.AISENSY_FAILURE_TEMPLATE || "payment_failed";
-      await sendAiSensyMessage(booking.phone, campaign, booking.name, [booking.name, booking.puja]);
+      await sendAiSensyMessage(booking.phone, campaign, booking.name, paymentTemplateParams(booking, payment, true));
     }
   }
 
