@@ -213,7 +213,7 @@ const LISTING_UI = {
     stat2_num: "50+", stat2_lbl: "Sacred Temples",
     stat3_num: "250K+", stat3_lbl: "Happy Devotees",
     stat4_num: "4.8/5", stat4_lbl: "Devotee Rating",
-    our_pujas: "Our <em>Pujas</em>", filter_graha: "Graha Shanti", filter_wealth: "Wealth", filter_marriage: "Marriage", filter_edu: "Education", filter_protection: "Protection", filter_special: "Special", view_all_pujas: "View All Pujas <span>→</span>",
+    our_pujas: "Our <em>Pujas</em>", filter_graha: "Graha Shanti", filter_wealth: "Wealth", filter_marriage: "Marriage", filter_edu: "Education", filter_protection: "Protection", filter_special: "Special", view_all_specials: "View all specials", view_all_pujas: "View All Pujas <span>→</span>",
     why_us: "Why <em>Shubha Sankalpam</em>",
     sacred_temples: "Sacred <em>Temples</em>", sacred_temples_sub: "The temples where your pujas are performed, by verified purohits.",
     puja_gallery: "Puja <em>Gallery</em>",

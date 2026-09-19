@@ -1,0 +1,224 @@
+// ==========================================
+// IMAGE UPLOADER (Phase 2 - UI Integration)
+// ==========================================
+
+/**
+ * Shows a preview image only for values that look like a loadable image URL or path.
+ * Theme keywords (e.g. "ganesha") and other non-image strings are ignored and
+ * the preview is hidden so no broken-image request is made.
+ *
+ * Safe image values:
+ *   - Absolute https?:// URLs
+ *   - Relative paths ending in a recognised image extension (.jpg .jpeg .png .webp .gif .svg)
+ *
+ * @param {HTMLImageElement} imgEl - the preview <img> element
+ * @param {string} value           - the current text-field value
+ */
+function showPreviewIfImage(imgEl, value) {
+    if (!imgEl) return;
+    const v = (value || "").trim();
+
+    const isAbsoluteUrl = /^https?:\/\//i.test(v);
+    const hasImageExt = /\.(jpe?g|png|webp|gif|svg)(\?.*)?$/i.test(v);
+
+    if (!v || (!isAbsoluteUrl && !hasImageExt)) {
+        // Theme keyword or unrecognised value — hide preview, make no network request
+        imgEl.src = "";
+        imgEl.style.display = "none";
+        return;
+    }
+
+    const src = isAbsoluteUrl ? v : "/" + v;
+    imgEl.onerror = () => { imgEl.src = ""; imgEl.style.display = "none"; };
+    imgEl.onload = () => { imgEl.onerror = null; };
+    imgEl.src = src;
+    imgEl.style.display = "block";
+}
+
+/**
+ * Resets one upload widget to a clean state.
+ * Called each time a drawer opens so stale file/status from the
+ * previous session do not persist.
+ *
+ * @param {string} fileInputId  - id of the <input type="file">
+ * @param {string} previewId    - id of the preview <img>
+ * @param {string} statusId     - id of the status <span>
+ * @param {string} textInputId  - id of the path text <input>
+ */
+function resetUploadWidget(fileInputId, previewId, statusId, textInputId) {
+    const fileEl = document.getElementById(fileInputId);
+    const prevEl = document.getElementById(previewId);
+    const statEl = document.getElementById(statusId);
+    const textEl = document.getElementById(textInputId);
+
+    if (fileEl) fileEl.value = "";
+    if (statEl) { statEl.textContent = ""; statEl.style.color = ""; }
+
+    if (prevEl && textEl) {
+        showPreviewIfImage(prevEl, textEl.value);
+    }
+}
+
+/**
+ * Wires up all three upload widgets. Called once after DOMContentLoaded.
+ */
+function initImageUploaders() {
+    const WIDGETS = [
+        { fileId: "filePujaImage",    textId: "editPujaImage",    prevId: "prevPujaImage",    statId: "statusPujaImage",    entity: "pujas" },
+        { fileId: "filePackageImage", textId: "editPackageImage", prevId: "prevPackageImage", statId: "statusPackageImage", entity: "packages" },
+        { fileId: "fileTempleImage",  textId: "editTempleImage",  prevId: "prevTempleImage",  statId: "statusTempleImage",  entity: "temples" },
+    ];
+
+    const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+    const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+    WIDGETS.forEach(({ fileId, textId, prevId, statId, entity }) => {
+        const fileEl = document.getElementById(fileId);
+        const textEl = document.getElementById(textId);
+        const prevEl = document.getElementById(prevId);
+        const statEl = document.getElementById(statId);
+
+        if (!fileEl || !textEl || !prevEl || !statEl) return;
+
+        // ---- File picker: validate & show local preview only (no upload) ----
+        fileEl.addEventListener("change", () => {
+            const file = fileEl.files && fileEl.files[0];
+            statEl.style.color = "";
+            statEl.textContent = "";
+
+            if (!file) {
+                prevEl.src = "";
+                prevEl.style.display = "none";
+                return;
+            }
+
+            // Client-side type check (server is authoritative)
+            if (!ALLOWED_TYPES.includes(file.type)) {
+                statEl.style.color = "var(--red, #c0392b)";
+                statEl.textContent = "Only JPEG, PNG, or WebP files are allowed.";
+                fileEl.value = "";
+                return;
+            }
+
+            // Client-side size check (server is authoritative)
+            if (file.size > MAX_BYTES) {
+                statEl.style.color = "var(--red, #c0392b)";
+                statEl.textContent = "File is too large (max 5 MB).";
+                fileEl.value = "";
+                return;
+            }
+
+            // Show local preview without uploading
+            const objectUrl = URL.createObjectURL(file);
+            prevEl.onload = () => URL.revokeObjectURL(objectUrl);
+            prevEl.src = objectUrl;
+            prevEl.style.display = "block";
+            statEl.textContent = "File selected. Click \u201cUpload Image\u201d to upload.";
+        });
+
+        // ---- Upload button ----
+        const uploadBtn = document.querySelector(
+            `.upload-img-btn[data-file="${fileId}"]`
+        );
+        if (!uploadBtn) return;
+
+        uploadBtn.addEventListener("click", async () => {
+            const file = fileEl.files && fileEl.files[0];
+            if (!file) {
+                statEl.style.color = "var(--red, #c0392b)";
+                statEl.textContent = "Please select a file first.";
+                return;
+            }
+
+            if (!KEY) {
+                statEl.style.color = "var(--red, #c0392b)";
+                statEl.textContent = "Session expired \u2014 please log in again.";
+                return;
+            }
+
+            // Disable button during upload
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = "Uploading\u2026";
+            statEl.style.color = "";
+            statEl.textContent = "Uploading\u2026";
+
+            try {
+                const form = new FormData();
+                form.append("image", file, file.name);
+                form.append("entity_type", entity);
+
+                const res = await fetch(
+                    "/api/admin/upload?key=" + encodeURIComponent(KEY),
+                    { method: "POST", body: form }
+                );
+
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok) {
+                    const msg = data.error || ("Upload failed (HTTP " + res.status + ")");
+                    statEl.style.color = "var(--red, #c0392b)";
+                    statEl.textContent = msg;
+                    // Retain existing path and preview — do not clear textEl
+                    return;
+                }
+
+                // Treat 2xx with a missing or empty url as an error —
+                // do not overwrite the existing image field or preview.
+                const publicUrl = (typeof data.url === "string") ? data.url.trim() : "";
+                if (!publicUrl) {
+                    statEl.style.color = "var(--red, #c0392b)";
+                    statEl.textContent = "Upload succeeded but no URL was returned. Image field unchanged.";
+                    return;
+                }
+
+                // Success: populate path field and update preview
+                textEl.value = publicUrl;
+                showPreviewIfImage(prevEl, publicUrl);
+
+                statEl.style.color = "green";
+                statEl.textContent = "\u2713 Uploaded successfully. Click Save to persist.";
+
+                // Clear the file picker so a fresh pick is needed for the next upload
+                fileEl.value = "";
+
+            } catch (err) {
+                // Generic network failure (e.g. aborted chunked stream)
+                statEl.style.color = "var(--red, #c0392b)";
+                statEl.textContent = "Network error during upload. Please try again.";
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = "Upload Image";
+            }
+        });
+    });
+}
+
+// Initialise uploaders after DOM is ready
+document.addEventListener("DOMContentLoaded", initImageUploaders);
+
+// Reset widget state each time a drawer is opened so stale picks don't carry over
+(function patchDrawerOpeners() {
+    const _openEditPuja = typeof openEditPuja === "function" ? openEditPuja : null;
+    const _openEditPackage = typeof openEditPackage === "function" ? openEditPackage : null;
+    const _openEditTemple = typeof openEditTemple === "function" ? openEditTemple : null;
+
+    if (_openEditPuja) {
+        window.openEditPuja = function(index) {
+            _openEditPuja(index);
+            // Small delay to let the drawer populate textEl first
+            setTimeout(() => resetUploadWidget("filePujaImage", "prevPujaImage", "statusPujaImage", "editPujaImage"), 50);
+        };
+    }
+    if (_openEditPackage) {
+        window.openEditPackage = function(index) {
+            _openEditPackage(index);
+            setTimeout(() => resetUploadWidget("filePackageImage", "prevPackageImage", "statusPackageImage", "editPackageImage"), 50);
+        };
+    }
+    if (_openEditTemple) {
+        window.openEditTemple = function(index) {
+            _openEditTemple(index);
+            setTimeout(() => resetUploadWidget("fileTempleImage", "prevTempleImage", "statusTempleImage", "editTempleImage"), 50);
+        };
+    }
+})();
