@@ -14,6 +14,14 @@ async function create(req, res) {
     return send(res, 400, { error: "Name and phone number are required." });
   }
 
+  const item = require('../utils/catalog').resolveItem(raw.ref, raw.puja);
+  if (!item) return send(res,400,{error:'Please choose a valid puja.'});
+  if (Number(raw.price) !== item.price) return send(res,409,{error:'The price has changed. Refresh the booking page before continuing.',price:item.price});
+  const whatsapp = String(raw.phone || '').replace(/\D/g,'').slice(-10);
+  if (!/^[6-9]\d{9}$/.test(whatsapp)) return send(res,400,{error:'Please enter a valid WhatsApp number.'});
+  raw.phone = req.userPhone;
+  raw.puja = item.name;
+  raw.price = item.price;
   // Ensure devotee exists and update their details with the latest info
   await userModel.findOrCreate(raw.phone, { name: raw.name });
   await userModel.updateDevotee(raw.phone, { name: raw.name, gotra: raw.gotram });
@@ -22,8 +30,9 @@ async function create(req, res) {
     phone: raw.phone,
     name: raw.name,
     gotra: raw.gotram,
-    price: raw.price,
-    notes: (raw.puja ? "Puja: " + raw.puja + "\n" : "") + (raw.family ? "Family: " + raw.family : "")
+    price: item.price,
+    source: "Website",
+    notes: (raw.puja ? "Puja: " + raw.puja + "\n" : "") + "WhatsApp: " + whatsapp + "\n" + (raw.family ? "Family: " + raw.family : "")
   };
 
   // --- Duplicate Pending Booking Prevention ---
@@ -34,6 +43,7 @@ async function create(req, res) {
         .select("id")
         .eq("devotee_phone", clean(bookingData.phone, 20))
         .eq("status", "Pending")
+        .eq("price", item.price)
         .eq("notes", clean(bookingData.notes, 500))
         .limit(1);
 

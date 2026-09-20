@@ -9,11 +9,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&amp;family=Noto+Sans+Telugu:wght@400;500;600;700&amp;family=Noto+Sans+Devanagari:wght@400;500;600;700&amp;family=Noto+Serif+Telugu:wght@500;600;700&amp;family=Noto+Serif+Devanagari:wght@500;600;700&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/global.css">
-<link rel="stylesheet" href="assets/css/navbar.css">
-<link rel="stylesheet" href="assets/css/forms.css">
-<link rel="stylesheet" href="assets/css/animations.css">
-<link rel="stylesheet" href="assets/css/responsive.css">  <!-- always last -->
+<link rel="stylesheet" href="assets/css/global.css?v=client-20260920">
+<link rel="stylesheet" href="assets/css/navbar.css?v=client-20260920">
+<link rel="stylesheet" href="assets/css/forms.css?v=client-20260920">
+<link rel="stylesheet" href="assets/css/animations.css?v=client-20260920">
+<link rel="stylesheet" href="assets/css/responsive.css?v=client-20260920">  <!-- always last -->
 <title data-cms-key="login.title.main">Login | Shubha Sankalpam</title>
 <meta name="description" content="Login with OTP to book pujas, track your bookings, and receive your puja video.">
 </head>
@@ -28,7 +28,6 @@
     
     <!-- Step 1: Email + Phone -->
     <div class="login-fields" id="phoneStep">
-      <input type="email" id="loginEmail" style="display:none;" value="devotee@example.com" placeholder="Enter your Email ID" autocomplete="email" required="" data-cms-key="login.placeholder.email" data-cms-attr="placeholder">
       <input type="tel" id="loginPhone" placeholder="+91 XXXXX XXXXX" autocomplete="tel" required="" data-cms-key="login.placeholder.phone" data-cms-attr="placeholder">
       <button class="login-big-btn" id="sendOtpBtn"><span data-cms-key="login.button.send_otp">Send OTP</span> <span class="login-arrow">&#8594;</span></button>
     </div>
@@ -47,7 +46,7 @@
     <!-- Step 3: Complete Profile -->
     <div class="login-fields hidden" id="profileStep">
       <input type="text" id="loginName" placeholder="Full Name" autocomplete="name" required="">
-      <input type="text" id="loginGotram" placeholder="Gotram (e.g., Kashyapa)" autocomplete="off" required="">
+      <input type="text" id="loginGotram" placeholder="Gotram (optional)" autocomplete="off">
       <button class="login-big-btn" id="saveProfileBtn" data-cms-key="login.button.complete_profile">Complete Profile <span class="login-arrow">→</span></button>
     </div>
   </div>
@@ -55,20 +54,20 @@
 
 <div id="site-footer"></div>
 <!-- ============ CONTENT (edit these files to change text/prices/images) ============ -->
-<script src="content/site-settings.js"></script>
-<script src="content/pujas.js"></script>
-<script src="content/packages.js"></script>
-<script src="content/puja-detail-defaults.js"></script>
-<script src="content/trust-highlights.js"></script>
-<script src="content/faq.js"></script>
+<script src="content/site-settings.js?v=client-20260920"></script>
+<script src="content/pujas.js?v=client-20260920"></script>
+<script src="content/packages.js?v=client-20260920"></script>
+<script src="content/puja-detail-defaults.js?v=client-20260920"></script>
+<script src="content/trust-highlights.js?v=client-20260920"></script>
+<script src="content/faq.js?v=client-20260920"></script>
 
 <!-- ============ SITE CODE (do not need to edit for content changes) ============ -->
-<script src="assets/js/cms-renderer.js?v=3"></script>
-<script src="assets/js/main.js?v=3"></script>
-<script src="assets/js/navbar.js?v=3"></script>
-<script src="assets/js/animations.js?v=3"></script>
-<script src="assets/js/cards.js?v=3"></script>
-<script src="assets/js/auth.js?v=3"></script>
+<script src="assets/js/cms-renderer.js?v=client-20260920"></script>
+<script src="assets/js/main.js?v=client-20260920"></script>
+<script src="assets/js/navbar.js?v=client-20260920"></script>
+<script src="assets/js/animations.js?v=client-20260920"></script>
+<script src="assets/js/cards.js?v=client-20260920"></script>
+<script src="assets/js/auth.js?v=client-20260920"></script>
 
 </body></html>
 

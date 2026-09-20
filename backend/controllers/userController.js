@@ -22,7 +22,17 @@ async function updateMe(req, res) {
 // Admin Logic
 async function adminListDevotees(req, res) {
   const devotees = await userModel.all();
-  send(res, 200, devotees);
+  const bookings = await bookingModel.all();
+  let leads=[], trackingError=null;
+  try { leads=await require('../models/leadModel').all(); } catch(e) { trackingError=e.message; }
+  const digits=p=>String(p||'').replace(/\D/g,'').slice(-10);
+  send(res, 200, devotees.map(d=>{
+    const related=bookings.filter(b=>digits(b.phone)===digits(d.phone));
+    const lead=leads.find(l=>digits(l.phone)===digits(d.phone))||{};
+    return {...d,...lead,tracking_error:trackingError,booking_count:related.length,
+      pending_count:related.filter(b=>['pending','failed','payment-pending'].includes(String(b.status).toLowerCase())).length,
+      confirmed_count:related.filter(b=>['confirmed','scheduled','video delivered','paid','video-sent'].includes(String(b.status).toLowerCase())).length};
+  }));
 }
 
 async function adminCreateDevotee(req, res) {
@@ -49,4 +59,14 @@ async function adminDeleteDevotee(req, res, url) {
   send(res, 200, { ok: true });
 }
 
-module.exports = { getMe, updateMe, adminListDevotees, adminCreateDevotee, adminUpdateDevotee, adminDeleteDevotee };
+async function trackInterest(req,res){
+  const {ref}=await readBody(req);
+  if(!require('../utils/catalog').resolveItem(String(ref||''))) return send(res,400,{error:'Unknown puja'});
+  const ok=await require('../models/leadModel').interest(req.userPhone,String(ref||''));
+  send(res,ok?200:503,ok?{ok:true}:{error:'Interest tracking is temporarily unavailable.'});
+}
+async function catalogItem(req,res,url){
+  const item=require('../utils/catalog').resolveItem(url.searchParams.get('ref'));
+  send(res,item?200:404,item?{item}:{error:'Puja unavailable. Please choose a puja again.'});
+}
+module.exports = { trackInterest, catalogItem, getMe, updateMe, adminListDevotees, adminCreateDevotee, adminUpdateDevotee, adminDeleteDevotee };

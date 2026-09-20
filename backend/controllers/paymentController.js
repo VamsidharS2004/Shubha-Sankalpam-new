@@ -46,6 +46,10 @@ async function createOrder(req, res) {
     return send(res, 403, { error: "This booking doesn't belong to your account." });
   }
 
+  const currentItem = require('../utils/catalog').resolveItem(null, booking.puja);
+  if (currentItem && Number(booking.price) !== currentItem.price) {
+    return send(res,409,{error:'This pending booking has an older price. Go back and create a new booking at the current price.'});
+  }
   const amountPaise = Math.round(booking.price * 100); // Razorpay wants paise, not rupees
 
   if (DEMO_MODE) {
@@ -57,6 +61,7 @@ async function createOrder(req, res) {
       amount: amountPaise,
       currency: "INR",
       keyId: RAZORPAY_KEY_ID || "rzp_test_demo",
+      contact: booking.whatsapp,
       bookingId: booking.id,
       order: {
         id: mockOrderId,
@@ -81,7 +86,7 @@ async function createOrder(req, res) {
   const order = await r.json();
   await bookingModel.attachOrder(booking.id, order.id);
 
-  send(res, 200, { orderId: order.id, amount: amountPaise, keyId: RAZORPAY_KEY_ID, bookingId: booking.id });
+  send(res, 200, { orderId: order.id, amount: amountPaise, keyId: RAZORPAY_KEY_ID, contact: booking.whatsapp, bookingId: booking.id });
 }
 
 /* POST /api/payments/webhook — Razorpay calls this directly the

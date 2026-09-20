@@ -1,3 +1,11 @@
+// Short display reference only; API actions retain the original database ID.
+function numericBookingId(id) {
+    const value = String(id || "").toLowerCase();
+    if (/^[0-9a-f]{8}-/.test(value)) return String(parseInt(value.slice(0, 8), 16)).padStart(10, "0");
+    let hash = 0;
+    for (const char of value) hash = (Math.imul(hash, 31) + char.charCodeAt(0)) >>> 0;
+    return String(hash).padStart(10, "0");
+}
 let KEY = "";
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
@@ -46,6 +54,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
     
+    document.getElementById('refreshDashboard')?.addEventListener('click',async event=>{
+      const btn=event.currentTarget; if(btn.disabled)return; btn.disabled=true;btn.textContent='Refreshing…';
+      try{await Promise.all([loadBookings(),loadDevotees()]);}finally{btn.disabled=false;btn.textContent='Refresh';}
+    });
     // Refresh button
     document.getElementById('refreshBtn')?.addEventListener('click', loadBookings);
 
@@ -87,10 +99,7 @@ async function doLogin() {
     KEY = document.getElementById("pw").value;
     const success = await loadBookings();
     if (success) {
-        await loadDevotees(); // Also load devotees
-        await loadPujas(); // Load Pujas CMS data
-        await loadPackages(); // Load Packages CMS data
-        await loadTemples(); // Load Temples CMS data
+        await Promise.all([loadDevotees(), loadPujas(), loadPackages(), loadTemples()]);
         updateDashboardStats();
         document.getElementById("loginOverlay").classList.add("hidden");
         // default tab
@@ -101,6 +110,17 @@ async function doLogin() {
 }
 
 function updateDashboardStats() {
+    const pending = b=>['pending','failed','payment-pending'].includes(String(b.status).toLowerCase());
+    const confirmed = b=>['confirmed','scheduled','video delivered','paid','video-sent'].includes(String(b.status).toLowerCase());
+    const istDay = value=>new Date(value).toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'});
+    const today=istDay(Date.now());
+    const metrics={statTodaySignups:(window.allDevotees||[]).filter(d=>d.signup_at && istDay(d.signup_at)===today).length,
+      statPendingBookings:(window.allBookings||[]).filter(pending).length,
+      statConfirmedBookings:(window.allBookings||[]).filter(confirmed).length};
+    for(const [id,value] of Object.entries(metrics)) if(document.getElementById(id))document.getElementById(id).textContent=value;
+    const notice=document.getElementById('leadTrackingNotice');
+    if(notice)notice.textContent=(window.allDevotees||[]).find(d=>d.tracking_error)?.tracking_error || 'Signup metrics track verified new signups after this update. Historical signup sources are shown as not recorded.';
+
     if (document.getElementById("statTotalBookings")) {
         document.getElementById("statTotalBookings").textContent = window.allBookings.length;
     }
@@ -108,7 +128,7 @@ function updateDashboardStats() {
         document.getElementById("statTotalDevotees").textContent = window.allDevotees.length;
     }
     if (document.getElementById("statTotalRevenue")) {
-        const rev = window.allBookings.reduce((sum, b) => sum + (Number(b.price) || 0), 0);
+        const rev = window.allBookings.filter(confirmed).reduce((sum, b) => sum + (Number(b.price) || 0), 0);
         document.getElementById("statTotalRevenue").textContent = "₹" + rev.toLocaleString("en-IN");
     }
 }
@@ -154,6 +174,7 @@ async function loadBookings() {
         
         window.allBookings = await res.json();
         renderBookings();
+        if(window.allDevotees) updateDashboardStats();
         return true;
     } catch (e) {
         console.error(e);
@@ -181,7 +202,7 @@ function renderBookings() {
             const name = (b.name || "").toLowerCase();
             const phone = (b.phone || "").toLowerCase();
             const puja = (b.puja || "").toLowerCase();
-            return id.includes(query) || name.includes(query) || phone.includes(query) || puja.includes(query);
+            return id.includes(query) || numericBookingId(id).includes(query) || name.includes(query) || phone.includes(query) || puja.includes(query);
         });
     }
 
@@ -256,7 +277,7 @@ function renderBookings() {
             if (displayStatus.toLowerCase().includes("pending")) badgeClass = "badge-warning";
             
             tr.innerHTML = `
-                <td style="font-family: monospace; font-size: 0.85rem; color: var(--text-muted);">${esc(b.id ? b.id.substring(0,8).toUpperCase() : '-')}</td>
+                <td style="white-space: nowrap; font-family: monospace; font-size: 0.85rem; color: var(--text-muted);">${esc(b.id ? numericBookingId(b.id) : "-")}</td>
                 <td>
                     <div style="font-weight: 500;">${esc(devoteeName)}</div>
                     <div style="font-size: 0.8rem; color: var(--text-muted);">${esc(devoteePhone)}</div>
@@ -282,6 +303,8 @@ async function loadDevotees() {
         
         const list = await res.json();
         window.allDevotees = list;
+        const empty=document.getElementById('devoteesEmpty');if(empty)empty.style.display=list.length?'none':'';
+        const count=document.getElementById('devoteesCount');if(count)count.textContent=list.length+' devotees';
         const tbody = document.getElementById("devoteesTbody"); // Ensure this ID exists in your devotees table
         if (!tbody) return true;
         
@@ -295,10 +318,12 @@ async function loadDevotees() {
                     <div class="text-muted" style="font-size:0.8rem">ID: ${esc((d.id||"").substring(0,8))}</div>
                 </td>
                 <td>${esc(d.phone)}</td>
-                <td>${esc(d.city || '—')}</td>
-                <td>English</td>
+                <td>${esc(d.gotra || '—')}</td>
+                <td>${d.signup_at || d.created_at ? esc(new Date(d.signup_at || d.created_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})) : 'Not recorded'}</td>
+                <td>${esc(d.signup_source || 'Not recorded')}<br>${esc(d.signup_puja || '—')}</td>
+                <td>${esc(d.interested_puja || 'Not recorded')}</td>
+                <td>${Number(d.pending_count)||0} pending / ${Number(d.confirmed_count)||0} confirmed</td>
                 <td>${d.booking_count || 0}</td>
-                <td>${esc(d.created_by || 'system')}</td>
                 <td>
                     <button class="btn" style="padding: 4px 8px" onclick="editDevotee('${d.phone}')"><i class="ph ph-pencil"></i></button>
                     <button class="btn" style="padding: 4px 8px; color: var(--red);" onclick="deleteDevotee('${d.phone}')"><i class="ph ph-trash"></i></button>

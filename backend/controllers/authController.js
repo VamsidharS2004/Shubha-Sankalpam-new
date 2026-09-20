@@ -206,7 +206,7 @@ async function requestOtp(req, res) {
    POST /api/login/verify
    --------------------------------------------------------------- */
 async function verifyOtp(req, res) {
-  const { phone, otp, email } = await readBody(req);
+  const { phone, otp, email, signupRef } = await readBody(req);
   const p = normalizePhone(phone);
   const pending = pendingOtps.get(p);
 
@@ -227,7 +227,7 @@ async function verifyOtp(req, res) {
   const storedEmail = pending.email || email;
   pendingOtps.delete(p);
   
-  const user = await userModel.findOrCreate(p);
+  const user = await userModel.findOrCreate(p, {signup:true, signupRef:clean(signupRef,200)});
   
   if (user && storedEmail && user.email !== storedEmail) {
     await userModel.updateDevotee(p, { email: storedEmail });

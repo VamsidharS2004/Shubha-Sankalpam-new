@@ -9,6 +9,7 @@ applyDetailI18n();
 let ref = getParam("id") || "puja:0";
 let { item, type } = getItem(ref);
 if (!item) location.href = "puja.html";
+if (authToken && item) api('/api/me/interest','POST',{ref:item.id || ref}).catch(()=>{});
 let D = Object.assign({}, DETAIL_DEFAULTS, item.detail || {});
 
 function renderDetails() {

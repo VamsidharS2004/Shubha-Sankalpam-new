@@ -14,11 +14,13 @@ const websiteContent = require("../controllers/websiteContentController");
 const { requireLogin, optionalLogin, adminOnly } = require("../middleware/auth");
 
 const routes = [
+  { method:'GET', path:'/api/catalog/item', middleware:[], handler:user.catalogItem },
+  { method:'POST', path:'/api/me/interest', middleware:[requireLogin], handler:user.trackInterest },
   { method: "POST", path: "/api/login/request", middleware: [],              handler: auth.requestOtp },
   { method: "POST", path: "/api/login/verify",  middleware: [],              handler: auth.verifyOtp  },
   { method: "GET",  path: "/api/me",            middleware: [requireLogin],  handler: user.getMe      },
   { method: "PUT",  path: "/api/me",            middleware: [requireLogin],  handler: user.updateMe   },
-  { method: "POST", path: "/api/bookings",      middleware: [optionalLogin], handler: booking.create  },
+  { method: "POST", path: "/api/bookings",      middleware: [requireLogin], handler: booking.create  },
   { method: "DELETE", path: "/api/bookings",    middleware: [requireLogin],  handler: booking.deleteMyBooking },
   { method: "POST", path: "/api/bookings/claim", middleware: [],             handler: booking.claimPayment },
   { method: "GET",  path: "/api/bookings/recover", middleware: [],           handler: booking.recoverBooking },

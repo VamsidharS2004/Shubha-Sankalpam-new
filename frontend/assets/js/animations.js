@@ -38,6 +38,7 @@
     }
   }
 
+  if (document.body.classList.contains("account-page")) return;
   if (reduceMotion) return; // CSS already handles the reduced-motion case,
                              // but skip the observer/IO work entirely too.
 

@@ -121,6 +121,7 @@ async function findOrCreate(phone, defaults = {}) {
         };
         users.push(record);
         writeLocalUsers(users);
+        if (defaults.signup) await require("./leadModel").signup(p, defaults.signupRef);
         return record;
     }
 
@@ -139,6 +140,7 @@ async function findOrCreate(phone, defaults = {}) {
         return { phone: p };
     }
     
+    if (defaults.signup) await require("./leadModel").signup(p, defaults.signupRef);
     return data;
 }
 

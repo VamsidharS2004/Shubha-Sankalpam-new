@@ -12,7 +12,7 @@
    ================================================================ */
 initLayout();
 
-if (!authToken) location.href = "login.html?next=account.html";
+if (!authToken) location.replace("login.html?next=account.html");
 
 /* ---------------------------------------------------------------
    PANEL SWITCHING — clicking a sidebar button shows its panel and
@@ -21,6 +21,8 @@ if (!authToken) location.href = "login.html?next=account.html";
    never changed what was shown underneath.
    --------------------------------------------------------------- */
 function showPanel(name) {
+  const selected = $id("panel-" + name);
+  if (!selected) return;
   document.querySelectorAll(".account-panel").forEach(p => {
     p.style.display = (p.id === "panel-" + name) ? "" : "none";
   });
@@ -29,6 +31,7 @@ function showPanel(name) {
   });
   if (name === "wishlist") renderWishlistPanel();
   if (name === "language") renderLanguagePanel();
+  requestAnimationFrame(() => { selected.setAttribute("tabindex", "-1"); selected.focus({ preventScroll: true }); selected.scrollIntoView({ behavior: "instant", block: "start" }); });
 }
 
 document.querySelectorAll(".side-item[data-panel]").forEach(btn => {
@@ -69,12 +72,12 @@ const BK_TAB_STATUSES = {
   pending: ["payment-pending", "failed"],
   completed: ["video-sent"]
 };
-let currentBkTab = startTab || "ongoing";
+let currentBkTab = Object.hasOwn(BK_TAB_STATUSES, startTab) ? startTab : "pending";
 let allBookings = [];
 
 // Initialize the correct tab styling on load
 if (startTab) {
-  document.querySelectorAll("#bkTabs .bk-tab").forEach(t => t.classList.toggle("active", t.dataset.bktab === startTab));
+  document.querySelectorAll("#bkTabs .bk-tab").forEach(t => t.classList.toggle("active", t.dataset.bktab === currentBkTab));
 }
 
 document.querySelectorAll("#bkTabs .bk-tab").forEach(tab => {
@@ -171,7 +174,7 @@ function renderBookingsList() {
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                   Delete
                 </button>
-                <a class="book-link" href="#" onclick="event.preventDefault(); location.href='payment.html?bookingId=${b.id}&id=${refId}'">Continue <span class="arrow">&rarr;</span></a>
+                <a class="book-link" href="#" onclick="event.preventDefault(); location.href='payment.html?bookingId=${b.id}&id=${refId}&start=1'">Continue <span class="arrow">&rarr;</span></a>
               </div>`;
         } else if (b.status === "video-sent" && b.videoUrl) {
            actionBtn = `<a class="book-link" href="${b.videoUrl}">Watch Video <span class="arrow">&rarr;</span></a>`;
@@ -195,6 +198,7 @@ function renderBookingsList() {
 
 async function loadProfile() {
   try {
+    $id("profileLoadError").hidden = true;
     const me = await api("/api/me");
     const name = me.user.name || "Add your name";
     
@@ -206,11 +210,11 @@ async function loadProfile() {
     // Profile dash info
     $id("dashName").textContent = name;
     $id("dashPhone").textContent = me.user.phone;
-    $id("dashEmail").textContent = me.user.email || "Add email address";
+    $id("dashEmail").textContent = (me.user.email && !/@example\.com$/i.test(me.user.email) ? me.user.email : "Add email address");
     $id("dashGotram").textContent = me.user.gotra || "Not provided";
     
     // Stats
-    $id("dashBkCount").textContent = me.bookings.length;
+    $id("dashBkCount").textContent = (me.bookings || []).length;
     
     // Language preference
     let currentLang = localStorage.getItem("ss_lang") || "en";
@@ -224,11 +228,12 @@ async function loadProfile() {
     });
     renderBookingsList();
   } catch (e) {
-    clearToken();
-    location.href = "login.html?next=account.html";
+    if (e.status === 401) { clearToken(); location.replace("login.html?next=account.html"); }
+    else { $id("profileLoadError").hidden = false; $id("abName").textContent = "My Account"; }
   }
 }
-loadProfile();
+if (authToken) loadProfile();
+window.addEventListener("pageshow", e => { if (e.persisted && authToken) loadProfile(); });
 
 const epModal = $id("editProfileModal");
 const epForm = $id("editProfileForm");

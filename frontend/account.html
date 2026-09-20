@@ -10,16 +10,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&amp;family=Noto+Sans+Telugu:wght@400;500;600;700&amp;family=Noto+Sans+Devanagari:wght@400;500;600;700&amp;family=Noto+Serif+Telugu:wght@500;600;700&amp;family=Noto+Serif+Devanagari:wght@500;600;700&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/global.css">
-<link rel="stylesheet" href="assets/css/navbar.css">
-<link rel="stylesheet" href="assets/css/account.css">
-<link rel="stylesheet" href="assets/css/home.css">
-<link rel="stylesheet" href="assets/css/animations.css">
-<link rel="stylesheet" href="assets/css/responsive.css">  <!-- always last -->
+<link rel="stylesheet" href="assets/css/global.css?v=client-20260920">
+<link rel="stylesheet" href="assets/css/navbar.css?v=client-20260920">
+<link rel="stylesheet" href="assets/css/account.css?v=client-20260920">
+<link rel="stylesheet" href="assets/css/home.css?v=client-20260920">
+<link rel="stylesheet" href="assets/css/animations.css?v=client-20260920">
+<link rel="stylesheet" href="assets/css/responsive.css?v=client-20260920">  <!-- always last -->
 <title data-cms-key="account.title.main">My Account | Shubha Sankalpam</title>
 <meta name="description" content="Manage your profile and view your puja booking history.">
 </head>
-<body>
+<body class="account-page"><p id="profileLoadError" role="status" hidden style="padding:16px;text-align:center">Unable to load your profile. <button type="button" onclick="loadProfile()">Retry</button></p>
 <div id="site-header"></div>
 
 <div class="breadcrumb"><div class="container"><a href="home.html">HOME</a><i>›</i><span>Account</span></div></div>
@@ -31,7 +31,7 @@
       <div class="ab-avatar" id="abAvatar">D</div>
       <div class="ab-info">
         <div class="ab-name-row">
-          <h2 id="abName">Devotee</h2>
+          <h2 id="abName">Loading profile…</h2>
           <span class="ab-badge">DEVOTEE</span>
         </div>
         <div class="ab-phone-row">
@@ -84,7 +84,7 @@
         <div class="dash-grid">
           <div class="dash-item">
             <label data-cms-key="account.label.full_name">Full Name:</label>
-            <div id="dashName">Devotee</div>
+            <div id="dashName">Loading…</div>
           </div>
           <div class="dash-item">
             <label data-cms-key="account.label.verified_phone">Verified Phone:</label>
@@ -110,8 +110,8 @@
     <div class="account-panel" id="panel-bookings" style="display:none">
       <div class="panel-title"><span class="pt-icon">🛕</span><h2 data-cms-key="account.heading.my_bookings">My Bookings</h2></div>
       <div class="bk-tabs" id="bkTabs">
-        <button class="bk-tab active" data-bktab="ongoing" data-cms-key="account.tab.ongoing">Ongoing</button>
-        <button class="bk-tab" data-bktab="pending" data-cms-key="account.tab.pending">Pending</button>
+        <button class="bk-tab active" data-bktab="pending" data-cms-key="account.tab.pending">Pending</button>
+        <button class="bk-tab" data-bktab="ongoing" data-cms-key="account.tab.ongoing">Ongoing</button>
         <button class="bk-tab" data-bktab="completed" data-cms-key="account.tab.completed">Completed</button>
       </div>
       <div class="cards" id="myBookingsList"></div>
@@ -206,7 +206,7 @@
       </div>
       <div style="display:flex; flex-direction:column; gap:6px;">
         <label style="font-size:.85rem; font-weight:600; color:var(--muted);" data-cms-key="account.label.edit_gotram">Gotram</label>
-        <input type="text" id="epGotram" required="" style="padding:10px 14px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:1rem;">
+        <input type="text" id="epGotram" placeholder="Optional" style="padding:10px 14px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:1rem;">
       </div>
       <button type="submit" class="btn btn-red" style="margin-top:8px; width:100%; justify-content:center;">Save Changes</button>
     </form>
@@ -215,19 +215,19 @@
 
 <div id="site-footer"></div>
 <!-- ============ CONTENT (edit these files to change text/prices/images) ============ -->
-<script src="content/site-settings.js"></script>
-<script src="content/pujas.js"></script>
-<script src="content/packages.js"></script>
-<script src="content/puja-detail-defaults.js"></script>
-<script src="content/trust-highlights.js"></script>
-<script src="content/faq.js"></script>
+<script src="content/site-settings.js?v=client-20260920"></script>
+<script src="content/pujas.js?v=client-20260920"></script>
+<script src="content/packages.js?v=client-20260920"></script>
+<script src="content/puja-detail-defaults.js?v=client-20260920"></script>
+<script src="content/trust-highlights.js?v=client-20260920"></script>
+<script src="content/faq.js?v=client-20260920"></script>
 
 <!-- ============ SITE CODE (do not need to edit for content changes) ============ -->
-<script src="assets/js/main.js?v=5"></script>
-<script src="assets/js/navbar.js?v=5"></script>
-<script src="assets/js/animations.js?v=5"></script>
-<script src="assets/js/cards.js?v=5"></script>
-<script src="assets/js/language.js?v=5"></script>
-<script src="assets/js/pages/account.js?v=5"></script>
+<script src="assets/js/main.js?v=client-20260920"></script>
+<script src="assets/js/navbar.js?v=client-20260920"></script>
+<script src="assets/js/animations.js?v=client-20260920"></script>
+<script src="assets/js/cards.js?v=client-20260920"></script>
+<script src="assets/js/language.js?v=client-20260920"></script>
+<script src="assets/js/pages/account.js?v=client-20260920"></script>
 
 </body></html>

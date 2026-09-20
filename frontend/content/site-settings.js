@@ -17,11 +17,11 @@ const SITE = {
   // Your WhatsApp number for the "Need Help?" button, booking via
   // WhatsApp, and the WhatsApp Expert button.
   // Format: 91 followed by your 10-digit number, no spaces or +
-  WHATSAPP: "919676743444",
+  WHATSAPP: "917075568530",
 
   // Your phone number for the "Book via Call" button.
   // Format: +91 followed by your 10-digit number
-  CALL: "+919676743444",
+  CALL: "+917075568530",
 
   // ★★★ YOUR UPI ID — payments go directly here ★★★
   // This builds the QR code on the payment page. Get this from

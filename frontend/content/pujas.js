@@ -27,13 +27,13 @@ const pujas = [
       "forWhom": "వ్యక్తి లేదా కుటుంబం"
     },
     "id": "Ashtabhaiava Homam-te",
-    "basePrice": 1500,
+    "basePrice": 1,
     "language": "te"
   },
   {
     "name": "Navanarasimha Homam",
     "desc": "A Kamika Ekadashi special homam to the nine forms of Lord Narasimha, performed with your name and gotram for divine grace and protection.",
-    "temple": "Venkateswara Swamy Temple",
+    "temple": "శ్రీ వేంకటేశ్వర స్వామి ఆలయం",
     "date": "Friday, 25 September",
     "muhurat": "2026-09-25T08:00:00+05:30",
     "price": 816,
@@ -53,7 +53,7 @@ const pujas = [
   {
     "name": "నవనారసింహ హోమం",
     "desc": "కామిక ఏకాదశి ప్రత్యేకం — భక్తుల పేరు, గోత్రంతో నవనరసింహ స్వామివారికి ప్రత్యేక హోమ ఆరాధన, దైవానుగ్రహం కోసం.",
-    "temple": "Venkateswara Swamy Temple",
+    "temple": "శ్రీ వేంకటేశ్వర స్వామి ఆలయం",
     "date": "Friday, 25 September",
     "muhurat": "2026-09-25T08:00:00+05:30",
     "price": 816,
@@ -73,7 +73,7 @@ const pujas = [
   {
     "name": "వెంకటేశ్వర స్వామి అభిషేకం (108 ద్రవ్యాలు)",
     "desc": "కామిక ఏకాదశి ప్రత్యేకం — భక్తుల గోత్రనామాలతో సంకల్పం చేసి, వేదమంత్రాల నడుమ శ్రీ వేంకటేశ్వర స్వామికి 108 ద్రవ్యాలతో మహా అభిషేకం.",
-    "temple": "Venkateswara Swamy Temple",
+    "temple": "శ్రీ వేంకటేశ్వర స్వామి ఆలయం",
     "date": "Saturday, 26 September",
     "muhurat": "2026-09-26T09:00:00+05:30",
     "price": 816,

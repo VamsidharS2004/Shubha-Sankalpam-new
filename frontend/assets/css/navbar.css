@@ -13,6 +13,21 @@ header{position:fixed;top:0;left:0;right:0;width:100%;max-width:none;margin:0;
 
 .container.nav{max-width:1280px}
 
+/* A dedicated back control stays visible when the mobile menu is hidden. */
+header.flow-header {border-bottom:1px solid #e9e9e9;box-shadow:none}
+header.flow-header .nav {height:64px;gap:16px}
+header.flow-header .nav-links {display:none}
+header.flow-header .flow-back {display:inline-flex;align-items:center;gap:9px;min-height:44px;min-width:110px;padding:0 8px;color:#181818;font-size:12px;font-weight:700;letter-spacing:.02em;text-decoration:none;flex-shrink:0;border-radius:4px}
+.flow-back svg {width:18px;height:18px;flex-shrink:0}
+.flow-back:hover {background:#f5f5f5}
+.flow-back:focus-visible {outline:2px solid var(--red);outline-offset:2px}
+header.flow-header .logo {margin:auto}
+@media(max-width:900px){
+  header.flow-header .nav {height:56px;padding:0 12px;gap:8px}
+  header.flow-header .logo {display:none}
+  header.flow-header .nav-right {margin-left:auto}
+}
+
 .nav > *{min-width:0}
 
 .logo-text b{overflow-wrap:break-word}

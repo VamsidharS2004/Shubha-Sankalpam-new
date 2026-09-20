@@ -12,11 +12,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&amp;family=Noto+Sans+Telugu:wght@400;500;600;700&amp;family=Noto+Sans+Devanagari:wght@400;500;600;700&amp;family=Noto+Serif+Telugu:wght@500;600;700&amp;family=Noto+Serif+Devanagari:wght@500;600;700&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/global.css">
-<link rel="stylesheet" href="assets/css/navbar.css">
-<link rel="stylesheet" href="assets/css/forms.css">
-<link rel="stylesheet" href="assets/css/animations.css">
-<link rel="stylesheet" href="assets/css/responsive.css">  <!-- always last -->
+<link rel="stylesheet" href="assets/css/global.css?v=client-20260920">
+<link rel="stylesheet" href="assets/css/navbar.css?v=client-20260920">
+<link rel="stylesheet" href="assets/css/forms.css?v=client-20260920">
+<link rel="stylesheet" href="assets/css/animations.css?v=client-20260920">
+<link rel="stylesheet" href="assets/css/responsive.css?v=client-20260920">  <!-- always last -->
 <title data-i18n="bk_heading">Booking — Enter Sankalpam Details | Shubha Sankalpam</title>
 <meta name="description" content="Complete your puja booking with your sankalpam details — name, gotra, and family members to be blessed.">
 </head>
@@ -33,11 +33,6 @@
     <div class="step-line"></div>
     <div class="step">
       <div class="step-circle">2</div>
-      <div class="step-label" data-i18n="bk_step2">సమీక్ష</div>
-    </div>
-    <div class="step-line"></div>
-    <div class="step">
-      <div class="step-circle">3</div>
       <div class="step-label" data-i18n="bk_step3">Payment</div>
     </div>
   </div>
@@ -47,9 +42,9 @@
   <div class="booking-main">
     <div class="form-card">
       <div class="wa-display">
-        <label data-i18n="bk_wa_label">మీ వాట్సాప్ నంబర్ ✏️</label>
-        <input id="fPhone" type="tel" placeholder="+91 1234567890 (Enter WhatsApp Number)" data-i18n-placeholder="bk_wa_label" data-cms-attr="placeholder">
-        <p class="hint" data-i18n="bk_wa_hint">పూజ వీడియో మరియు ఆశీర్వాద వివరాలు ఈ నంబర్‌కు పంపబడతాయి.</p>
+        <label for="fPhone">Your WhatsApp Number</label>
+        <input id="fPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Enter your WhatsApp number" aria-describedby="whatsappHelp">
+        <p id="whatsappHelp" class="hint">Verify or edit this number to receive your booking confirmation and puja video.</p><p class="hint" data-i18n="bk_wa_hint">పూజ వీడియో మరియు ఆశీర్వాద వివరాలు ఈ నంబర్‌కు పంపబడతాయి.</p>
       </div>
 
       <div class="family-names-section">
@@ -64,9 +59,9 @@
         <p class="hint" data-i18n="bk_names_hint">పూజ సంకల్పం సమయంలో ఈ పేరు చేర్చబడుతుంది.</p>
       </div>
 
-      <div class="gotram-section">
+      <div class="gotram-section"><small>Gotram is optional / గోత్రం ఐచ్ఛికం</small>
         <label for="fGotram"><span data-i18n="bk_gotram_label">పాల్గొనేవారి గోత్రాన్ని భర్తీ చేయండి</span></label>
-        <input id="fGotram" type="text" placeholder="Gotram" required="" data-i18n-placeholder="bk_gotram_label" data-cms-attr="placeholder">
+        <input id="fGotram" type="text" placeholder="Gotram (optional)" data-i18n-placeholder="bk_gotram_label" data-cms-attr="placeholder">
         <label class="checkbox-label">
           <input type="checkbox" id="noGotramCheck">
           <span data-i18n="bk_gotram_unknown">I don't know my gotra</span>
@@ -86,34 +81,34 @@
         <div class="summary-img" id="bkImg"></div>
         <div class="summary-title">
           <h3 id="bkTitle">Puja Title</h3>
-          <p><span data-i18n="bk_family_puja">Family Puja</span> - <span id="bkPriceBase">₹0</span></p>
+          <p><span>Family Puja</span> - <span id="bkPriceBase">₹0</span></p>
         </div>
       </div>
       <div class="summary-date">
-        <span class="icon">📅</span> <span id="bkDate">Friday, 14 August</span>
+        <span class="icon">📅</span> <span id="bkDate"></span>
       </div>
 
       <div class="summary-breakdown">
         <div class="price-row">
-          <span data-i18n="bk_family_puja">Family Puja</span>
+          <span>Family Puja</span>
           <b id="bkPriceBreakdown">₹0</b>
         </div>
         <div class="price-row">
-          <span data-i18n="bk_convenience_fee">Convenience Fee</span>
-          <span><s style="color:var(--muted)">₹25</s> <b data-i18n="bk_free">Free</b></span>
+          <span>Convenience Fee</span>
+          <span><s style="color:var(--muted)">₹25</s> <b>Free</b></span>
         </div>
         <div class="price-row">
-          <span data-i18n="bk_pandit_fee">Pandit Fee</span>
-          <span><s style="color:var(--muted)">₹150</s> <b data-i18n="bk_free">Free</b></span>
+          <span>Pandit Fee</span>
+          <span><s style="color:var(--muted)">₹150</s> <b>Free</b></span>
         </div>
         <div class="price-row">
-          <span data-i18n="bk_media_fee">Photo and video recording Fee</span>
-          <span><s style="color:var(--muted)">₹500</s> <b data-i18n="bk_free">Free</b></span>
+          <span>Photo and video recording Fee</span>
+          <span><s style="color:var(--muted)">₹500</s> <b>Free</b></span>
         </div>
       </div>
 
       <div class="summary-total">
-        <span data-i18n="bk_summary_total">Total</span>
+        <span>Total</span>
         <div class="total-price-box">
           <b id="bkTotalFinal" class="final-price">₹0</b>
           <s id="bkTotalStrike" class="strike-price">₹0</s>
@@ -137,19 +132,19 @@
 
 <div id="site-footer"></div>
 <!-- ============ CONTENT (edit these files to change text/prices/images) ============ -->
-<script src="content/site-settings.js"></script>
-<script src="content/pujas.js"></script>
-<script src="content/packages.js"></script>
-<script src="content/puja-detail-defaults.js"></script>
-<script src="content/trust-highlights.js"></script>
-<script src="content/faq.js"></script>
+<script src="content/site-settings.js?v=client-20260920"></script>
+<script src="content/pujas.js?v=client-20260920"></script>
+<script src="content/packages.js?v=client-20260920"></script>
+<script src="content/puja-detail-defaults.js?v=client-20260920"></script>
+<script src="content/trust-highlights.js?v=client-20260920"></script>
+<script src="content/faq.js?v=client-20260920"></script>
 
 <!-- ============ SITE CODE (do not need to edit for content changes) ============ -->
-<script src="assets/js/language.js?v=3"></script>
-<script src="assets/js/main.js?v=3"></script>
-<script src="assets/js/navbar.js?v=3"></script>
-<script src="assets/js/animations.js?v=3"></script>
-<script src="assets/js/cards.js?v=3"></script>
-<script src="assets/js/booking.js?v=3"></script>
+<script src="assets/js/language.js?v=client-20260920"></script>
+<script src="assets/js/main.js?v=client-20260920"></script>
+<script src="assets/js/navbar.js?v=client-20260920"></script>
+<script src="assets/js/animations.js?v=client-20260920"></script>
+<script src="assets/js/cards.js?v=client-20260920"></script>
+<script src="assets/js/booking.js?v=client-20260920"></script>
 
 </body></html>

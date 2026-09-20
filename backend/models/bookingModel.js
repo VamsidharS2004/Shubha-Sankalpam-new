@@ -89,6 +89,20 @@ async function createManualBooking(raw) {
   return booking;
 }
 
+function bookingPujaName(notes) {
+  const lines = String(notes || '').split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+  const named = lines.find(line => /^Puja:\s*/i.test(line));
+  if (named) return named.replace(/^Puja:\s*/i, '') || 'Puja name unavailable';
+  const legacy = lines.find(line => !/^(?:razorpay_\w+|Family|WhatsApp|Date|Time|Venue):/i.test(line));
+  return legacy || 'Puja name unavailable';
+}
+
+function paymentNotes(notes, paymentId) {
+  const marker = 'razorpay_payment:' + paymentId;
+  const existing = String(notes || '');
+  return existing.split(/\r?\n/).includes(marker) ? existing : [existing, marker].filter(Boolean).join('\n');
+}
+
 async function all() {
   /* ---- LOCAL fallback ---- */
   if (!supabase) {
@@ -100,7 +114,7 @@ async function all() {
       videoUrl  : b.video_url  || null,
       name      : b.name       || "Unknown",
       phone     : b.devotee_phone || "",
-      gotram: b.devotees?.gotra || '', puja: b.notes ? (b.notes.match(/^Puja:\s*(.*)$/m)?.[1]?.trim() || b.notes.split('\n')[0]) : 'Unknown Puja', videoUrl: b.video_url || null
+      gotram: b.devotees?.gotra || '', puja: bookingPujaName(b.notes), videoUrl: b.video_url || null
     }));
   }
 
@@ -123,7 +137,7 @@ async function all() {
     videoUrl  : null,
     name      : b.booking_names?.length > 0 ? b.booking_names[0].name : (b.devotees?.name || "Unknown"),
     phone     : b.devotees?.phone || "",
-    gotram: b.devotees?.gotra || '', puja: b.notes ? (b.notes.match(/^Puja:\s*(.*)$/m)?.[1]?.trim() || b.notes.split('\n')[0]) : 'Unknown Puja', videoUrl: b.video_url || null
+    gotram: b.devotees?.gotra || '', puja: bookingPujaName(b.notes), videoUrl: b.video_url || null
   }));
 }
 
@@ -141,7 +155,7 @@ async function getUserBookings(phone) {
         videoUrl  : b.video_url || null,
         name      : b.name || "Unknown",
         phone     : b.devotee_phone || "",
-        puja      : b.notes ? b.notes.replace(/^Puja: /, "").split("\n")[0] : "Unknown Puja"
+        puja      : bookingPujaName(b.notes)
       }));
   }
 
@@ -167,7 +181,7 @@ async function getUserBookings(phone) {
     videoUrl  : null,
     name      : b.booking_names?.length > 0 ? b.booking_names[0].name : (b.devotees?.name || "Unknown"),
     phone     : b.devotees?.phone || "",
-    puja      : b.notes ? b.notes.replace(/^Puja:\s*/i, "").split("\n")[0] : "Unknown Puja"
+    puja      : bookingPujaName(b.notes)
   }));
 }
 
@@ -238,13 +252,13 @@ async function findById(id) {
   if (!supabase) {
     const b = readLocalBookings().find(b => b.id === id);
     if (!b) return null;
-    return { id: b.id, price: b.price, userPhone: b.devotee_phone };
+    return { id: b.id, puja: bookingPujaName(b.notes), price: b.price, userPhone: b.devotee_phone, whatsapp: String(b.notes || "").match(/^WhatsApp: (\d{10})$/m)?.[1] || b.devotee_phone };
   }
 
   /* ---- Supabase ---- */
   const { data, error } = await supabase.from("bookings").select("*").eq("id", id).single();
   if (error) return null;
-  return { id: data.id, price: data.price, userPhone: data.devotee_phone };
+  return { id: data.id, puja: bookingPujaName(data.notes), price: data.price, userPhone: data.devotee_phone, whatsapp: String(data.notes || "").match(/^WhatsApp: (\d{10})$/m)?.[1] || data.devotee_phone };
 }
 
 async function attachOrder(id, orderId) {
@@ -273,9 +287,9 @@ function paymentNotificationBooking(b) {
     id: b.id,
     price: b.price,
     userPhone: b.devotee_phone,
-    phone: b.devotee_phone || b.devotees?.phone || "",
+    phone: String(b.notes || "").match(/^WhatsApp: (\d{10})$/m)?.[1] || b.devotee_phone || b.devotees?.phone || "",
     name: b.booking_names?.[0]?.name || b.name || b.devotees?.name || "Devotee",
-    puja: (b.notes || "").match(/^Puja:\s*([^\r\n]+)/mi)?.[1]?.trim() || "Puja booking"
+    puja: bookingPujaName(b.notes)
   };
 }
 
@@ -306,16 +320,19 @@ async function markPaid(id, paymentId) {
     if (idx === -1) return false;
     bookings[idx].payment_status = "Paid";
     bookings[idx].status         = "Confirmed";
-    bookings[idx].notes = (bookings[idx].notes || "") + "\nrazorpay_payment:" + paymentId;;
+    bookings[idx].notes = paymentNotes(bookings[idx].notes, paymentId);;
     writeLocalBookings(bookings);
     return true;
   }
 
   /* ---- Supabase ---- */
+  const { data: current, error: readError } = await supabase.from("bookings")
+    .select("notes").eq("id", id).single();
+  if (readError || !current) return false;
   const { error } = await supabase.from("bookings").update({
     payment_status : "Paid",
     status         : "Confirmed",
-    notes: "razorpay_payment:" + paymentId
+    notes: paymentNotes(current.notes, paymentId)
   }).eq("id", id);
   return !error;
 }

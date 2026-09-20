@@ -78,9 +78,13 @@ function renderSlider() {
 }
 
 function goToSlide(idx) {
+  if (!topPujas.length) return;
+  idx = ((idx % topPujas.length) + topPujas.length) % topPujas.length;
   currentSlide = idx;
   heroSlider.querySelectorAll('.hero-slide').forEach((slide, i) => {
     slide.classList.toggle('active', i === idx);
+    slide.inert = i !== idx;
+    slide.setAttribute('aria-hidden', String(i !== idx));
   });
   heroDots.querySelectorAll('.hero-dot').forEach((dot, i) => {
     dot.classList.toggle('active', i === idx);
@@ -90,6 +94,7 @@ function goToSlide(idx) {
 if (heroSlider && heroDots && typeof pujas !== "undefined") {
   topPujas = pujas.filter(p => !p.language || p.language === currentLang).slice(0, 4);
   renderSlider();
+  goToSlide(Math.min(currentSlide, topPujas.length - 1));
 
   const heroPrev = $id("heroPrev");
   const heroNext = $id("heroNext");
@@ -110,8 +115,8 @@ if (heroSlider && heroDots && typeof pujas !== "undefined") {
   heroSlider.addEventListener('touchend', () => { isDragging = false; });
   
   setInterval(() => {
-    goToSlide((currentSlide + 1) % topPujas.length);
-  }, 5000);
+    if (!document.hidden && !heroSlider.matches(":hover, :focus-within") && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) goToSlide((currentSlide + 1) % topPujas.length);
+  }, 6000);
 }
 wireTabs("tabs", $id("pujaCards"), pujas, "puja");
 buildFaqList($id("faqList"), FAQS[currentLang] || FAQS.en);

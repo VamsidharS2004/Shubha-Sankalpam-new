@@ -147,10 +147,12 @@
                         <tr>
                             <th>Name</th>
                             <th>Phone</th>
-                            <th>City</th>
-                            <th>Language</th>
+                            <th>Gotram</th>
+                            <th>Signup date/time (IST)</th>
+                            <th>Signup source / Puja</th>
+                            <th>Interested puja</th>
+                            <th>Pending / Confirmed</th>
                             <th>Bookings</th>
-                            <th>Added by</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -158,12 +160,12 @@
                         <!-- Empty for now -->
                     </tbody>
                 </table>
-                <div class="empty-state">
+                <div class="empty-state" id="devoteesEmpty">
                     No devotees yet. Add your first one.
                 </div>
             </div>
             
-            <div style="text-align:right; margin-top:16px; color:var(--text-muted); font-size:0.8rem;">
+            <div id="devoteesCount" style="text-align:right; margin-top:16px; color:var(--text-muted); font-size:0.8rem;">
                 0 of 0 devotees
             </div>
         </section>
@@ -263,21 +265,25 @@
             </div>
         </section>
         
-        <!-- Placeholder Views -->
+        <!-- Dashboard -->
         <section id="view-dashboard" class="view-section">
-            <div class="page-header"><h1 style="color:var(--accent)">Dashboard</h1></div>
+            <div class="page-header"><h1 style="color:var(--accent)">Dashboard</h1><button class="btn" id="refreshDashboard">Refresh</button></div>
             <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:24px; margin-top:24px;">
                 <div style="background:#fff; border:1px solid var(--border); border-radius:12px; padding:24px; box-shadow:0 2px 14px rgba(0,0,0,0.04);">
                     <div style="color:var(--text-muted); font-size:0.9rem; margin-bottom:8px;">Total Bookings</div>
 <div id="statTotalBookings" style="font-size:2rem; font-weight:700; color:#1A1A24;">0</div>                </div>
                 <div style="background:#fff; border:1px solid var(--border); border-radius:12px; padding:24px; box-shadow:0 2px 14px rgba(0,0,0,0.04);">
-                    <div style="color:var(--text-muted); font-size:0.9rem; margin-bottom:8px;">Total Devotees</div>
+                    <div style="color:var(--text-muted); font-size:0.9rem; margin-bottom:8px;">Total Users</div>
 <div id="statTotalDevotees" style="font-size:2rem; font-weight:700; color:#1A1A24;">0</div>                </div>
                 <div style="background:#fff; border:1px solid var(--border); border-radius:12px; padding:24px; box-shadow:0 2px 14px rgba(0,0,0,0.04);">
                     <div style="color:var(--text-muted); font-size:0.9rem; margin-bottom:8px;">Total Revenue (₹)</div>
                     <div id="statTotalRevenue" style="font-size:2rem; font-weight:700; color:var(--accent);">₹0</div>
                 </div>
+                <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px"><div>Today's Signups (IST)</div><strong id="statTodaySignups" style="font-size:2rem">0</strong></div>
+<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px"><div>Pending Bookings</div><strong id="statPendingBookings" style="font-size:2rem">0</strong></div>
+<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px"><div>Confirmed Bookings</div><strong id="statConfirmedBookings" style="font-size:2rem">0</strong></div>
             </div>
+            <p id="leadTrackingNotice" role="status"></p>
         </section>
         <section id="view-settings" class="view-section">
             <div class="page-header"><h1 style="color:var(--accent)">Site Settings</h1></div>
@@ -783,7 +789,7 @@
         </div>
     </aside>
 
-    <script src="/content/pujas.js"></script><script src="/content/packages.js"></script><script src="/assets/js/admin.js"></script>
+    <script src="/content/pujas.js"></script><script src="/content/packages.js"></script><script src="/assets/js/admin.js?v=client-20260920"></script>
 </body>
 </html>
 

@@ -10,7 +10,9 @@
 initLayout();
 
 const next = getParam("next") || "account.html";
-if (authToken) location.href = next;   // already logged in
+if (authToken) api("/api/me").then(() => location.replace(next)).catch(e => {
+  if (e.status === 401) clearToken();
+});   // already logged in
 
 let otpInterval;
 let resendWait = 60;
@@ -35,13 +37,15 @@ function startOtpTimer() {
 }
 
 async function requestOtpFlow() {
-  const email = $id("loginEmail").value.trim();
   const phone = $id("loginPhone").value.trim();
   // email validation removed
   if (phone.length < 10) { alert("Please enter a valid phone number."); return; }
   
+  if ($id("sendOtpBtn").disabled) return;
+  $id("sendOtpBtn").disabled = true;
+  $id("sendOtpBtn").textContent = "Sending OTP…";
   try {
-    const out = await api("/api/login/request", "POST", { email, phone });
+    const out = await api("/api/login/request", "POST", { phone });
     $id("phoneStep").classList.add("hidden");
     $id("otpStep").classList.remove("hidden");
     $id("loginStepTitle").textContent = "Enter the OTP";
@@ -49,7 +53,7 @@ async function requestOtpFlow() {
     if (out.demoOtp) $id("demoOtp").textContent = "Demo OTP: " + out.demoOtp;
     $id("loginOtp").focus();
     startOtpTimer();
-  } catch (e) { alert(e.message); }
+  } catch (e) { alert(e.message); } finally { $id("sendOtpBtn").disabled=false; $id("sendOtpBtn").textContent="Send OTP"; }
 }
 
 $id("sendOtpBtn").addEventListener("click", requestOtpFlow);
@@ -59,15 +63,17 @@ $id("resendOtpBtn").addEventListener("click", () => {
 });
 
 $id("verifyOtpBtn").addEventListener("click", async () => {
+  if ($id("verifyOtpBtn").disabled) return;
+  $id("verifyOtpBtn").disabled=true;
   try {
     const out = await api("/api/login/verify", "POST", {
       phone: $id("loginPhone").value.trim(),
-      email: $id("loginEmail").value.trim(),
-      otp: $id("loginOtp").value.trim()
+      otp: $id("loginOtp").value.trim(),
+      signupRef: new URL(next, location.href).searchParams.get("id") || ""
     });
     
     const user = out.user;
-    if (!user || !user.name || !user.gotra) {
+    if (!user || !user.name || user.name === "Devotee") {
       saveToken(out.token);
       
       $id("otpStep").classList.add("hidden");
@@ -76,24 +82,25 @@ $id("verifyOtpBtn").addEventListener("click", async () => {
       $id("loginStepHint").textContent = "Please provide your details to continue.";
       $id("loginAvatar").textContent = "👤";
       
-      if (user && user.name) $id("loginName").value = user.name;
+      if (user && user.name && user.name !== "Devotee") $id("loginName").value = user.name;
       if (user && user.gotra) $id("loginGotram").value = user.gotra;
       $id("loginName").focus();
     } else {
       saveToken(out.token);
       location.href = next;
     }
-  } catch (e) { alert(e.message); }
+  } catch (e) { alert(e.message); } finally { $id("verifyOtpBtn").disabled=false; }
 });
 
 $id("saveProfileBtn").addEventListener("click", async () => {
   const name = $id("loginName").value.trim();
   const gotra = $id("loginGotram").value.trim();
   if (!name) { alert("Please enter your Full Name."); return; }
-  if (!gotra) { alert("Please enter your Gotram."); return; }
   
+  if ($id("saveProfileBtn").disabled) return;
+  $id("saveProfileBtn").disabled=true;
   try {
     await api("/api/me", "PUT", { name, gotra });
     location.href = next;
-  } catch (e) { alert(e.message); }
+  } catch (e) { alert(e.message); } finally { $id("saveProfileBtn").disabled=false; }
 });

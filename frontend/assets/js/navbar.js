@@ -13,38 +13,39 @@ const LANGS = [
   { code: "te", native: "తెలుగు",    en: "Telugu",    icon: "తె", ready: true }
 ];
 
+// Follow the booking steps instead of sending the devotee back into login or checkout.
+function flowBackTarget(page, search, referrer, origin) {
+  const ref = new URLSearchParams(search).get("id") || "puja:0";
+  if (page === "payment.html") return "booking.html?id=" + encodeURIComponent(ref);
+  if (page === "booking.html") return "puja-details.html?id=" + encodeURIComponent(ref);
+  if (page === "puja-details.html") {
+    try {
+      const previous = new URL(referrer);
+      if (previous.origin === origin && ["/", "/home.html", "/puja.html", "/package.html"].includes(previous.pathname)) {
+        return previous.pathname + previous.search;
+      }
+    } catch (_) {}
+    return ref.startsWith("pkg:") ? "package.html" : "puja.html";
+  }
+  return "home.html";
+}
+
 function renderHeader() {
   const page = location.pathname.split("/").pop() || "home.html";
   const isBookingFlow = (page === "booking.html" || page === "payment.html");
+  const hasFlowBack = isBookingFlow || page === "puja-details.html";
   const act = p => (page === p ? ' class="active"' : "");
   
-  // Smart Go Back: uses history to preserve form states, with fallback if no history
-  let fallbackUrl = "home.html";
-  const params = new URLSearchParams(window.location.search);
-  const refId = params.get("id");
-  
-  if (page === "payment.html" && refId) {
-    fallbackUrl = `booking.html?id=${refId}`;
-  } else if (page === "booking.html" && refId) {
-    fallbackUrl = `puja-details.html?id=${refId}`;
-  }
-  
-  const backScript = `if(document.referrer && document.referrer.includes(window.location.host)){window.history.back();}else{window.location.href='${fallbackUrl}';}`;
-
   $id("site-header").innerHTML = `
-  <header>
+  <header class="${hasFlowBack ? 'flow-header' : ''}">
     <div class="container nav">
+      ${hasFlowBack ? '<a class="flow-back" id="flowBack" href="puja.html" aria-label="Go back to previous step"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m7-7-7 7 7 7"/></svg><span>GO BACK</span></a>' : ''}
       <a class="logo" href="home.html" aria-label="Home">
         <img src="assets/images/logo_transparent.png" alt="Logo" style="width:75px;height:75px;object-fit:contain;">
         <span class="logo-text"><b>${SITE.BRAND}</b><small>${SITE.DOMAIN}</small></span>
       </a>
       <nav class="nav-links" aria-label="Main">
-        ${isBookingFlow ? `
-        <a href="javascript:void(0)" onclick="${backScript}" style="display:flex; align-items:center; gap:6px; font-weight:600; color:var(--text); text-decoration:none; padding:8px 0;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-          Go Back
-        </a>
-        ` : `
+        ${hasFlowBack ? '' : `
         <a href="home.html"${act("home.html")}>
           <span class="nl-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></span>
           <span>HOME</span>
@@ -79,11 +80,14 @@ function renderHeader() {
     <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><path d="M12.031 2C6.495 2 2 6.496 2 12.032c0 1.838.48 3.633 1.391 5.215L2 22l4.896-1.285A9.972 9.972 0 0 0 12.031 22c5.535 0 10.031-4.496 10.031-10.032S17.566 2 12.031 2zm5.568 14.542c-.237.669-1.381 1.283-1.921 1.348-.541.066-1.236.195-3.523-.75-2.756-1.139-4.512-3.957-4.654-4.146-.141-.189-1.111-1.478-1.111-2.822 0-1.344.697-2.008.946-2.26.248-.252.54-.315.719-.315.18 0 .359 0 .506.006.155.006.35-.052.532.385.188.452.64 1.564.697 1.678.058.114.095.247.024.385-.072.138-.109.225-.216.351-.109.126-.229.273-.326.37-.109.108-.225.228-.103.438.122.209.544.898 1.168 1.455.808.72 1.488.941 1.7 1.05.212.109.335.089.461-.052.126-.143.541-.63.687-.847.146-.217.291-.182.485-.109.194.073 1.225.578 1.436.684.212.106.352.158.403.247.052.089.052.52-.185 1.189z"/></svg>
   </a>
   <nav class="bottom-nav" aria-label="Mobile">
-    <a href="home.html"${act("home.html")}><span class="bn-icon">🏠</span>Home</a>
-    <a href="puja.html"${act("puja.html")}><span class="bn-icon">🪔</span>Puja</a>
-    <a href="package.html"${act("package.html")}><span class="bn-icon">📦</span>Packages</a>
-    <a href="account.html"${act("account.html")}><span class="bn-icon">👤</span>Account</a>
+    <a href="home.html"${act("home.html")}><span class="bn-icon"><svg aria-hidden="true" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10H3z"/><path d="M9 20v-7h6v7"/></svg></span>Home</a>
+    <a href="puja.html"${act("puja.html")}><span class="bn-icon"><svg aria-hidden="true" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h16a8 8 0 0 1-16 0Z"/><path d="M12 11c-5-3 0-8 0-8s5 5 0 8Z"/></svg></span>Puja</a>
+    <a href="package.html"${act("package.html")}><span class="bn-icon"><svg aria-hidden="true" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7 9-4 9 4v10l-9 4-9-4Z"/><path d="m3 7 9 4 9-4M12 11v10M7 5l10 4"/></svg></span>Packages</a>
+    <a href="account.html"${act("account.html")}><span class="bn-icon"><svg aria-hidden="true" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span>Account</a>
   </nav>`;
+  if (hasFlowBack) {
+    $id("flowBack").href = flowBackTarget(page, location.search, document.referrer, location.origin);
+  }
   initLanguageMenu();
 }
 

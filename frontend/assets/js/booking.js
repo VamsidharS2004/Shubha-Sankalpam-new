@@ -19,13 +19,47 @@
 initLayout();
 
 const ref = getParam("id") || "puja:0";
-const { item, type } = getItem(ref);
+let { item, type } = getItem(ref);
 if (!item) location.href = "puja.html";
 
 /* not logged in? go to login, then come back here */
 if (!authToken) {
   location.href = "login.html?next=" + encodeURIComponent("booking.html?id=" + ref);
 }
+
+// A tab-scoped, short-lived draft preserves details across explicit back links.
+const draftFields = ["fPhone", "famName1", "famName2", "famName3", "famName4", "fGotram", "fSankalpam"];
+let ownerHash = 0;
+for (const c of String(authToken || "")) ownerHash = (Math.imul(ownerHash, 31) + c.charCodeAt(0)) >>> 0;
+const draftKey = "booking-draft:" + ownerHash + ":" + (item.id || ref);
+let restoredDraft = null;
+let submittedBooking = null;
+try {
+  const saved = JSON.parse(sessionStorage.getItem(draftKey) || "null");
+  if (saved && Date.now() - saved.savedAt < 30 * 60 * 1000) {
+    restoredDraft = saved;
+    submittedBooking = saved.submitted || null;
+    draftFields.forEach(id => { if (typeof saved.fields?.[id] === "string") $id(id).value = saved.fields[id]; });
+    $id("noGotramCheck").checked = Boolean(saved.noGotram);
+    $id("fGotram").disabled = Boolean(saved.noGotram);
+  }
+} catch (_) {}
+function saveBookingDraft() {
+  try {
+    const fields = Object.fromEntries(draftFields.map(id => [id, $id(id).value]));
+    sessionStorage.setItem(draftKey, JSON.stringify({ fields, noGotram: $id("noGotramCheck").checked, submitted: submittedBooking, savedAt: Date.now() }));
+  } catch (_) {}
+}
+draftFields.concat("noGotramCheck").forEach(id => {
+  $id(id).addEventListener("input", saveBookingDraft);
+  $id(id).addEventListener("change", saveBookingDraft);
+});
+window.addEventListener("pagehide", saveBookingDraft);
+window.addEventListener("pageshow", () => {
+  try { if (!sessionStorage.getItem(draftKey)) submittedBooking = null; } catch (_) {}
+  $id("payBtn").disabled = false;
+  $id("payBtn").textContent = "Continue";
+});
 
 /* POPULATE SUMMARY SIDEBAR */
 $id("bkImg").style.backgroundImage = `url(${item.image || (type === 'pkg' ? 'assets/images/packages/default.jpg' : 'assets/images/pujas/default.jpg')})`;
@@ -34,26 +68,33 @@ $id("bkTitle").textContent = localName(item);
 window.addEventListener("languageChanged", () => {
   $id("bkTitle").textContent = localName(item);
 });
+function showPrice(){
+$id("bkDate").textContent = item.muhurat ? new Date(item.muhurat).toLocaleDateString("en-IN",{timeZone:"Asia/Kolkata",day:"numeric",month:"long",year:"numeric"}) : item.date || "To be confirmed";
 const formattedPrice = "₹" + item.price.toLocaleString("en-IN");
 $id("bkPriceBase").textContent = formattedPrice;
 $id("bkPriceBreakdown").textContent = formattedPrice;
 $id("bkTotalFinal").textContent = formattedPrice;
 $id("bkTotalStrike").textContent = "₹" + (item.price + 675).toLocaleString("en-IN"); /* fake strikethrough showing saved fees */
 
+}
+showPrice();
+const priceReady = api('/api/catalog/item?ref='+encodeURIComponent(item.id || ref)).then(out=>{
+  item=out.item; showPrice(); return true;
+}).catch(e=>{alert(e.message); return false;});
+api('/api/me/interest','POST',{ref:item.id || ref}).catch(()=>{});
 /* pre-fill phone from the profile */
 api("/api/me").then(me => {
-  $id("fPhone").value = me.user.phone || "";
-  if(me.user.name) $id("famName1").value = me.user.name;
-  if(me.user.gotra) $id("fGotram").value = me.user.gotra;
-}).catch(() => {});
+  if (restoredDraft) return;
+  if (!$id("fPhone").value) $id("fPhone").value = me.user.whatsapp_number || me.user.phone || "";
+  if(!$id("famName1").value && me.user.name && me.user.name !== "Devotee") $id("famName1").value = me.user.name;
+  if(!$id("fGotram").value && me.user.gotra) $id("fGotram").value = me.user.gotra;
+}).catch(() => { $id("whatsappHelp").textContent="Could not load your profile. Please enter your WhatsApp number and name to continue."; });
 
 /* Gotram Toggle logic */
 $id("noGotramCheck").addEventListener("change", (e) => {
   if (e.target.checked) {
-    $id("fGotram").value = "Kashyapa";
     $id("fGotram").disabled = true;
   } else {
-    $id("fGotram").value = "";
     $id("fGotram").disabled = false;
   }
 });
@@ -62,6 +103,7 @@ $id("noGotramCheck").addEventListener("change", (e) => {
    SUBMIT
    --------------------------------------------------------------- */
 $id("payBtn").addEventListener("click", async () => {
+  if ($id("payBtn").disabled) return;
   /* collect the names from the 4 inputs */
   const familyNames = [];
   for (let i = 1; i <= 4; i++) {
@@ -76,11 +118,8 @@ $id("payBtn").addEventListener("click", async () => {
     return; 
   }
   
-  const gotram = $id("fGotram").value.trim();
-  if (!gotram) {
-    alert("Please enter your gotram.");
-    return;
-  }
+  const gotram = $id("noGotramCheck").checked ? "" : $id("fGotram").value.trim();
+  if (!/^(?:\+?91)?[6-9]\d{9}$/.test(phone.replace(/\s/g, ""))) { alert("Please enter a valid mobile number."); return; }
   const sankalpam = $id("fSankalpam").value.trim();
   
   /* We append sankalpam to family field so backend doesn't need schema change */
@@ -98,7 +137,9 @@ $id("payBtn").addEventListener("click", async () => {
   payBtn.disabled = true;
 
   try {
-    const out = await api("/api/bookings", "POST", {
+    if (!(await priceReady)) throw new Error("Please refresh to load the latest price.");
+    const payload = {
+      ref: item.id || ref,
       puja: item.name,
       price: item.price,
       name: primaryName,
@@ -106,9 +147,15 @@ $id("payBtn").addEventListener("click", async () => {
       phone: phone,
       family: familyPayload,
       promoCode: "" // promo field was removed from new layout, passing empty
-    });
+    };
+    const fingerprint = JSON.stringify(payload);
+    const out = submittedBooking?.fingerprint === fingerprint
+      ? { id: submittedBooking.id }
+      : await api("/api/bookings", "POST", payload);
+    submittedBooking = { id: out.id, fingerprint };
+    saveBookingDraft();
     /* on to the payment page with everything it needs */
-    location.href = `payment.html?bookingId=${out.id}&id=${ref}`;
+    location.href = `payment.html?bookingId=${out.id}&id=${encodeURIComponent(ref)}&start=1`;
   } catch (e) { 
     alert(e.message); 
     payBtn.textContent = oldText;

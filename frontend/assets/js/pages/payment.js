@@ -21,6 +21,13 @@ const ref       = getParam("id") || "puja:0";
 const { item, type } = getItem(ref);
 if (!item || !bookingId) location.href = "puja.html";
 
+let checkoutProfile = {};
+const checkoutProfileReady = api("/api/me").then(me => {
+  const user = me.user || {};
+  const phone = String(user.phone || "").replace(/\D/g, "");
+  checkoutProfile = { name: user.name || "", contact: phone ? "+91" + phone.slice(-10) : "" };
+  if (user.email && !/@example\.com$/i.test(user.email)) checkoutProfile.email = user.email;
+}).catch(() => {});
 const isPackage = type === "pkg";   // AutoPay only for packages
 
 $id("payPuja").textContent   = localName(item);
@@ -46,6 +53,8 @@ if (isPackage) {
    ---------------------------------------------------------------- */
 function hidePrimaryUI() {
   $id("paidBtn").style.display = "none";
+  if ($id("paymentBack")) $id("paymentBack").style.display = "none";
+  if ($id("paymentStatus")) $id("paymentStatus").textContent = "";
   try { document.querySelector(".qr-box").style.display = "none"; } catch (e) {}
   try { $id("payUpi").parentElement.style.display = "none"; } catch (e) {}
   try { document.querySelector(".hint").style.display = "none"; } catch (e) {}
@@ -120,7 +129,7 @@ async function showAutopayCard(keyId) {
           btn.textContent = "🔐 Enable AutoPay";
         }
       },
-      prefill: {},
+      prefill: checkoutProfile,
       theme: { color: "#8B1A1A" }
     });
     rzp.open();
@@ -169,21 +178,37 @@ async function startRazorpayFlow(keyId) {
   document.querySelector(".qr-box").style.display   = "none";
   $id("payUpi").parentElement.style.display         = "none";
   document.querySelector(".hint").style.display     = "none";
-  document.querySelector("h1").textContent          = "Secure Checkout";
+  document.querySelector("h1").textContent          = "Complete your payment";
   document.querySelector("h1").removeAttribute("data-i18n");
-  $id("paidBtn").textContent = "Pay Now";
+  $id("paidBtn").removeAttribute("data-i18n");
+  $id("paidBtn").textContent = "Preparing payment…";
+  $id("paidBtn").disabled = true;
 
   let order;
   try {
     order = await api("/api/payments/order", "POST", { bookingId });
   } catch (e) {
-    alert("Could not start payment: " + e.message);
+    $id("paymentStatus").textContent = "Could not start payment: " + e.message;
+    $id("paidBtn").textContent = "Retry";
+    $id("paidBtn").disabled=false;
+    $id("paidBtn").onclick=()=>{ $id("paidBtn").onclick=null; startRazorpayFlow(keyId); };
     return;
   }
 
-  $id("paidBtn").addEventListener("click", () => {
+  $id("payAmount").textContent = (order.amount / 100).toLocaleString("en-IN");
+  await checkoutProfileReady;
+  if (order.contact) checkoutProfile.contact = "+91" + String(order.contact).replace(/\D/g, "").slice(-10);
+  let checkoutOpen = false;
+  $id("paidBtn").disabled=false;
+  $id("paidBtn").textContent="Continue Payment";
+  $id("paymentStatus").textContent="Ready to pay. You can go back without completing payment.";
+  const openCheckout = () => {
+    if (checkoutOpen) return;
+    checkoutOpen=true;
+    $id("paidBtn").disabled=true;
     const rzp = new Razorpay({
       key: keyId,
+      prefill: checkoutProfile,
       order_id: order.orderId,
       amount: order.amount,
       currency: "INR",
@@ -198,6 +223,16 @@ async function startRazorpayFlow(keyId) {
             bookingId
           });
 
+          // A completed booking must not be reused when the devotee goes back.
+          try {
+            for (const key of Object.keys(sessionStorage)) {
+              if (!key.startsWith("booking-draft:")) continue;
+              const draft = JSON.parse(sessionStorage.getItem(key) || "null");
+              if (draft?.submitted?.id === bookingId) sessionStorage.removeItem(key);
+            }
+          } catch (_) {}
+          if ($id("flowBack")) $id("flowBack").href = "account.html?panel=bookings";
+
           if (isPackage) {
             /* First payment verified — offer AutoPay */
             showAutopayCard(keyId);
@@ -208,11 +243,21 @@ async function startRazorpayFlow(keyId) {
           alert("Payment verification failed. Please contact support.");
         }
       },
-      modal: { ondismiss: function () {} },
+      modal: { ondismiss: function () {
+        checkoutOpen=false;
+        $id("paidBtn").disabled=false;
+        $id("paymentStatus").textContent="Payment window closed. Check My Bookings for payment status, or continue payment.";
+      } },
       theme: { color: "#8B1A1A" }
     });
-    rzp.open();
-  });
+    rzp.on("payment.failed", () => { $id("paymentStatus").textContent="Payment was not completed. Close the payment window to go back or retry."; });
+    try { rzp.open(); } catch(e) { checkoutOpen=false; $id("paidBtn").disabled=false; $id("paymentStatus").textContent="Payment could not open. Please try again."; }
+  };
+  $id("paidBtn").addEventListener("click", openCheckout);
+  if (getParam("start") === "1") {
+    history.replaceState(null, "", "payment.html?bookingId=" + encodeURIComponent(bookingId) + "&id=" + encodeURIComponent(ref));
+    openCheckout();
+  }
 }
 
 /* ----------------------------------------------------------------
@@ -223,6 +268,7 @@ function loadRazorpayScript(onload) {
   const s = document.createElement("script");
   s.src = "https://checkout.razorpay.com/v1/checkout.js";
   s.onload = onload;
+  s.onerror = () => { $id("paymentStatus").textContent="Payment service could not load. Please check your connection and retry."; $id("paidBtn").textContent="Retry"; $id("paidBtn").disabled=false; $id("paidBtn").onclick=()=>location.reload(); };
   document.head.appendChild(s);
 }
 
@@ -235,4 +281,4 @@ api("/api/payments/config").then(cfg => {
   } else {
     startQrFlow();
   }
-}).catch(() => startQrFlow());
+}).catch(() => { $id("paymentStatus").textContent="Could not load payment settings. Please retry."; $id("paidBtn").textContent="Retry"; $id("paidBtn").onclick=()=>location.reload(); });

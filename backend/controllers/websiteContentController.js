@@ -1,3 +1,4 @@
+const {publicContact} = require("../utils/publicContact");
 const { send, readBody } = require("../utils/http");
 const { supabase } = require("../utils/supabase");
 const fs = require("fs");
@@ -11,9 +12,9 @@ async function getWebsiteContent(req, res) {
   if (!supabase) return send(res, 500, { error: "Database not configured." });
 
   try {
-    const { data: pages, error: pErr } = await supabase.from("cms_pages").select("*");
-    const { data: sections, error: sErr } = await supabase.from("cms_sections").select("*");
-    const { data: translations, error: tErr } = await supabase.from("cms_translations").select("*");
+    const [{data:pages,error:pErr},{data:sections,error:sErr},{data:translations,error:tErr}] = await Promise.all([
+      supabase.from('cms_pages').select('*'),supabase.from('cms_sections').select('*'),supabase.from('cms_translations').select('*')
+    ]);
 
     if (pErr || sErr || tErr) throw pErr || sErr || tErr;
 
@@ -40,7 +41,7 @@ async function getWebsiteContent(req, res) {
       if (sec) {
         const page = pages.find(p => p.id === sec.page_id);
         if (page && contentTree[page.slug][sec.section_key]) {
-          contentTree[page.slug][sec.section_key].translations[trans.lang_code] = trans.content;
+          contentTree[page.slug][sec.section_key].translations[trans.lang_code] = publicContact(trans.content);
         }
       }
     }
@@ -85,7 +86,7 @@ async function updateWebsiteContent(req, res) {
         upsertPayload.push({
           section_id,
           lang_code,
-          content,
+          content: publicContact(content),
           updated_at: new Date()
         });
       }

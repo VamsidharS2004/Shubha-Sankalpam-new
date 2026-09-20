@@ -16,7 +16,7 @@
 
 const TEMPLES = [
   {
-    name: "Venkateswara Swamy Temple",
+    name: "శ్రీ వేంకటేశ్వర స్వామి ఆలయం",
     name_te: "వేంకటేశ్వర స్వామి ఆలయం",
     name_hi: "वेंकटेश्वर स्वामी मंदिर",
     blurb: "Home to pujas performed for prosperity, protection, and divine grace.",
