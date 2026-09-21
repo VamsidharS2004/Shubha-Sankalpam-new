@@ -6,19 +6,49 @@
    - adminOnly: blocks unless the admin password is given
    ============================================================ */
 const crypto = require("crypto");
+const fs = require("fs");
+const path = require("path");
 const { send } = require("../utils/http");
 const { ADMIN_PASSWORD } = require("../config");
 
-const sessions = new Map(); // token -> phone
+const SESSIONS_FILE = path.join(__dirname, "..", "..", "data", "sessions.json");
+let sessions = new Map(); // token -> phone
+
+// Load sessions from disk on startup
+try {
+  if (fs.existsSync(SESSIONS_FILE)) {
+    const data = fs.readFileSync(SESSIONS_FILE, "utf8");
+    const parsed = JSON.parse(data);
+    sessions = new Map(Object.entries(parsed));
+  }
+} catch (e) {
+  console.error("Error loading sessions from disk:", e);
+}
+
+function saveSessions() {
+  try {
+    const dir = path.dirname(SESSIONS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    
+    const obj = Object.fromEntries(sessions);
+    fs.writeFileSync(SESSIONS_FILE, JSON.stringify(obj, null, 2), "utf8");
+  } catch (e) {
+    console.error("Error saving sessions to disk:", e);
+  }
+}
 
 function createSession(phone) {
   const token = crypto.randomBytes(24).toString("hex");
   sessions.set(token, phone);
+  saveSessions();
   return token;
 }
 
 function registerSession(token, phone) {
-  if (token && phone) sessions.set(token, phone);
+  if (token && phone) {
+    sessions.set(token, phone);
+    saveSessions();
+  }
 }
 
 function phoneFromRequest(req) {
