@@ -28,6 +28,13 @@ async function api(path, method = "GET", body) {
   });
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
+    if (res.status === 401 && data.error === "Please log in.") {
+      if (!window.location.pathname.endsWith("login.html")) {
+        const nextUrl = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.href = "login.html?next=" + nextUrl;
+        return new Promise(() => {}); // prevent further error propagation
+      }
+    }
     const error = new Error(data.error || "Request failed");
     error.status = res.status;
     throw error;
