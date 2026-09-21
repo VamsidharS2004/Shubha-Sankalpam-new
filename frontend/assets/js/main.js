@@ -30,6 +30,7 @@ async function api(path, method = "GET", body) {
     const data = await res.json().catch(() => ({}));
     if (res.status === 401 && data.error === "Please log in.") {
       if (!window.location.pathname.endsWith("login.html")) {
+        clearToken();
         const nextUrl = encodeURIComponent(window.location.pathname + window.location.search);
         window.location.href = "login.html?next=" + nextUrl;
         return new Promise(() => {}); // prevent further error propagation

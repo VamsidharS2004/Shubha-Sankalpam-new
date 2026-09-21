@@ -109,10 +109,30 @@ async function sendViaAiSensy(phone, otp) {
 
 async function sendViaMsg91(phone, otp) {
   if (!MSG91_AUTHKEY || !MSG91_OTP_TEMPLATE_ID) return false;
-  const digits = "91" + phone.replace(/\D/g, "").slice(-10);
+  
+  // Strip all non-digit characters
+  let digits = String(phone || "").replace(/\D/g, "");
+  
+  // If the user provided a 10-digit Indian number without country code, add 91
+  if (digits.length === 10) {
+    digits = "91" + digits;
+  }
+  // If they provided an 11-digit number starting with 0, replace 0 with 91
+  else if (digits.length === 11 && digits.startsWith("0")) {
+    digits = "91" + digits.slice(1);
+  }
+  // Otherwise, assume they provided their own country code (e.g., 919876543210 or 15551234567)
+  
+  // The final number sent to MSG91 should NOT have '+' or spaces, just purely digits starting with country code.
+  console.log(`[MSG91] Sending OTP to normalized mobile number: '${digits}'`);
+
   const url = `https://control.msg91.com/api/v5/otp?template_id=${MSG91_OTP_TEMPLATE_ID}&mobile=${digits}&otp=${otp}`;
   const r = await fetch(url, { method: "POST", headers: { authkey: MSG91_AUTHKEY } });
-  if (!r.ok) throw new Error(`MSG91 send failed: ${r.status}`);
+  
+  const text = await r.text();
+  console.log(`[MSG91] API Response: ${r.status} - ${text}`);
+  
+  if (!r.ok) throw new Error(`MSG91 send failed: ${r.status} ${text}`);
   return true;
 }
 

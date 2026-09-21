@@ -1713,8 +1713,9 @@ function renderActiveUsersAnalytics() {
                 const pName = typeof p === "string" ? p : (p.pujaName || p.name || p.pujaId || p.id || "Puja");
                 const count = (typeof p === "object" && p && p.viewCount > 1) ? ` (${p.viewCount}x)` : "";
                 const pTime = (typeof p === "object" && p && (p.lastViewedAt || p.viewedAt)) ? formatRelativeTime(p.lastViewedAt || p.viewedAt) : "";
-                const titleAttr = pTime ? `${esc(pName)}${count} (Viewed ${pTime})` : `${esc(pName)}${count}`;
-                return `<span class="puja-chip" title="${titleAttr}">🌸 ${esc(pName)}${count}</span>`;
+                const langBadge = (typeof p === "object" && p && p.lang) ? ` [${p.lang.toUpperCase()}]` : "";
+                const titleAttr = pTime ? `${esc(pName)}${langBadge}${count} (Viewed ${pTime})` : `${esc(pName)}${langBadge}${count}`;
+                return `<span class="puja-chip" title="${titleAttr}">🌸 ${esc(pName)}${langBadge}${count}</span>`;
             }).join("");
 
             let moreTag = "";
@@ -1723,7 +1724,8 @@ function renderActiveUsersAnalytics() {
                 const allTitles = viewedList.map(p => {
                     const pName = typeof p === "string" ? p : (p.pujaName || p.name || p.pujaId || p.id || "Puja");
                     const count = (typeof p === "object" && p && p.viewCount > 1) ? ` (${p.viewCount}x)` : "";
-                    return `${pName}${count}`;
+                    const langBadge = (typeof p === "object" && p && p.lang) ? ` [${p.lang.toUpperCase()}]` : "";
+                    return `${pName}${langBadge}${count}`;
                 }).join("\n• ");
                 moreTag = `<span class="puja-more-chip" title="• ${esc(allTitles)}">+${remaining} more</span>`;
             }

@@ -85,7 +85,13 @@ const server = http.createServer(async (req, res) => {
     fs.readFile(filePath, (err, data) => {
         if (!err && filePath.endsWith('.html')) {
             let htmlStr = data.toString('utf8');
-            htmlStr = htmlStr.replace(/v=client-\d+/g, 'v=' + Date.now());
+            htmlStr = htmlStr.replace(/(src|href)="([^"]+)\?v=(client-\d+|[0-9]+)"/g, (match, attr, assetPath) => {
+                try {
+                    const fullAssetPath = path.join(FRONTEND_DIR, assetPath);
+                    const stat = fs.statSync(fullAssetPath);
+                    return `${attr}="${assetPath}?v=${Math.floor(stat.mtimeMs)}"`;
+                } catch (e) { return match; }
+            });
             data = Buffer.from(htmlStr, 'utf8');
         }
       if (err) return send(res, 404, "<h1>404 — Page not found</h1>", "text/html");

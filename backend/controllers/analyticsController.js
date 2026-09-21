@@ -12,11 +12,12 @@ async function recordView(req, res) {
     const body = await readBody(req);
     const pujaId = body.pujaId || body.ref || "";
     const pujaName = body.pujaName || body.title || "";
+    const lang = body.lang || "";
 
     const devotee = await userModel.findOrCreate(req.userPhone);
     const devoteeName = (devotee && devotee.name) ? devotee.name : "Devotee";
 
-    analyticsModel.recordPujaView(req.userPhone, devoteeName, { pujaId, pujaName });
+    analyticsModel.recordPujaView(req.userPhone, devoteeName, { pujaId, pujaName, lang });
     send(res, 200, { ok: true });
   } catch (err) {
     send(res, 400, { error: err.message || "Failed to record puja view" });

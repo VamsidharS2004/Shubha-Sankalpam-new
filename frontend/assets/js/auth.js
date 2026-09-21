@@ -38,9 +38,14 @@ function startOtpTimer() {
 }
 
 async function requestOtpFlow() {
-  const phone = $id("loginPhone").value.trim();
+  let phoneVal = $id("loginPhone").value.trim();
+  const cc = $id("loginCountryCode") ? $id("loginCountryCode").value : "";
+  if (cc && !phoneVal.startsWith("+")) {
+    phoneVal = cc + " " + phoneVal;
+  }
+  const phone = phoneVal;
   // email validation removed
-  if (phone.length < 10) { alert("Please enter a valid phone number."); return; }
+  if (phone.replace(/\D/g, "").length < 10) { alert("Please enter a valid phone number."); return; }
   
   if ($id("sendOtpBtn").disabled) return;
   $id("sendOtpBtn").disabled = true;
@@ -68,7 +73,7 @@ $id("verifyOtpBtn").addEventListener("click", async () => {
   $id("verifyOtpBtn").disabled=true;
   try {
     const out = await api("/api/login/verify", "POST", {
-      phone: $id("loginPhone").value.trim(),
+      phone: ($id("loginCountryCode") && !$id("loginPhone").value.trim().startsWith("+") ? $id("loginCountryCode").value + " " : "") + $id("loginPhone").value.trim(),
       otp: $id("loginOtp").value.trim(),
       signupRef: new URL(next, location.href).searchParams.get("id") || ""
     });

@@ -9,31 +9,9 @@
 
 const pujas = [
   {
-    "name": "అష్టభైరవ ఆపదుద్ధారక రక్షాహోమం",
-    "title_te": "అష్టభైరవ ఆపదుద్ధారక రక్షాహోమం",
-    "title_en": "Ashtabhairava Homam",
-    "desc": "కాలాష్టమి ప్రత్యేకం — భైరవ మూలమంత్రాల నడుమ 8 కిలోల మిరియాలతో అష్టభైరవులకు హోమాహుతులు, ఆపదల నుండి రక్షణ కోసం.",
-    "temple": "Vikranta Bhairava Temple",
-    "date": "Saturday, 20 September",
-    "muhurat": "2026-09-20T07:00:00+05:30",
-    "price": 1,
-    "cat": "All",
-    "image": "assets/images/pujas/bhairava.jpg",
-    "detail": {
-      "mantra": "OM BHAIRAVAYA NAMAHA",
-      "about": "కాలష్టమి అనేది శివుని ఉగ్ర రక్షక రూపమైన కాలభైరవుడిని ఆరాధించే పర్వదినం. ఈ శక్తివంతమైన హోమంలో, మీ పేరుతో సంకల్పం చేసి, ప్రమాదాలు, అడ్డంకులు మరియు ప్రతికూల శక్తుల నుండి రక్షణను కోరుతూ... వేద పండితులు భైరవ మూల మంత్రాన్ని పఠిస్తుండగా, ఎనిమిది మంది భైరవులకు 8 కిలోల మిరియాలను హవిస్సుగా సమర్పిస్తారు.",
-      "tradition": "శైవ తాంత్రిక సంప్రదాయం",
-      "duration": "సుమారు 2.5 గంటలు",
-      "forWhom": "వ్యక్తి లేదా కుటుంబం"
-    },
-    "id": "Ashtabhaiava Homam-te",
-    "basePrice": 1,
-    "language": "te"
-  },
-  {
     "name": "Navanarasimha Homam",
     "desc": "A Kamika Ekadashi special homam to the nine forms of Lord Narasimha, performed with your name and gotram for divine grace and protection.",
-    "temple": "శ్రీ వేంకటేశ్వర స్వామి ఆలయం",
+    "temple": "Sri Narasimha Swamy Temple",
     "date": "Friday, 25 September",
     "muhurat": "2026-09-25T08:00:00+05:30",
     "price": 816,
@@ -44,11 +22,21 @@ const pujas = [
       "about": "On the sacred occasion of Kamika Ekadashi, this homam invokes the nine forms of Lord Narasimha — protector against fear and evil. With your name and gotram included in the sankalpam, Vedic priests perform the full ritual seeking divine grace, courage, and protection for you and your family.",
       "tradition": "Vaishnava Vedic Tradition",
       "duration": "Approx. 2 hours",
-      "forWhom": "Individual or Family"
+      "forWhom": "Individual or Family",
+      "duration_te": "",
+      "duration_hi": "",
+      "tradition_te": "",
+      "tradition_hi": "",
+      "forWhom_te": "",
+      "forWhom_hi": ""
     },
     "id": "Navanarasimha Homam-en",
     "basePrice": 999,
-    "language": "en"
+    "language": "en",
+    "name_te": "",
+    "name_hi": "",
+    "desc_te": "",
+    "desc_hi": ""
   },
   {
     "name": "నవనారసింహ హోమం",
@@ -56,7 +44,7 @@ const pujas = [
     "temple": "శ్రీ వేంకటేశ్వర స్వామి ఆలయం",
     "date": "Friday, 25 September",
     "muhurat": "2026-09-25T08:00:00+05:30",
-    "price": 816,
+    "price": 11,
     "cat": "All",
     "image": "assets/images/pujas/narasimha.jpg",
     "detail": {
@@ -64,11 +52,21 @@ const pujas = [
       "about": "On the sacred occasion of Kamika Ekadashi, this homam invokes the nine forms of Lord Narasimha — protector against fear and evil. With your name and gotram included in the sankalpam, Vedic priests perform the full ritual seeking divine grace, courage, and protection for you and your family.",
       "tradition": "వైష్ణవ వైదిక సంప్రదాయం",
       "duration": "సుమారు 2 గంటలు",
-      "forWhom": "వ్యక్తి లేదా కుటుంబం"
+      "forWhom": "వ్యక్తి లేదా కుటుంబం",
+      "duration_te": "",
+      "duration_hi": "",
+      "tradition_te": "",
+      "tradition_hi": "",
+      "forWhom_te": "",
+      "forWhom_hi": ""
     },
     "id": "Navanarasimha Homam-te",
     "basePrice": 999,
-    "language": "te"
+    "language": "te",
+    "name_te": "",
+    "name_hi": "",
+    "desc_te": "",
+    "desc_hi": ""
   },
   {
     "name": "వెంకటేశ్వర స్వామి అభిషేకం (108 ద్రవ్యాలు)",

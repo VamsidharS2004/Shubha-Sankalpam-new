@@ -13,7 +13,8 @@ if (authToken && item) {
   api('/api/me/interest', 'POST', { ref: item.id || ref }).catch(() => {});
   api('/api/analytics/view', 'POST', {
     pujaId: item.id || ref,
-    pujaName: (typeof localName === 'function' ? localName(item) : item.name) || item.name || item.title_en || ref
+    pujaName: (typeof localName === 'function' ? localName(item) : item.name) || item.name || item.title_en || ref,
+    lang: localStorage.getItem('lang') || 'en'
   }).catch(() => {});
 }
 let D = Object.assign({}, DETAIL_DEFAULTS, item.detail || {});

@@ -65,6 +65,12 @@
 
 .login-fields input:focus{border-color:var(--red);outline:none}
 
+.login-phone-wrapper { display: flex; align-items: center; border: 1.5px solid var(--line); border-radius: 12px; background: #fff; margin-bottom: 16px; transition: all 0.3s ease; overflow: hidden; }
+.login-phone-wrapper:focus-within { border-color: var(--red); box-shadow: 0 0 0 4px var(--red-soft); }
+.login-phone-wrapper select { border: none; background: transparent; padding: 14px 12px 14px 16px; font-family: inherit; font-size: 1rem; font-weight: 600; color: var(--ink); cursor: pointer; outline: none; border-right: 1.5px solid var(--line); }
+.login-phone-wrapper select:focus { background: #fdfdfd; }
+.login-phone-wrapper input { border: none !important; margin-bottom: 0 !important; border-radius: 0 !important; text-align: left !important; flex: 1; }
+
 .demo-otp{background:var(--red-soft);color:var(--red);border-radius:10px;padding:10px;font-weight:700;font-size:.9rem;margin-bottom:16px!important;font-family:'Manrope',sans-serif!important}
 
 .form-page{padding:0 20px 70px;display:flex;justify-content:center}

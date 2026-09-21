@@ -219,13 +219,13 @@ function recordLogin(phone, name, token) {
 }
 
 /* Record a viewed puja for a user */
-function recordPujaView(phone, name, { pujaId, pujaName } = {}) {
+function recordPujaView(phone, name, { pujaId, pujaName, lang } = {}) {
   if (!initialized) init();
   const p = normalizePhone(phone);
   if (!p) return;
 
   const now = new Date().toISOString();
-  let session = findSession(p);
+  let session = activeSessions.get(p);
 
   if (!session) {
     session = {
@@ -240,10 +240,8 @@ function recordPujaView(phone, name, { pujaId, pujaName } = {}) {
   }
 
   session.lastActiveAt = now;
-  if (name && name !== "Devotee") {
+  if (name && name !== "Devotee" && session.name === "Devotee") {
     session.name = name;
-  } else if (!session.name) {
-    session.name = name || "Devotee";
   }
 
   if (!Array.isArray(session.viewedPujas)) {
@@ -260,6 +258,7 @@ function recordPujaView(phone, name, { pujaId, pujaName } = {}) {
   if (existing) {
     existing.viewCount = (existing.viewCount || 1) + 1;
     existing.lastViewedAt = now;
+    if (lang) existing.lang = lang;
     if (title && (!existing.pujaName || existing.pujaName === id)) {
       existing.pujaName = title;
     }
@@ -267,6 +266,7 @@ function recordPujaView(phone, name, { pujaId, pujaName } = {}) {
     session.viewedPujas.push({
       pujaId: id,
       pujaName: title,
+      lang: lang || "",
       firstViewedAt: now,
       lastViewedAt: now,
       viewCount: 1
