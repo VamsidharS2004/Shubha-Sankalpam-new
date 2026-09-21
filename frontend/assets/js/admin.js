@@ -62,7 +62,20 @@ document.addEventListener("DOMContentLoaded", () => {
       try{await Promise.all([loadBookings(),loadDevotees(),loadActiveUsersAnalytics()]);}finally{btn.disabled=false;btn.textContent='Refresh';}
     });
     // Refresh button
-    document.getElementById('refreshBtn')?.addEventListener('click', loadBookings);
+    // Refresh button
+    document.getElementById('refreshBtn')?.addEventListener('click', async (event) => {
+        const btn = event.currentTarget;
+        if (btn.disabled) return;
+        const originalHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Refreshing...';
+        try {
+            await loadBookings();
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+        }
+    });
 
     const searchInput = document.querySelector('#view-bookings .search-bar input');
     if (searchInput) {
