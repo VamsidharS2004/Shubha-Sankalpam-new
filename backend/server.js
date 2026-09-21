@@ -83,6 +83,11 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === "/") filePath = path.join(FRONTEND_DIR, "home.html");
     if (!filePath.startsWith(FRONTEND_DIR)) return send(res, 403, { error: "Forbidden" });
     fs.readFile(filePath, (err, data) => {
+        if (!err && filePath.endsWith('.html')) {
+            let htmlStr = data.toString('utf8');
+            htmlStr = htmlStr.replace(/v=client-\d+/g, 'v=' + Date.now());
+            data = Buffer.from(htmlStr, 'utf8');
+        }
       if (err) return send(res, 404, "<h1>404 — Page not found</h1>", "text/html");
       send(res, 200, data, MIME[path.extname(filePath)] || "application/octet-stream");
     });
