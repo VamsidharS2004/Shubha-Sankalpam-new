@@ -9,7 +9,13 @@ applyDetailI18n();
 let ref = getParam("id") || "puja:0";
 let { item, type } = getItem(ref);
 if (!item) location.href = "puja.html";
-if (authToken && item) api('/api/me/interest','POST',{ref:item.id || ref}).catch(()=>{});
+if (authToken && item) {
+  api('/api/me/interest', 'POST', { ref: item.id || ref }).catch(() => {});
+  api('/api/analytics/view', 'POST', {
+    pujaId: item.id || ref,
+    pujaName: (typeof localName === 'function' ? localName(item) : item.name) || item.name || item.title_en || ref
+  }).catch(() => {});
+}
 let D = Object.assign({}, DETAIL_DEFAULTS, item.detail || {});
 
 function renderDetails() {
@@ -17,9 +23,12 @@ function renderDetails() {
   $id("pdCaption").textContent = localName(item).toUpperCase();
   $id("pdMantra").textContent = D["mantra_" + currentLang] || D.mantra;
   $id("pdTitle").textContent = localName(item);
-  $id("pdTemple").textContent = item.temple;
-  const templeParts = item.temple.split(",");
+  
+  const localizedTemple = typeof localTemple === 'function' ? localTemple(item) : item.temple;
+  $id("pdTemple").textContent = localizedTemple;
+  const templeParts = localizedTemple.split(",");
   $id("pdTempleLoc2").textContent = templeParts.length > 1 ? templeParts[templeParts.length - 1].trim() : "";
+  
   $id("pdDate").textContent = item.date;
   $id("pdPrice").textContent = "₹" + item.price.toLocaleString("en-IN");
   if ($id("pdStickyName")) $id("pdStickyName").textContent = localName(item);
@@ -96,6 +105,12 @@ function renderDetails() {
       $id("pdIncluded").appendChild(li);
     });
   }
+  
+  if ($id("pdTempleName")) $id("pdTempleName").textContent = localizedTemple.split(",")[0];
+  if ($id("pdTempleLoc")) $id("pdTempleLoc").textContent = "🛕 " + (localizedTemple.split(",").slice(1).join(",").trim() || localizedTemple);
+  document.querySelectorAll(".pd-loc").forEach(el => {
+    el.textContent = "📍 " + localizedTemple.split(",")[0];
+  });
 }
 
 renderDetails();
@@ -218,9 +233,10 @@ if (bookingCard && stickyRow) {
 
 
 $id("pdTemplePhoto").className = "temple-photo";
-$id("pdTemplePhoto").innerHTML = mediaHTML({ image: item.image || item.media }, item.temple.split(",")[0]);
-$id("pdTempleName").textContent = item.temple.split(",")[0];
-$id("pdTempleLoc").textContent = "🛕 " + (item.temple.split(",").slice(1).join(",").trim() || item.temple);
+const initialLocalTemple = typeof localTemple === 'function' ? localTemple(item) : item.temple;
+$id("pdTemplePhoto").innerHTML = mediaHTML({ image: item.image || item.media }, initialLocalTemple.split(",")[0]);
+$id("pdTempleName").textContent = initialLocalTemple.split(",")[0];
+$id("pdTempleLoc").textContent = "🛕 " + (initialLocalTemple.split(",").slice(1).join(",").trim() || initialLocalTemple);
 
 
 const galleryContainer = document.querySelector(".pd-photos");

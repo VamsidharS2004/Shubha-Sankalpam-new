@@ -10,9 +10,10 @@
 initLayout();
 
 const next = getParam("next") || "account.html";
-if (authToken) api("/api/me").then(() => location.replace(next)).catch(e => {
-  if (e.status === 401) clearToken();
-});   // already logged in
+// If already logged in, redirect immediately — no API round-trip needed.
+// The destination page (account.html) will validate the token itself and
+// redirect back here if it has expired, so there's no security risk.
+if (authToken) { location.replace(next); }
 
 let otpInterval;
 let resendWait = 60;

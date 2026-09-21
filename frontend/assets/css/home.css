@@ -293,9 +293,9 @@
 
 .card-media{position:relative}
 
-.card-act{position:absolute;right:10px;width:36px;height:36px;border-radius:50%;background:#fff;border:none;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(0,0,0,.18);font-size:1rem;color:#3A3F4C;cursor:pointer;transition:transform .12s}
+.card-act{position:absolute;right:10px;width:36px;height:36px;border-radius:50%;background:#fff;border:none;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(0,0,0,.18);font-size:1rem;color:#3A3F4C;cursor:pointer;transition:transform .18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow .18s;will-change:transform;backface-visibility:hidden;transform:translateZ(0)}
 
-.card-act:hover{transform:scale(1.08)}
+.card-act:hover{transform:scale(1.05) translateZ(0);box-shadow:0 4px 16px rgba(0,0,0,.22)}
 
 .card-heart{top:10px}
 
@@ -304,6 +304,11 @@
 .card-heart.liked{color:#6B1220}
 
 .card-tagline{font-size:.68rem;font-weight:800;letter-spacing:.08em;color:var(--red);text-transform:uppercase;margin-bottom:2px}
+
+@media (max-width: 600px) {
+  .card-tagline { font-size:.82rem; letter-spacing:.06em; }
+  .pkg-badge { font-size:.82rem; padding:5px 14px; }
+}
 
 /* ================================================================
    "OUR PUJAS" — NEW LIGHT CENTERED DESIGN
@@ -383,7 +388,7 @@
   overflow-x:auto;
   scroll-snap-type:x mandatory;
   -webkit-overflow-scrolling:touch;
-  padding:4px 4px 12px;
+  padding:10px 4px 12px;
   scrollbar-width:none; /* Firefox */
 }
 .puja-carousel::-webkit-scrollbar{display:none} /* Chrome/Safari/Edge */

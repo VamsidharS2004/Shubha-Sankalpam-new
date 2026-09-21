@@ -17,6 +17,10 @@ function createSession(phone) {
   return token;
 }
 
+function registerSession(token, phone) {
+  if (token && phone) sessions.set(token, phone);
+}
+
 function phoneFromRequest(req) {
   const auth = req.headers["authorization"] || "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
@@ -45,4 +49,4 @@ function adminOnly(req, res, url) {
   return true;
 }
 
-module.exports = { createSession, requireLogin, optionalLogin, adminOnly };
+module.exports = { createSession, registerSession, requireLogin, optionalLogin, adminOnly };

@@ -115,6 +115,15 @@
 .continue-btn{width:100%;font-size:1.1rem;padding:16px;border-radius:12px;font-weight:700;display:flex;justify-content:center}
 .secure-badge{text-align:center;margin-top:14px;font-size:.8rem;color:#1FA855;font-weight:700}
 
+@media (max-width: 767px) {
+  .booking-layout .summary-card { padding-bottom: 24px; position: relative; }
+  .booking-layout .summary-card .continue-btn {
+    position: sticky; bottom: calc(85px + env(safe-area-inset-bottom)); 
+    width: 100%; z-index:85; margin: 0; border-radius:999px;
+    box-shadow:0 -4px 18px rgba(80,14,22,.18), 0 8px 24px rgba(80,14,22,.25);
+  }
+}
+
 .trust-box{border:1px solid var(--line);border-radius:16px;background:#fff;padding:20px}
 .trust-row{display:flex;gap:12px;margin-bottom:14px;font-size:.85rem;color:var(--ink);font-weight:600;align-items:flex-start}
 .trust-row:last-child{margin-bottom:0}

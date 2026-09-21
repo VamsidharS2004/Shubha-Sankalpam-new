@@ -24,7 +24,12 @@ async function create(req, res) {
   raw.price = item.price;
   // Ensure devotee exists and update their details with the latest info
   await userModel.findOrCreate(raw.phone, { name: raw.name });
-  await userModel.updateDevotee(raw.phone, { name: raw.name, gotra: raw.gotram });
+  // Only update gotra on the profile if the booking includes a non-empty value.
+  // If the user checked "I don't know my gotram", raw.gotram will be "" — in that
+  // case we deliberately skip the gotra field so we never erase a previously saved gotram.
+  const profileUpdate = { name: raw.name };
+  if (raw.gotram) profileUpdate.gotra = raw.gotram;
+  await userModel.updateDevotee(raw.phone, profileUpdate);
 
   const bookingData = {
     phone: raw.phone,

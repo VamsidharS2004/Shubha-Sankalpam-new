@@ -11,11 +11,13 @@ const cms = require("../controllers/cmsController");
 const video = require("../controllers/videoController");
 const subscription = require("../controllers/subscriptionController");
 const websiteContent = require("../controllers/websiteContentController");
+const analytics = require("../controllers/analyticsController");
 const { requireLogin, optionalLogin, adminOnly } = require("../middleware/auth");
 
 const routes = [
   { method:'GET', path:'/api/catalog/item', middleware:[], handler:user.catalogItem },
   { method:'POST', path:'/api/me/interest', middleware:[requireLogin], handler:user.trackInterest },
+  { method:'POST', path:'/api/analytics/view', middleware:[requireLogin], handler:analytics.recordView },
   { method: "POST", path: "/api/login/request", middleware: [],              handler: auth.requestOtp },
   { method: "POST", path: "/api/login/verify",  middleware: [],              handler: auth.verifyOtp  },
   { method: "GET",  path: "/api/me",            middleware: [requireLogin],  handler: user.getMe      },
@@ -26,6 +28,8 @@ const routes = [
   { method: "GET",  path: "/api/bookings/recover", middleware: [],           handler: booking.recoverBooking },
   
   // --- Admin Endpoints ---
+  { method: "GET",  path: "/api/admin/analytics/active-users", middleware: [adminOnly], handler: analytics.getActiveUsers },
+  { method: "GET",  path: "/api/admin/analytics", middleware: [adminOnly], handler: analytics.getActiveUsers },
   { method: "POST", path: "/api/admin/upload",   middleware: [adminOnly],    handler: cms.uploadImage },
   { method: "GET",  path: "/api/admin/bookings", middleware: [adminOnly],    handler: booking.listAll },
   { method: "POST", path: "/api/admin/bookings", middleware: [adminOnly],    handler: booking.adminCreateBooking },

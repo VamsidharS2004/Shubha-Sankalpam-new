@@ -177,9 +177,8 @@ body{padding-top:var(--header-h, 78px)}
 
 /* ============ RESPONSIVE ============ */
 
-/* ============ LOGIN CARD (matched to screenshot) ============ */
-
-.hidden{display:none!important}
+.hidden:not(.lang-menu){display:none!important}
+.lang-menu.hidden{display:block!important;opacity:0;visibility:hidden;pointer-events:none}
 
 /* ============ SERIF HERO + ORNAMENTS + SLIDER ARROWS (matched to screenshot) ============ */
 
@@ -302,10 +301,9 @@ body { max-width: 100%; }
 .faq{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
 .faq button{width:100%;background:none;border:none;text-align:left;padding:18px 48px 18px 20px;font-size:.98rem;font-weight:600;color:var(--ink);position:relative}
 .faq button::after{content:"+";position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:1.4rem;color:var(--red);transition:transform .2s}
-.faq.open button::after{transform:translateY(-50%) rotate(45deg)}
-.faq-a{max-height:0;overflow:hidden;transition:max-height .25s ease;color:var(--muted);font-size:.92rem}
-.faq.open .faq-a{max-height:240px}
-.faq-a p{padding:0 20px 18px}
+.faq-a{display:grid;grid-template-rows:0fr;transition:grid-template-rows .25s cubic-bezier(0.4, 0, 0.2, 1);overflow:hidden;color:var(--muted);font-size:.92rem}
+.faq.open .faq-a{grid-template-rows:1fr}
+.faq-a p{overflow:hidden;min-height:0;padding:0 20px 18px}
 /* ============================================================
    PUJA GALLERY — responsive grid (was missing layout rules
    entirely before, causing items to stack one-per-row)
@@ -389,10 +387,14 @@ body { max-width: 100%; }
 .lightbox{
   position: fixed; inset: 0; z-index: 200;
   background: rgba(10,6,4,.92);
-  display: none;
+  display: flex;
   align-items: center; justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .25s ease, visibility .25s ease;
 }
-.lightbox.show{ display: flex; }
+.lightbox.show{ opacity: 1; visibility: visible; pointer-events: auto; }
 .lightbox-frame{
   width: min(90vw, 900px);
   aspect-ratio: 4 / 3;
@@ -422,3 +424,39 @@ body { max-width: 100%; }
 .lightbox-nav:hover{ background: rgba(255,255,255,.22); }
 .lightbox-nav.prev{ left: 20px; }
 .lightbox-nav.next{ right: 20px; }
+
+/* ============================================================
+   TEMPLE AUDIO BELL BUTTON STABILIZATION
+   ============================================================ */
+.temple-audio-btn {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  max-width: 48px;
+  max-height: 48px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid var(--gold, #C9A227);
+  box-shadow: 0 4px 14px rgba(107, 18, 32, 0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  will-change: transform;
+}
+.temple-audio-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 6px 18px rgba(107, 18, 32, 0.3);
+}
+@media (min-width: 901px) {
+  .temple-audio-wrap {
+    bottom: 24px !important;
+    left: 24px !important;
+  }
+}

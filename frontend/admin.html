@@ -7,6 +7,9 @@
 <link rel="stylesheet" href="assets/css/global.css?v=client-20260920">
 <link rel="stylesheet" href="assets/css/navbar.css?v=client-20260920">
 <link rel="stylesheet" href="assets/css/account.css?v=client-20260920">
+<link rel="stylesheet" href="assets/css/admin.css?v=client-20260920">
+<link rel="stylesheet" href="assets/css/responsive.css?v=client-20260920">
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
 <title>Admin Dashboard | Shubha Sankalpam</title>
 <style>
   .admin-login-container {
@@ -81,6 +84,78 @@
       </tbody>
     </table>
   </div>
+
+  <!-- Dashboard View & Active Users Analytics -->
+  <section id="view-dashboard" class="view-section" style="display:block; margin-top:24px;">
+    <div class="stats-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:24px;">
+      <div class="stat-card" id="cardActiveUsers" style="background:#fff; border:1px solid var(--border, #e2e8f0); border-radius:12px; padding:20px; box-shadow:0 2px 10px rgba(0,0,0,0.04);">
+        <div class="stat-icon" style="background:#e8f5e9; color:#2e7d32; width:36px; height:36px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; margin-bottom:8px;"><i class="ph ph-users-three" style="font-size:1.2rem;"></i></div>
+        <div class="stat-val" style="display:flex; align-items:center; gap:8px;">
+          <span id="statActiveUsers" style="font-size:2rem; font-weight:700; color:var(--accent, #b75e00);">0</span>
+          <span class="live-dot" title="Live updates active"></span>
+        </div>
+        <div class="stat-label" style="color:var(--text-muted, #64748b); font-size:0.9rem; margin-top:4px;">Active Users Now</div>
+      </div>
+    </div>
+    <p id="leadTrackingNotice" role="status"></p>
+
+    <div class="analytics-section" id="activeUsersAnalyticsSection" style="margin-top: 24px;">
+      <div class="page-header" style="margin-bottom: 16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h2 style="font-size: 1.3rem; display:flex; align-items:center; gap:8px; color:var(--accent, #b75e00); margin:0;">
+            <i class="ph ph-chart-line-up"></i> Active Logged-in Devotees &amp; Activity
+          </h2>
+          <div class="text-muted" style="margin-top:4px; font-size:0.85rem;">Real-time tracking of logged-in devotee sessions and viewed pujas</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <label style="display:flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--text-muted, #64748b); cursor:pointer;">
+            <input type="checkbox" id="autoRefreshToggle" checked>
+            <span>Auto-refresh (30s)</span>
+          </label>
+          <button type="button" class="btn" id="refreshAnalyticsBtn" title="Refresh active users data">
+            <i class="ph ph-arrows-clockwise" id="refreshAnalyticsIcon"></i> Refresh Now
+          </button>
+        </div>
+      </div>
+
+      <div class="toolbar" style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:16px;">
+        <div class="search-bar" style="flex:1; min-width:260px; max-width:400px; position:relative;">
+          <i class="ph ph-magnifying-glass" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-muted, #64748b);"></i>
+          <input type="text" id="analyticsSearchInput" placeholder="Search by name, phone, puja..." style="padding-left:36px; width:100%;">
+        </div>
+        <div class="filters" id="analyticsFilterPills" style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="filter-btn filter-pill active" data-filter="all">All Sessions</button>
+          <button type="button" class="filter-btn filter-pill" data-filter="active">Online (&lt;30m)</button>
+          <button type="button" class="filter-btn filter-pill" data-filter="viewed">Has Viewed Pujas</button>
+        </div>
+        <div class="meta-info" style="margin-left:auto; color:var(--text-muted, #64748b); font-size:0.85rem;">
+          <span id="activeUsersCountSpan">0 active users</span>
+        </div>
+      </div>
+
+      <div class="table-responsive table-container" style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+        <table id="activeUsersTable" style="width:100%; border-collapse:collapse; text-align:left;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--border, #e2e8f0);">
+              <th style="min-width: 180px; padding:12px 16px;">Devotee</th>
+              <th style="min-width: 140px; padding:12px 16px;">Phone</th>
+              <th style="min-width: 110px; padding:12px 16px;">Status</th>
+              <th style="min-width: 190px; padding:12px 16px;">Login Time (IST)</th>
+              <th style="min-width: 130px; padding:12px 16px;">Last Active</th>
+              <th style="min-width: 280px; padding:12px 16px;">Viewed Pujas</th>
+              <th style="min-width: 100px; padding:12px 16px; text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="activeUsersTbody">
+          </tbody>
+        </table>
+        <div id="activeUsersEmpty" class="empty-state" style="display:none; padding:40px 20px; text-align:center;">
+          <i class="ph ph-users" style="font-size:2.5rem; color:var(--text-muted, #64748b); margin-bottom:12px; display:inline-block;"></i>
+          <p style="color:var(--text-muted, #64748b); margin:0;">No active user sessions recorded yet.<br>Activity appears here when logged-in devotees browse pujas.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
 
 <div id="site-footer"></div>

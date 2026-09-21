@@ -212,7 +212,7 @@
   .whatsapp-pill span { display: none; }
   
   /* hide the "English" label text next to the language switcher */
-  .lang-names { display: none; }
+  #langLabel { display: none; }
   .lang { padding: 6px 10px; gap: 4px; font-size: 0.75rem; }
 
   /* reduce button/price font sizes slightly */

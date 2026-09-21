@@ -27,6 +27,7 @@ const {
 } = require("../config");
 const { createSession } = require("../middleware/auth");
 const userModel = require("../models/userModel");
+const analyticsModel = require("../models/analyticsModel");
 
 /* phone -> { otpHash, expires, attempts } — the OTP itself is never
    stored in plain text, only its hash (see hashOtp below) */
@@ -235,6 +236,7 @@ async function verifyOtp(req, res) {
   }
   
   const token = createSession(p);
+  analyticsModel.recordLogin(p, (user && user.name) || "Devotee", token);
   send(res, 200, { token, user });
 }
 

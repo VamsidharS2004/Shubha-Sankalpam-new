@@ -7,6 +7,9 @@ function numericBookingId(id) {
     return String(hash).padStart(10, "0");
 }
 let KEY = "";
+window.allActiveUsers = [];
+let currentAnalyticsFilter = "all";
+let analyticsAutoRefreshInterval = null;
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -56,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     document.getElementById('refreshDashboard')?.addEventListener('click',async event=>{
       const btn=event.currentTarget; if(btn.disabled)return; btn.disabled=true;btn.textContent='Refreshing…';
-      try{await Promise.all([loadBookings(),loadDevotees()]);}finally{btn.disabled=false;btn.textContent='Refresh';}
+      try{await Promise.all([loadBookings(),loadDevotees(),loadActiveUsersAnalytics()]);}finally{btn.disabled=false;btn.textContent='Refresh';}
     });
     // Refresh button
     document.getElementById('refreshBtn')?.addEventListener('click', loadBookings);
@@ -65,6 +68,31 @@ document.addEventListener("DOMContentLoaded", () => {
     if (searchInput) {
         searchInput.addEventListener('input', renderBookings);
     }
+
+    // Analytics Search listener
+    const analyticsSearch = document.getElementById('analyticsSearchInput');
+    if (analyticsSearch) {
+        analyticsSearch.addEventListener('input', renderActiveUsersAnalytics);
+    }
+
+    // Analytics Refresh Button listener
+    document.getElementById('refreshAnalyticsBtn')?.addEventListener('click', async () => {
+        await loadActiveUsersAnalytics();
+    });
+
+    // Analytics Filter Pills listeners
+    document.querySelectorAll('#analyticsFilterPills .filter-pill').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.querySelectorAll('#analyticsFilterPills .filter-pill').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentAnalyticsFilter = btn.getAttribute('data-filter') || 'all';
+            renderActiveUsersAnalytics();
+        });
+    });
+
+    // Start auto-refresh loop
+    startAnalyticsAutoRefresh();
 
 });
 
@@ -99,7 +127,7 @@ async function doLogin() {
     KEY = document.getElementById("pw").value;
     const success = await loadBookings();
     if (success) {
-        await Promise.all([loadDevotees(), loadPujas(), loadPackages(), loadTemples()]);
+        await Promise.all([loadDevotees(), loadPujas(), loadPackages(), loadTemples(), loadActiveUsersAnalytics()]);
         updateDashboardStats();
         document.getElementById("loginOverlay").classList.add("hidden");
         // default tab
@@ -147,6 +175,10 @@ function switchTab(viewId, activeLinkElement) {
     const target = document.getElementById(viewId);
     if (target) {
         target.classList.add('active');
+    }
+
+    if (viewId === 'view-dashboard') {
+        loadActiveUsersAnalytics();
     }
 }
 
@@ -623,6 +655,9 @@ function openEditPuja(index) {
     document.getElementById("editor-receive").innerHTML = "";
     if (det.receive) det.receive.forEach(r => addDynamicRow('receive', r));
     
+    document.getElementById("editor-gallery").innerHTML = "";
+    if (p.gallery) p.gallery.forEach(g => addDynamicRow('gallery', g));
+    
     openDrawer('drawer-edit-puja');
 }
 
@@ -696,6 +731,17 @@ async function savePuja() {
         delete p.detail.receive;
     }
     
+    const galRows = document.getElementById("editor-gallery").children;
+    if (galRows.length > 0) {
+        p.gallery = Array.from(galRows).map(row => {
+            const inp = row.querySelector('.dyn-g');
+            return inp ? inp.value.trim() : null;
+        }).filter(x => x);
+        if (p.gallery.length === 0) delete p.gallery;
+    } else {
+        delete p.gallery;
+    }
+    
     if (index === -1) {
         allPujas.push(p);
     }
@@ -744,6 +790,69 @@ function addDynamicRow(type, data = null) {
             <input type="text" placeholder="Item description" value="${esc(text)}" class="dyn-r" style="flex:1; padding:8px; border:1px solid var(--border); border-radius:4px;">
             <button class="btn" style="color:var(--red); padding:8px;" onclick="this.parentElement.remove()"><i class="ph ph-trash"></i></button>
         `;
+    } else if (type === 'gallery') {
+        const text = typeof data === "string" ? data : "";
+        const id = 'gal_' + Math.random().toString(36).slice(2, 9);
+        row.style.flexDirection = "column";
+        row.innerHTML = `
+            <div style="display:flex; width:100%; gap:8px; align-items:center;">
+                <input type="text" id="txt_${id}" placeholder="assets/images/pujas/..." value="${esc(text)}" class="dyn-g" style="flex:1; padding:8px; border:1px solid var(--border); border-radius:4px;">
+                <button class="btn" style="color:var(--red); padding:8px;" onclick="this.parentElement.parentElement.remove()"><i class="ph ph-trash"></i></button>
+            </div>
+            <div class="img-upload-widget" data-target="txt_${id}" data-entity="pujas" style="width:100%; background:#f9f9f9; padding:8px; border-radius:4px; border:1px dashed var(--line); margin-top:4px;">
+                <img id="prev_${id}" class="img-preview" src="${text ? (text.startsWith('http') ? text : '/' + text) : ''}" style="${text ? 'display:block;' : 'display:none;'} max-width:80px; max-height:50px; object-fit:cover; border-radius:4px; margin-bottom:8px; border:1px solid var(--line);">
+                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                    <input type="file" id="file_${id}" accept="image/jpeg,image/png,image/webp" style="flex:1; min-width:0; font-size:0.8rem;">
+                    <button type="button" class="btn btn-primary" id="btn_${id}" style="padding:4px 10px; font-size:0.8rem;">Upload</button>
+                </div>
+            </div>
+        `;
+        
+        // Bind the upload event listener directly
+        setTimeout(() => {
+            const upBtn = document.getElementById(`btn_${id}`);
+            if (upBtn) {
+                upBtn.addEventListener("click", async () => {
+                    const fileInput = document.getElementById(`file_${id}`);
+                    const targetInput = document.getElementById(`txt_${id}`);
+                    const prevImg = document.getElementById(`prev_${id}`);
+                    
+                    if (!fileInput.files || fileInput.files.length === 0) {
+                        return alert("Please select an image file first.");
+                    }
+                    
+                    const formData = new FormData();
+                    formData.append("file", fileInput.files[0]);
+                    formData.append("entity_type", "pujas");
+                    
+                    upBtn.textContent = "Uploading...";
+                    upBtn.disabled = true;
+                    
+                    try {
+                        const res = await fetch("/api/admin/upload?key=" + encodeURIComponent(KEY), {
+                            method: "POST",
+                            body: formData
+                        });
+                        
+                        if (!res.ok) throw new Error("Upload failed");
+                        
+                        const result = await res.json();
+                        const url = result.url || result.path;
+                        targetInput.value = url;
+                        if(prevImg) {
+                            prevImg.src = url.startsWith('http') ? url : '/' + url;
+                            prevImg.style.display = "block";
+                        }
+                        alert("Gallery Image uploaded successfully!");
+                    } catch (e) {
+                        alert("Error uploading image");
+                    } finally {
+                        upBtn.textContent = "Upload";
+                        upBtn.disabled = false;
+                    }
+                });
+            }
+        }, 0);
     }
     container.appendChild(row);
 }
@@ -1385,3 +1494,215 @@ window.sendVideo = async function(bookingId) {
         progressEl.style.display = "none";
     }
 };
+
+/* ============================================================
+   ACTIVE USERS & PUJA BROWSING ANALYTICS (Milestone M3)
+   ============================================================ */
+
+function formatISTTime(isoString) {
+    if (!isoString) return "—";
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return "—";
+    return d.toLocaleString("en-IN", {
+        timeZone: "Asia/Kolkata",
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true
+    });
+}
+
+function formatRelativeTime(isoString) {
+    if (!isoString) return "";
+    const diff = Date.now() - new Date(isoString).getTime();
+    if (isNaN(diff) || diff < 0) return "just now";
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+}
+
+function isUserOnline(user) {
+    if (!user) return false;
+    if (user.isActive !== undefined) return Boolean(user.isActive);
+    const lastActiveTime = new Date(user.lastActiveAt || user.lastActive || user.loginTime).getTime();
+    if (isNaN(lastActiveTime)) return false;
+    return (Date.now() - lastActiveTime) < (30 * 60 * 1000);
+}
+
+async function loadActiveUsersAnalytics() {
+    if (!KEY) return false;
+    const refreshIcon = document.getElementById("refreshAnalyticsIcon");
+    if (refreshIcon) refreshIcon.classList.add("ph-spin");
+
+    try {
+        let res = await fetch(`/api/admin/analytics/active-users?key=${encodeURIComponent(KEY)}`);
+        if (!res.ok) {
+            res = await fetch(`/api/admin/analytics?key=${encodeURIComponent(KEY)}`);
+        }
+        if (!res.ok) {
+            console.warn("Analytics API unavailable or unauthorized:", res.status);
+            return false;
+        }
+
+        const data = await res.json();
+        const users = Array.isArray(data) ? data : (data.users || data.activeUsers || []);
+        window.allActiveUsers = users;
+
+        const statEl = document.getElementById("statActiveUsers");
+        if (statEl) {
+            const count = (data && data.activeCount !== undefined)
+                ? data.activeCount
+                : (data && data.totalActive !== undefined
+                    ? data.totalActive
+                    : users.length);
+            statEl.textContent = count;
+        }
+
+        renderActiveUsersAnalytics();
+        return true;
+    } catch (err) {
+        console.error("Error loading active user analytics:", err);
+        return false;
+    } finally {
+        if (refreshIcon) refreshIcon.classList.remove("ph-spin");
+    }
+}
+window.loadActiveUsersAnalytics = loadActiveUsersAnalytics;
+window.loadActiveUsers = loadActiveUsersAnalytics;
+
+function renderActiveUsersAnalytics() {
+    const tbody = document.getElementById("activeUsersTbody");
+    const table = document.getElementById("activeUsersTable");
+    const emptyState = document.getElementById("activeUsersEmpty") || document.getElementById("activeUsersEmptyState");
+    const countSpan = document.getElementById("activeUsersCountSpan");
+    if (!tbody) return;
+
+    let list = window.allActiveUsers || [];
+
+    // Search filter
+    const searchInput = document.getElementById("analyticsSearchInput");
+    const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
+    if (query) {
+        list = list.filter(u => {
+            const name = (u.name || "").toLowerCase();
+            const phone = (u.phone || "").toLowerCase();
+            const pujas = (u.viewedPujas || []).map(p => {
+                if (typeof p === "string") return p;
+                return (p.pujaName || p.name || p.pujaId || p.id || "");
+            }).join(" ").toLowerCase();
+            return name.includes(query) || phone.includes(query) || pujas.includes(query);
+        });
+    }
+
+    // Status filter pill
+    if (currentAnalyticsFilter === "active") {
+        list = list.filter(u => isUserOnline(u));
+    } else if (currentAnalyticsFilter === "viewed") {
+        list = list.filter(u => Array.isArray(u.viewedPujas) && u.viewedPujas.length > 0);
+    }
+
+    if (countSpan) {
+        countSpan.textContent = `${list.length} active user${list.length === 1 ? '' : 's'}`;
+    }
+
+    tbody.innerHTML = "";
+    if (list.length === 0) {
+        if (table) table.style.display = "none";
+        if (emptyState) emptyState.style.display = "block";
+        return;
+    }
+
+    if (table) table.style.display = "";
+    if (emptyState) emptyState.style.display = "none";
+
+    list.forEach(u => {
+        const online = isUserOnline(u);
+        const devoteeName = (u.name && u.name !== "Devotee") ? u.name : "Devotee";
+        const rawPhone = String(u.phone || "").replace(/\D/g, "").slice(-10);
+        const phoneFormatted = rawPhone ? `+91 ${rawPhone.slice(0, 5)} ${rawPhone.slice(5)}` : (u.phone || "—");
+
+        const viewedList = Array.isArray(u.viewedPujas) ? u.viewedPujas : [];
+        let pujasHtml = '<span class="text-muted" style="font-size:0.8rem;">No pujas viewed yet</span>';
+
+        if (viewedList.length > 0) {
+            const maxVisible = 3;
+            const visibleChips = viewedList.slice(0, maxVisible).map(p => {
+                const pName = typeof p === "string" ? p : (p.pujaName || p.name || p.pujaId || p.id || "Puja");
+                const count = (typeof p === "object" && p && p.viewCount > 1) ? ` (${p.viewCount}x)` : "";
+                const pTime = (typeof p === "object" && p && (p.lastViewedAt || p.viewedAt)) ? formatRelativeTime(p.lastViewedAt || p.viewedAt) : "";
+                const titleAttr = pTime ? `${esc(pName)}${count} (Viewed ${pTime})` : `${esc(pName)}${count}`;
+                return `<span class="puja-chip" title="${titleAttr}">🌸 ${esc(pName)}${count}</span>`;
+            }).join("");
+
+            let moreTag = "";
+            if (viewedList.length > maxVisible) {
+                const remaining = viewedList.length - maxVisible;
+                const allTitles = viewedList.map(p => {
+                    const pName = typeof p === "string" ? p : (p.pujaName || p.name || p.pujaId || p.id || "Puja");
+                    const count = (typeof p === "object" && p && p.viewCount > 1) ? ` (${p.viewCount}x)` : "";
+                    return `${pName}${count}`;
+                }).join("\n• ");
+                moreTag = `<span class="puja-more-chip" title="• ${esc(allTitles)}">+${remaining} more</span>`;
+            }
+            pujasHtml = `<div style="display:flex; flex-wrap:wrap; align-items:center;">${visibleChips}${moreTag}</div>`;
+        }
+
+        const tr = document.createElement("tr");
+        tr.style.borderBottom = "1px solid var(--border)";
+        tr.innerHTML = `
+            <td style="padding: 12px 16px;">
+                <div style="font-weight: 600; color: var(--text-main);">${esc(devoteeName)}</div>
+                <div class="text-muted" style="font-size: 0.75rem;">Verified Session</div>
+            </td>
+            <td style="padding: 12px 16px;">
+                <span style="font-family: monospace; font-size: 0.85rem;">${esc(phoneFormatted)}</span>
+            </td>
+            <td style="padding: 12px 16px;">
+                ${online
+                    ? `<span class="badge badge-success"><span class="live-dot" style="width:6px; height:6px;"></span> Online</span>`
+                    : `<span class="badge badge-neutral">Idle</span>`}
+            </td>
+            <td style="padding: 12px 16px;">
+                <div style="font-size: 0.85rem;">${formatISTTime(u.loginTime)}</div>
+                <div class="text-muted" style="font-size: 0.75rem;">${formatRelativeTime(u.loginTime)}</div>
+            </td>
+            <td style="padding: 12px 16px;">
+                <div style="font-size: 0.85rem;">${formatRelativeTime(u.lastActiveAt || u.lastActive || u.loginTime)}</div>
+            </td>
+            <td style="padding: 12px 16px;">
+                ${pujasHtml}
+            </td>
+            <td style="padding: 12px 16px; text-align: right;">
+                <div style="display:flex; justify-content:flex-end; gap:6px;">
+                    ${rawPhone ? `
+                    <a href="https://wa.me/91${rawPhone}" target="_blank" class="btn" style="padding:4px 8px; color:#22c55e;" title="Chat on WhatsApp">
+                        <i class="ph ph-whatsapp-logo"></i>
+                    </a>` : ''}
+                    <button type="button" class="btn" style="padding:4px 8px;" onclick="typeof editDevotee==='function'?editDevotee('${rawPhone}'):null" title="View Devotee Record">
+                        <i class="ph ph-user"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+window.renderActiveUsersAnalytics = renderActiveUsersAnalytics;
+window.renderActiveUsers = renderActiveUsersAnalytics;
+
+function startAnalyticsAutoRefresh() {
+    if (analyticsAutoRefreshInterval) clearInterval(analyticsAutoRefreshInterval);
+    analyticsAutoRefreshInterval = setInterval(() => {
+        const dashboardTab = document.getElementById("view-dashboard");
+        const toggle = document.getElementById("autoRefreshToggle");
+        if (dashboardTab && dashboardTab.classList.contains("active") && !document.hidden && KEY && (!toggle || toggle.checked)) {
+            loadActiveUsersAnalytics();
+        }
+    }, 30000);
+}

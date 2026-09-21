@@ -34,6 +34,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  html.fonts-loading .hero-landing {
+    opacity: 0;
+    pointer-events: none;
+  }
+  html:not(.fonts-loading) .hero-landing {
+    transition: opacity 0.3s ease;
+    opacity: 1;
+  }
+</style>
+<script>document.documentElement.classList.add('fonts-loading');document.fonts.ready.then(function(){document.documentElement.classList.remove('fonts-loading')});</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Serif+Telugu:wght@500;600;700&family=Noto+Serif+Devanagari:wght@500;600;700&display=swap" rel="stylesheet">
@@ -256,7 +267,7 @@
 </section>
 
 <div id="site-footer"></div>
-<div id="templeAudioWrap" class="temple-audio-wrap" style="position:fixed; bottom:85px; left:16px; z-index:9999;"></div>
+
 <!-- ============ CONTENT (edit these files to change text/prices/images) ============ -->
 <script src="content/site-settings.js?v=client-20260920"></script>
 <script src="content/pujas.js?v=client-20260920"></script>

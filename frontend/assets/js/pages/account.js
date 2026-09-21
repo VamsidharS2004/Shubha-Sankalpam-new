@@ -31,7 +31,17 @@ function showPanel(name) {
   });
   if (name === "wishlist") renderWishlistPanel();
   if (name === "language") renderLanguagePanel();
-  requestAnimationFrame(() => { selected.setAttribute("tabindex", "-1"); selected.focus({ preventScroll: true }); selected.scrollIntoView({ behavior: "instant", block: "start" }); });
+  
+  setTimeout(() => {
+    selected.setAttribute("tabindex", "-1");
+    selected.focus({ preventScroll: true });
+    // If mobile, scroll to the panel to skip the top sidebar menu
+    if (window.innerWidth < 768) {
+      const headerOffset = 70; // Header height approx
+      const target = Math.max(0, selected.getBoundingClientRect().top + window.scrollY - headerOffset);
+      window.scrollTo({ top: target, behavior: "smooth" });
+    }
+  }, 50);
 }
 
 document.querySelectorAll(".side-item[data-panel]").forEach(btn => {
@@ -112,14 +122,15 @@ function renderBookingsList() {
         "video-sent": "Video Sent"
       }[b.status] || b.status;
 
-      let displayPuja = b.puja;
+      const bookingPuja = b.puja || b.puja_name || b.pujaName || b.puja_title || "";
+      let displayPuja = bookingPuja || "Puja booking";
       let matchedItem = null;
       let refId = "puja:0";
       let type = "puja";
       
       if (typeof pujas !== 'undefined') {
-        let idx = pujas.findIndex(p => p.name === b.puja || p.title_en === b.puja || p.title_te === b.puja);
-        if (idx === -1 && b.puja.includes("razorpay_")) {
+        let idx = pujas.findIndex(p => p.name === bookingPuja || p.title_en === bookingPuja || p.title_te === bookingPuja);
+        if (idx === -1 && String(bookingPuja).includes("razorpay_")) {
            idx = pujas.findIndex(p => p.price === b.price);
         }
         if (idx !== -1) {
@@ -129,8 +140,8 @@ function renderBookingsList() {
       }
       
       if (typeof packages !== 'undefined' && !matchedItem) {
-        let idx = packages.findIndex(p => p.name === b.puja || p.title_en === b.puja || p.title_te === b.puja);
-        if (idx === -1 && b.puja.includes("razorpay_")) {
+        let idx = packages.findIndex(p => p.name === bookingPuja || p.title_en === bookingPuja || p.title_te === bookingPuja);
+        if (idx === -1 && String(bookingPuja).includes("razorpay_")) {
            idx = packages.findIndex(p => p.price === b.price);
         }
         if (idx !== -1) {
@@ -146,7 +157,7 @@ function renderBookingsList() {
           price: b.price,
           image: "cm-a",
           temple: "",
-          date: new Date(b.createdAt).toLocaleDateString("en-IN")
+          date: b.createdAt ? new Date(b.createdAt).toLocaleDateString("en-IN") : "Date not available"
         };
       }
 
@@ -158,7 +169,7 @@ function renderBookingsList() {
       const meta = card.querySelector(".card-meta");
       if (meta) {
         meta.innerHTML = `
-          <span title="Booking Date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> ${new Date(b.createdAt).toLocaleDateString("en-IN")}</span>
+          <span title="Booking Date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> ${b.createdAt ? new Date(b.createdAt).toLocaleDateString("en-IN") : "Date not available"}</span>
           <span title="Gotram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px; margin-right:4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> ${b.gotram || 'N/A'}</span>
         `;
       }
@@ -197,6 +208,16 @@ function renderBookingsList() {
 }
 
 async function loadProfile() {
+  // ── Instant display from localStorage cache (eliminates "Loading profile…" flash) ──
+  try {
+    const cached = JSON.parse(localStorage.getItem('ss_profile_cache') || 'null');
+    if (cached && cached.name) {
+      $id("abName").textContent    = cached.name;
+      $id("abAvatar").textContent  = cached.avatar || cached.name.charAt(0).toUpperCase();
+      $id("abPhone").textContent   = cached.phone  || "";
+    }
+  } catch (_) {}
+
   try {
     $id("profileLoadError").hidden = true;
     const me = await api("/api/me");
@@ -227,6 +248,16 @@ async function loadProfile() {
       return b;
     });
     renderBookingsList();
+
+    // ── Save to cache so next visit shows name instantly ──
+    try {
+      localStorage.setItem('ss_profile_cache', JSON.stringify({
+        name,
+        avatar: name !== "Add your name" ? name.charAt(0).toUpperCase() : "D",
+        phone: me.user.phone || ""
+      }));
+    } catch (_) {}
+
   } catch (e) {
     if (e.status === 401) { clearToken(); location.replace("login.html?next=account.html"); }
     else { $id("profileLoadError").hidden = false; $id("abName").textContent = "My Account"; }
@@ -282,6 +313,7 @@ epForm.addEventListener("submit", async e => {
 
 $id("abLogoutBtn").addEventListener("click", () => {
   clearToken();
+  try { localStorage.removeItem('ss_profile_cache'); } catch (_) {}
   location.href = "login.html";
 });
 

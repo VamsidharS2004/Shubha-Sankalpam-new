@@ -209,6 +209,12 @@ async function startRazorpayFlow(keyId) {
     const rzp = new Razorpay({
       key: keyId,
       prefill: checkoutProfile,
+      // Mark pre-filled fields as readonly so Razorpay doesn't prompt the
+      // user to re-enter their phone number or name in the checkout modal.
+      readonly: {
+        contact: Boolean(checkoutProfile.contact),
+        name:    Boolean(checkoutProfile.name)
+      },
       order_id: order.orderId,
       amount: order.amount,
       currency: "INR",

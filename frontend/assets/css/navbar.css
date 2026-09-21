@@ -133,9 +133,10 @@ header.flow-header .logo {margin:auto}
 .cta-note{margin-top:22px;font-size:.85rem;font-weight:600;color:var(--gold);display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
 
 /* "Follow us" social row */
-.follow-row{display:flex;align-items:center;justify-content:center;gap:16px;margin:12px 0 34px;flex-wrap:wrap;position:relative;z-index:1}
+.follow-row{display:flex;align-items:center;justify-content:center;gap:10px;margin:12px 0 34px;flex-wrap:wrap;position:relative;z-index:1}
 .follow-label{font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-size:clamp(1.4rem,3vw,1.8rem);color:var(--gold);margin-right:8px}
-.soc{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;transition:transform .2s,box-shadow .2s;flex:none;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
+.soc{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;transition:transform .2s,box-shadow .2s;flex:none;box-shadow:0 3px 9px rgba(0,0,0,0.2);line-height:0}
+.soc svg{display:block;width:20px !important;height:20px !important}
 .soc:hover{transform:translateY(-3px);box-shadow:0 6px 16px rgba(0,0,0,0.4)}
 .fb{background:#1877F2;}
 .ig{background:radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);}

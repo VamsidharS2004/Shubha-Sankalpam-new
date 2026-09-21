@@ -23,7 +23,9 @@ const { PORT, FRONTEND_DIR, ADMIN_PASSWORD } = require("./config");
 const { send, MIME } = require("./utils/http");
 const { handleApi } = require("./routes/api");
 const { startReminderJob } = require("./controllers/reminderController");
+const analyticsModel = require("./models/analyticsModel");
 
+analyticsModel.init();
 startReminderJob();
 
 const server = http.createServer(async (req, res) => {
@@ -95,6 +97,13 @@ const server = http.createServer(async (req, res) => {
 process.on("uncaughtException", (err) => {
   console.error("⚠️  Unexpected error (server stayed running):", err.message);
 });
+
+function handleShutdown() {
+  try { analyticsModel.flushSync(); } catch (_) {}
+  server.close(() => process.exit(0));
+}
+process.on("SIGINT", handleShutdown);
+process.on("SIGTERM", handleShutdown);
 
 const SERVER_PORT = process.env.PORT || PORT;
 

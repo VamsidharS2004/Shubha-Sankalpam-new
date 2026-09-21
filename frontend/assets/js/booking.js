@@ -58,7 +58,7 @@ window.addEventListener("pagehide", saveBookingDraft);
 window.addEventListener("pageshow", () => {
   try { if (!sessionStorage.getItem(draftKey)) submittedBooking = null; } catch (_) {}
   $id("payBtn").disabled = false;
-  $id("payBtn").textContent = "Continue";
+  $id("payBtn").textContent = "Continue Payment";
 });
 
 /* POPULATE SUMMARY SIDEBAR */
@@ -75,7 +75,6 @@ $id("bkPriceBase").textContent = formattedPrice;
 $id("bkPriceBreakdown").textContent = formattedPrice;
 $id("bkTotalFinal").textContent = formattedPrice;
 $id("bkTotalStrike").textContent = "₹" + (item.price + 675).toLocaleString("en-IN"); /* fake strikethrough showing saved fees */
-
 }
 showPrice();
 const priceReady = api('/api/catalog/item?ref='+encodeURIComponent(item.id || ref)).then(out=>{
@@ -85,7 +84,10 @@ api('/api/me/interest','POST',{ref:item.id || ref}).catch(()=>{});
 /* pre-fill phone from the profile */
 api("/api/me").then(me => {
   if (restoredDraft) return;
-  if (!$id("fPhone").value) $id("fPhone").value = me.user.whatsapp_number || me.user.phone || "";
+  // Strip +91/91 prefix — the input box shows +91 flag separately, only 10 digits go inside
+  const rawPhone = String(me.user.whatsapp_number || me.user.phone || "").replace(/\D/g, "");
+  const tenDigit = rawPhone.length > 10 ? rawPhone.slice(-10) : rawPhone;
+  if (!$id("fPhone").value) $id("fPhone").value = tenDigit;
   if(!$id("famName1").value && me.user.name && me.user.name !== "Devotee") $id("famName1").value = me.user.name;
   if(!$id("fGotram").value && me.user.gotra) $id("fGotram").value = me.user.gotra;
 }).catch(() => { $id("whatsappHelp").textContent="Could not load your profile. Please enter your WhatsApp number and name to continue."; });
@@ -111,15 +113,19 @@ $id("payBtn").addEventListener("click", async () => {
     if (val) familyNames.push(val);
   }
 
-  const phone = $id("fPhone").value.trim();
+  const phoneRaw = $id("fPhone").value.trim().replace(/\D/g, "").slice(-10);
+  const phone = "+91" + phoneRaw;  // re-attach the country code the flag box shows
   
-  if (familyNames.length === 0) { 
-    alert("Please enter at least one devotee name."); 
-    return; 
+  const namesRequiredEl = $id("namesRequired");
+  if (familyNames.length === 0) {
+    if (namesRequiredEl) { namesRequiredEl.style.display = ""; }
+    alert(typeof dt === 'function' ? dt("bk_names_req") : "Please enter at least one devotee name.");
+    return;
   }
+  if (namesRequiredEl) namesRequiredEl.style.display = "none";
   
   const gotram = $id("noGotramCheck").checked ? "" : $id("fGotram").value.trim();
-  if (!/^(?:\+?91)?[6-9]\d{9}$/.test(phone.replace(/\s/g, ""))) { alert("Please enter a valid mobile number."); return; }
+  if (!/^(?:\+?91)?[6-9]\d{9}$/.test(phone.replace(/\s/g, ""))) { alert("Please enter a valid 10-digit mobile number."); return; }
   const sankalpam = $id("fSankalpam").value.trim();
   
   /* We append sankalpam to family field so backend doesn't need schema change */
@@ -154,11 +160,58 @@ $id("payBtn").addEventListener("click", async () => {
       : await api("/api/bookings", "POST", payload);
     submittedBooking = { id: out.id, fingerprint };
     saveBookingDraft();
-    /* on to the payment page with everything it needs */
-    location.href = `payment.html?bookingId=${out.id}&id=${encodeURIComponent(ref)}&start=1`;
+    
+    // Fetch payment config to check if Razorpay is enabled
+    const pConfig = await api("/api/payments/config").catch(() => ({ razorpayEnabled: false }));
+    
+    if (pConfig.razorpayEnabled && pConfig.keyId && typeof Razorpay !== "undefined") {
+      payBtn.textContent = "Opening Payment...";
+      let order = await api("/api/payments/order", "POST", { bookingId: out.id });
+      const rzp = new Razorpay({
+        key: pConfig.keyId,
+        order_id: order.orderId,
+        amount: order.amount,
+        currency: "INR",
+        name: SITE.BRAND,
+        description: localName(item),
+        prefill: {
+          name: primaryName,
+          contact: "+91" + String(order.contact || phone).replace(/\D/g, "").slice(-10)
+        },
+        readonly: { contact: true, name: true },
+        handler: async function (response) {
+          try {
+            await api("/api/payments/verify", "POST", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              bookingId: out.id
+            });
+            sessionStorage.removeItem(draftKey);
+            location.href = "account.html?panel=bookings";
+          } catch (err) {
+            alert("Payment verification failed. Please check your bookings or contact support.");
+            location.href = "account.html?panel=bookings";
+          }
+        },
+        modal: { ondismiss: function () {
+          payBtn.textContent = oldText;
+          payBtn.disabled = false;
+        }},
+        theme: { color: "#8B1A1A" }
+      });
+      rzp.on("payment.failed", () => { alert("Payment was not completed. Please try again."); });
+      rzp.open();
+    } else {
+      /* fallback to QR payment page if Razorpay is not configured */
+      location.href = `payment.html?bookingId=${out.id}&id=${encodeURIComponent(ref)}&start=1`;
+    }
   } catch (e) { 
     alert(e.message); 
     payBtn.textContent = oldText;
     payBtn.disabled = false;
   }
 });
+
+
+

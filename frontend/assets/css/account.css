@@ -85,6 +85,26 @@
 
 .bk-empty{background:#fff;border:1px dashed var(--line);border-radius:14px;padding:26px;text-align:center;color:var(--muted);font-size:.92rem}
 
+/* Booking tabs use one stable card geometry in Pending, Ongoing and Completed. */
+.account-panel .cards { align-items:stretch; }
+.account-panel .cards > .card {
+  min-width:0; min-height:520px; display:flex; flex-direction:column;
+  border:1px solid #eadbc8; border-radius:16px; overflow:hidden;
+}
+.account-panel .cards > .card .card-media { height:240px; min-height:240px; flex:none; }
+.account-panel .cards > .card .card-body { min-height:280px; padding:20px; }
+.account-panel .cards > .card .card-desc { line-height:1.5; min-height:42px; }
+.account-panel .cards > .card .card-foot { margin-top:auto; }
+.account-panel .bk-tabs { margin-bottom:20px; }
+
+@media (max-width: 600px) {
+  .account-panel .cards > .card { min-height:0; }
+  .account-panel .cards > .card .card-media { height:210px; min-height:210px; }
+  .account-panel .cards > .card .card-body { min-height:250px; padding:16px; }
+  .account-panel .cards > .card .card-body h3 { font-size:1.05rem; line-height:1.35; }
+  .account-panel .cards > .card .card-desc { font-size:.9rem; }
+}
+
 
 
 /* ============================================================

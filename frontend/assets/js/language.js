@@ -53,7 +53,7 @@ const DETAIL_UI = {
     bk_media_fee: "Photo and video recording Fee",
     bk_free: "Free",
     bk_summary_total: "Total",
-    bk_continue: "Continue",
+    bk_continue: "Continue Payment",
     bk_secure: "100% Secure"
   },
   te: {
@@ -99,7 +99,7 @@ const DETAIL_UI = {
     bk_media_fee: "ఫోటో మరియు వీడియో రికార్డింగ్ రుసుము",
     bk_free: "ఉచితం",
     bk_summary_total: "మొత్తం",
-    bk_continue: "కొనసాగించండి",
+    bk_continue: "చెల్లింపుకు కొనసాగండి",
     bk_secure: "100% సురక్షితం"
   },
   hi: {
@@ -145,7 +145,7 @@ const DETAIL_UI = {
     bk_media_fee: "फोटो और वीडियो रिकॉर्डिंग शुल्क",
     bk_free: "मुफ़्त",
     bk_summary_total: "कुल",
-    bk_continue: "जारी रखें",
+    bk_continue: "भुगतान जारी रखें",
     bk_secure: "100% सुरक्षित"
   }
 };

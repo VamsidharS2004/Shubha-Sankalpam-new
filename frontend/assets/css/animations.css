@@ -105,21 +105,21 @@ body{animation: pageFadeIn .5s var(--ease-soft) both}
 
 /* ---------- hero entrance (plays once on load, not on scroll) ---------- */
 @keyframes heroFadeUp{
-  from{opacity:0;transform:translateY(22px)}
-  to{opacity:1;transform:translateY(0)}
+  from{opacity:0}
+  to{opacity:1}
 }
 .hero .slide.active > div:first-child > *{
-  animation:heroFadeUp .7s var(--ease-out) both;
+  animation:heroFadeUp .6s var(--ease-out) both;
 }
 .hero .slide.active > div:first-child > *:nth-child(1){animation-delay:.02s}
 .hero .slide.active > div:first-child > *:nth-child(2){animation-delay:.08s}
 .hero .slide.active > div:first-child > *:nth-child(3){animation-delay:.14s}
 .hero .slide.active > div:first-child > *:nth-child(4){animation-delay:.2s}
 .hero .slide.active .slide-media{
-  animation:heroFadeUp .8s var(--ease-out) both;
+  animation:heroFadeUp .7s var(--ease-out) both;
   animation-delay:.1s;
 }
-.hero .stats-card,.hero .trust-box{animation:heroFadeUp .7s var(--ease-out) both;animation-delay:.3s}
+.hero .stats-card,.hero .trust-box{animation:heroFadeUp .6s var(--ease-out) both;animation-delay:.25s}
 
 /* gentle floating drift for the gold flourish ornaments — subtle,
    not distracting, echoes temple-flag movement */
@@ -164,11 +164,23 @@ body{animation: pageFadeIn .5s var(--ease-soft) both}
 /* ---------- language dropdown: scale+fade instead of an instant pop ---------- */
 .lang-menu{
   transform-origin:top right;
-  transition:opacity var(--dur-fast) var(--ease-out),
-             transform var(--dur-fast) var(--ease-out);
+  transition:opacity var(--dur-fast, .18s) var(--ease-out, ease-out),
+             transform var(--dur-fast, .18s) var(--ease-out, ease-out),
+             visibility var(--dur-fast, .18s) var(--ease-out, ease-out);
 }
-.lang-menu.hidden{opacity:0;transform:scale(.96) translateY(-4px);pointer-events:none;display:block}
-.lang-menu:not(.hidden){opacity:1;transform:scale(1) translateY(0)}
+.lang-menu.hidden{
+  opacity:0 !important;
+  visibility:hidden !important;
+  transform:scale(.96) translateY(-4px) !important;
+  pointer-events:none !important;
+}
+.lang-menu:not(.hidden){
+  display:block !important;
+  opacity:1 !important;
+  visibility:visible !important;
+  transform:scale(1) translateY(0) !important;
+  pointer-events:auto !important;
+}
 
 /* ---------- whatsapp pill: subtle pulse to draw the eye without nagging ---------- */
 @keyframes waPulse{
@@ -185,10 +197,18 @@ body{animation: pageFadeIn .5s var(--ease-soft) both}
 .faq button::after{transition:transform var(--dur-fast) var(--ease-soft)}
 
 /* ---------- step icons (home page "4 steps") ---------- */
-.step{transition:transform var(--dur-fast) var(--ease-soft),box-shadow var(--dur-fast) var(--ease-soft)}
-.step:hover{transform:translateY(-4px);box-shadow:0 16px 36px rgba(107,18,32,.14)}
-.step .icon{transition:transform var(--dur-fast) var(--ease-soft)}
-.step:hover .icon{transform:scale(1.08)}
+.process-step{transition:transform var(--dur-fast) var(--ease-soft),box-shadow var(--dur-fast) var(--ease-soft)}
+.process-step:hover{transform:translateY(-4px);box-shadow:0 16px 36px rgba(107,18,32,.14)}
+.process-step .icon{transition:transform var(--dur-fast) var(--ease-soft)}
+.process-step:hover .icon{transform:scale(1.08)}
+
+/* booking progress steps must stay pinned to line without jumping or shadow */
+.booking-progress .step,
+.booking-progress .step:hover{
+  transform: none !important;
+  box-shadow: none !important;
+  transition: none !important;
+}
 
 /* ---------- social icons already scale; keep it snappy ---------- */
 .soc{transition:transform var(--dur-fast) var(--ease-soft)}
@@ -197,7 +217,7 @@ body{animation: pageFadeIn .5s var(--ease-soft) both}
 .dot{transition:width var(--dur-med) var(--ease-out),background var(--dur-fast) var(--ease-soft)}
 
 /* ---------- lightbox ---------- */
-.lightbox{transition:opacity var(--dur-fast) var(--ease-soft)}
+.lightbox{transition:opacity var(--dur-fast) var(--ease-soft), visibility var(--dur-fast) var(--ease-soft)}
 .lightbox-frame{animation:heroFadeUp .35s var(--ease-out) both}
 
 /* ---------- respect reduced motion: kill everything above ---------- */

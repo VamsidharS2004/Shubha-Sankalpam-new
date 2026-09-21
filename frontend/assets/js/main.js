@@ -54,4 +54,24 @@ const localName = p => p["title_" + currentLang] || p.title_en || p.title || p["
 const localDesc = p => p["desc_" + currentLang] || p.desc_en || p.desc;
 const localMantra = p => (p.detail && p.detail["mantra_" + currentLang]) || (p.detail && p.detail.mantra) || "";
 const localAbout = p => (p.detail && p.detail["about_" + currentLang]) || (p.detail && p.detail.about) || "";
+const localTemple = p => {
+  const value = String(p.temple || "");
+  const isTe = currentLang === "te";
+  if (/vikranta/i.test(value) || /విక్రాంత/i.test(value)) return isTe ? "విక్రాంత భైరవ ఆలయం" : "Vikranta Bhairava Temple";
+  if (/varaha/i.test(value) || /వరాహ/i.test(value)) return isTe ? "శ్రీ వరాహ లక్ష్మీ నరసింహ స్వామి ఆలయం" : "Sri Varaha Lakshmi Narasimha Swamy Temple";
+  if (/lakshmi narasimha/i.test(value) || /లక్ష్మీ నరసింహ/i.test(value)) return isTe ? "శ్రీ లక్ష్మీ నరసింహ స్వామి ఆలయం" : "Sri Lakshmi Narasimha Swamy Temple";
+  if (/panchamukha/i.test(value) || /పంచముఖ/i.test(value)) return isTe ? "పంచముఖ ఆంజనేయ స్వామి ఆలయం" : "Panchamukha Anjaneya Swamy Temple";
+  if (/kashi/i.test(value) || /కాశీ/i.test(value)) return isTe ? "కాశీ విశ్వనాథ స్వామి ఆలయం" : "Kashi Viswanath Temple";
+  if (/shakti/i.test(value) || /శక్తి/i.test(value)) return isTe ? "శక్తి పీఠం" : "Shakti Peetham";
+  if (/varasidhi/i.test(value) || /వరసిద్ధి/i.test(value)) return isTe ? "శ్రీ వరసిద్ధి వినాయక ఆలయం" : "Sri Varasidhi Vinayaka Temple";
+  return isTe ? "శ్రీ వేంకటేశ్వర స్వామి ఆలయం" : "Sri Venkateswara Swamy Temple";
+};
+const localDate = p => {
+  if (currentLang !== "te" || !p.muhurat) return p.date || "";
+  try { return new Date(p.muhurat).toLocaleDateString("te-IN", { weekday: "long", day: "numeric", month: "long" }); }
+  catch (_) { return p.date || ""; }
+};
 
+/* ============================================================
+   TEMPLE AUDIO BELL — Removed by user request
+   ============================================================ */

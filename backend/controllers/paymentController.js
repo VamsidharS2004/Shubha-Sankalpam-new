@@ -86,7 +86,15 @@ async function createOrder(req, res) {
   const order = await r.json();
   await bookingModel.attachOrder(booking.id, order.id);
 
-  send(res, 200, { orderId: order.id, amount: amountPaise, keyId: RAZORPAY_KEY_ID, contact: booking.whatsapp, bookingId: booking.id });
+  // Extract the WhatsApp number stored in notes ("WhatsApp: XXXXXXXXXX")
+  // so Razorpay can pre-fill the contact field and avoid asking again.
+  let contactPhone = booking.whatsapp || booking.devotee_phone || "";
+  if (!contactPhone) {
+    const waMatch = String(booking.notes || "").match(/WhatsApp:\s*(\d{10,})/);
+    if (waMatch) contactPhone = waMatch[1];
+  }
+
+  send(res, 200, { orderId: order.id, amount: amountPaise, keyId: RAZORPAY_KEY_ID, contact: contactPhone, bookingId: booking.id });
 }
 
 /* POST /api/payments/webhook — Razorpay calls this directly the

@@ -77,8 +77,8 @@ function cardHTML(p, i, type) {
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> ${p.date || ""}</span>
       </div>
       <div class="card-foot">
-        <div class="price">₹${(p.price || p.basePrice || 0).toLocaleString("en-IN")}<small>${type === "pkg" ? (typeof lt==='function'?lt('per_month'):'Per Month') : (typeof lt==='function'?lt('per_booking'):'Per Booking')}</small></div>
-        <a class="book-link" href="puja-details.html?id=${ref}">${type === "pkg" ? (typeof lt==='function'?lt('subscribe'):'Subscribe') : (typeof lt==='function'?lt('view_details'):'View Details')} <span class="arrow">→</span></a>
+        <div class="price">₹${(p.price || p.basePrice || 0).toLocaleString("en-IN")}<small>${type === "pkg" ? "Per Month" : "Per Booking"}</small></div>
+        <a class="book-link" href="puja-details.html?id=${ref}">${type === "pkg" ? "Subscribe" : "View Details"} <span class="arrow">→</span></a>
       </div>
     </div>`;
 }

@@ -4,6 +4,7 @@
 const { send, readBody, clean } = require("../utils/http");
 const userModel = require("../models/userModel");
 const bookingModel = require("../models/bookingModel");
+const analyticsModel = require("../models/analyticsModel");
 
 async function getMe(req, res) {
   const p = req.userPhone;
@@ -16,6 +17,9 @@ async function updateMe(req, res) {
   const p = req.userPhone;
   const body = await readBody(req);
   const updated = await userModel.updateDevotee(p, body);
+  if (updated && updated.name) {
+    analyticsModel.updateUserName(p, updated.name);
+  }
   send(res, 200, { ok: true, user: updated });
 }
 
