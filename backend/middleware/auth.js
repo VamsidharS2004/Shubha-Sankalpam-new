@@ -6,55 +6,43 @@
    - adminOnly: blocks unless the admin password is given
    ============================================================ */
 const crypto = require("crypto");
-const fs = require("fs");
-const path = require("path");
 const { send } = require("../utils/http");
 const { ADMIN_PASSWORD } = require("../config");
 
-const SESSIONS_FILE = path.join(__dirname, "..", "..", "data", "sessions.json");
-let sessions = new Map(); // token -> phone
-
-// Load sessions from disk on startup
-try {
-  if (fs.existsSync(SESSIONS_FILE)) {
-    const data = fs.readFileSync(SESSIONS_FILE, "utf8");
-    const parsed = JSON.parse(data);
-    sessions = new Map(Object.entries(parsed));
-  }
-} catch (e) {
-  console.error("Error loading sessions from disk:", e);
-}
-
-function saveSessions() {
-  try {
-    const dir = path.dirname(SESSIONS_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    
-    const obj = Object.fromEntries(sessions);
-    fs.writeFileSync(SESSIONS_FILE, JSON.stringify(obj, null, 2), "utf8");
-  } catch (e) {
-    console.error("Error saving sessions to disk:", e);
-  }
-}
+// Use the admin password as a stable secret key to sign tokens so they survive server restarts
+const SECRET = crypto.createHash("sha256").update(ADMIN_PASSWORD + "_ss_auth_v1").digest("hex");
 
 function createSession(phone) {
-  const token = crypto.randomBytes(24).toString("hex");
-  sessions.set(token, phone);
-  saveSessions();
-  return token;
+  // Create a completely stateless token: base64url(phone) + "." + hmac(phone)
+  const data = Buffer.from(String(phone)).toString("base64url");
+  const signature = crypto.createHmac("sha256", SECRET).update(data).digest("base64url");
+  return `${data}.${signature}`;
 }
 
 function registerSession(token, phone) {
-  if (token && phone) {
-    sessions.set(token, phone);
-    saveSessions();
-  }
+  // Not needed for stateless, but keeping signature for backwards compatibility with authController
 }
 
 function phoneFromRequest(req) {
   const auth = req.headers["authorization"] || "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
-  return token ? sessions.get(token) || null : null;
+  if (!token || !token.includes(".")) return null;
+  
+  try {
+    const [data, signature] = token.split(".");
+    const expectedSignature = crypto.createHmac("sha256", SECRET).update(data).digest("base64url");
+    
+    const sigBuf = Buffer.from(signature);
+    const expBuf = Buffer.from(expectedSignature);
+    
+    // Validate signature securely
+    if (sigBuf.length === expBuf.length && crypto.timingSafeEqual(sigBuf, expBuf)) {
+      return Buffer.from(data, "base64url").toString("utf8");
+    }
+  } catch (e) {
+    return null;
+  }
+  return null;
 }
 
 /* middleware return true = continue, false = already responded */
