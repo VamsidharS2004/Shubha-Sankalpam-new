@@ -140,12 +140,20 @@ async function showAutopayCard(keyId) {
    QR Flow (no Razorpay keys)
    ---------------------------------------------------------------- */
 async function startQrFlow() {
+  function numericBookingId(id) {
+    const value = String(id || "").toLowerCase();
+    if (/^[0-9a-f]{8}-/.test(value)) return String(parseInt(value.slice(0, 8), 16)).padStart(10, "0");
+    let hash = 0;
+    for (const char of value) hash = (Math.imul(hash, 31) + char.charCodeAt(0)) >>> 0;
+    return String(hash).padStart(10, "0");
+  }
+
   $id("payUpi").textContent = SITE.UPI_ID;
   const upiLink =
     "upi://pay?pa=" + encodeURIComponent(SITE.UPI_ID) +
     "&pn=" + encodeURIComponent(SITE.UPI_NAME) +
     "&am=" + item.price +
-    "&cu=INR&tn=" + encodeURIComponent("Booking " + bookingId);
+    "&cu=INR&tn=" + encodeURIComponent("Booking " + numericBookingId(bookingId));
 
   if (typeof QRCode !== "undefined") {
     new QRCode($id("qrcode"), {

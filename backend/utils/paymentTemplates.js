@@ -1,6 +1,7 @@
 // Parameter order must match the approved AiSensy templates.
 const SUPPORT_PHONE = "9121296262";
 const text = (value, fallback) => String(value ?? "").replace(/\s+/g, " ").trim() || fallback;
+const { numericBookingId } = require("./idUtils");
 
 function scheduleFor(booking) {
   // Legacy bookings store only the puja name, not its schedule.
@@ -26,10 +27,13 @@ function paymentTemplateParams(booking, payment, failed = false) {
     ? (payment.amount / 100).toFixed(2) : "Not available";
   const method = text(payment.method, "Not available").toUpperCase();
   const common = [text(booking.name, "Devotee"), text(booking.puja, "Puja booking")];
-  if (failed) return [...common, String(booking.id), amount, method,
+  
+  const shortId = numericBookingId(booking.id);
+  
+  if (failed) return [...common, shortId, amount, method,
     text(payment.error_description || payment.error_reason, "Payment could not be completed"), SUPPORT_PHONE];
   const schedule = scheduleFor(booking);
-  return [...common, schedule.date, schedule.time, schedule.venue, String(booking.id), amount, method];
+  return [...common, schedule.date, schedule.time, schedule.venue, shortId, amount, method];
 }
 
 module.exports = { paymentTemplateParams };

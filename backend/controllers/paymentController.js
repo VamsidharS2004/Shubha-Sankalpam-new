@@ -72,11 +72,12 @@ async function createOrder(req, res) {
   }
 
   const auth = Buffer.from(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`).toString("base64");
+  const { numericBookingId } = require("../utils/idUtils");
 
   const r = await fetch("https://api.razorpay.com/v1/orders", {
     method: "POST",
     headers: { Authorization: `Basic ${auth}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ amount: amountPaise, currency: "INR", receipt: booking.id })
+    body: JSON.stringify({ amount: amountPaise, currency: "INR", receipt: numericBookingId(booking.id) })
   });
   if (!r.ok) {
     const errText = await r.text();
