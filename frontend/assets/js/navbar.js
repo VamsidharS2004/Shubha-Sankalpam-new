@@ -190,7 +190,7 @@ async function checkAbandonedBooking() {
   if (page === "payment.html" || page === "booking.html" || page === "account.html") return;
 
   try {
-    const me = await api("/api/me");
+    const me = await api("/api/me", "GET", undefined, true);
     const pendings = (me.bookings || []).filter(b => b.status === "Pending" || b.status === "payment-pending" || b.status === "failed");
     if (pendings.length > 0) {
       // Get language for translation
@@ -305,3 +305,15 @@ async function checkAbandonedBooking() {
     console.error("Failed to check abandoned bookings:", e);
   }
 }
+
+/* Intercept Account clicks for instant redirect if logged out */
+document.addEventListener("click", function(e) {
+  const link = e.target.closest('a');
+  if (link && link.getAttribute("href") === "account.html") {
+     const token = localStorage.getItem("token");
+     if (!token) {
+       e.preventDefault();
+       window.location.href = "login.html?next=account.html";
+     }
+  }
+});

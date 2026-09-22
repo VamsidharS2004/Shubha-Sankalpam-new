@@ -213,5 +213,29 @@ $id("payBtn").addEventListener("click", async () => {
   }
 });
 
+function initDockingButton() {
+  const btn = document.getElementById("payBtn");
+  const placeholder = document.getElementById("payBtnPlaceholder");
+  
+  if (btn && placeholder) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting && entry.boundingClientRect.top > window.innerHeight) {
+          btn.classList.add("fixed-pay-btn");
+        } else {
+          btn.classList.remove("fixed-pay-btn");
+        }
+      });
+    }, { root: null, rootMargin: "0px", threshold: 0 });
+    
+    observer.observe(placeholder);
+  }
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initDockingButton);
+} else {
+  initDockingButton();
+}
+
 
 

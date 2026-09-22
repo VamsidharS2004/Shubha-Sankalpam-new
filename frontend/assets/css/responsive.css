@@ -41,10 +41,10 @@
   }
   .pd-tabs {
     display: flex; flex-wrap: nowrap; flex-direction: row; overflow-x: auto; gap: 16px; padding: 12px 20px;
-    scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; width: 100%; box-sizing: border-box;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; scroll-snap-type: x mandatory; width: 100%; box-sizing: border-box;
   }
   .pd-tabs::-webkit-scrollbar { display: none; }
-  .pd-tabs a { flex-shrink: 0; white-space: nowrap; padding: 8px 16px; background: var(--bg-soft); border-left: none !important; border-bottom: 2px solid transparent; }
+  .pd-tabs a { flex-shrink: 0; white-space: nowrap; padding: 8px 16px; background: var(--bg-soft); border-left: none !important; border-bottom: 2px solid transparent; scroll-snap-align: start; }
   .pd-tabs a.active { border-bottom: 2px solid var(--gold); }
 }
 
@@ -133,16 +133,14 @@
 
 /* --- 700px --- */
 @media (max-width: 700px) {
-  .trust-box-inner { justify-content: flex-start; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .trust-box-inner { justify-content: flex-start; overflow-x: auto; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; padding-bottom: 8px; }
+  .trust-box-inner > * { scroll-snap-align: start; flex-shrink: 0; }
   .discover .wm { width: 80px; }
 }
 
 /* --- 640px --- */
 @media (max-width: 640px) {
-  /* minmax(310px,...) can't shrink below 310px per column — on a 320–375px
-     phone (minus padding) that overflows the screen. Below 640px we switch
-     to a single column that always fits, regardless of exact device width. */
-  .cards { grid-template-columns:minmax(0, 1fr); }
+  /* min(100%, 310px) in home.css now natively handles shrinking below 310px without needing media query */
   
   /* Generic 3-up card grid -> 1 col */
   .why-grid, .temple-grid, .testimonial-grid { grid-template-columns:minmax(0, 1fr); }

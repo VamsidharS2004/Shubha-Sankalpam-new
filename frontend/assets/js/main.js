@@ -15,7 +15,7 @@ function clearToken() { authToken = null; try { localStorage.removeItem("token")
 const urlToken = getParam("token");
 if (urlToken) saveToken(urlToken);
 
-async function api(path, method = "GET", body) {
+async function api(path, method = "GET", body = undefined, silent = false) {
   const res = await fetch(path, {
     method,
     cache: "no-store",
@@ -29,8 +29,8 @@ async function api(path, method = "GET", body) {
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
     if (res.status === 401 && data.error === "Please log in.") {
-      if (!window.location.pathname.endsWith("login.html")) {
-        clearToken();
+      clearToken();
+      if (!silent && !window.location.pathname.endsWith("login.html")) {
         const nextUrl = encodeURIComponent(window.location.pathname + window.location.search);
         window.location.href = "login.html?next=" + nextUrl;
         return new Promise(() => {}); // prevent further error propagation

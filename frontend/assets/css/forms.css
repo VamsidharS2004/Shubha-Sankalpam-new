@@ -121,19 +121,38 @@
 .continue-btn{width:100%;font-size:1.1rem;padding:16px;border-radius:12px;font-weight:700;display:flex;justify-content:center}
 .secure-badge{text-align:center;margin-top:14px;font-size:.8rem;color:#1FA855;font-weight:700}
 
-@media (max-width: 767px) {
-  .booking-layout .summary-card { padding-bottom: 24px; position: relative; }
-  .booking-layout .summary-card .continue-btn {
-    position: sticky; bottom: calc(85px + env(safe-area-inset-bottom)); 
-    width: 100%; z-index:85; margin: 0; border-radius:999px;
-    box-shadow:0 -4px 18px rgba(80,14,22,.18), 0 8px 24px rgba(80,14,22,.25);
+  /* The JS IntersectionObserver in booking.js now handles the fixed docking state for payBtn */
+  @media (max-width: 900px) {
+    .fixed-pay-btn {
+      position: fixed !important;
+      bottom: calc(75px + env(safe-area-inset-bottom)) !important;
+      left: 16px !important;
+      right: 16px !important;
+      width: calc(100% - 32px) !important;
+      z-index: 85 !important;
+      margin: 0 !important;
+      box-shadow: 0 -4px 18px rgba(80,14,22,.18), 0 8px 24px rgba(80,14,22,.25) !important;
+      transition: transform 0.25s cubic-bezier(0.3, 0, 0.2, 1) !important;
+    }
+    
+    /* Push WhatsApp button up on booking page so it doesn't overlap the fixed OR docked pay button */
+    body:has(.booking-layout) .floating-wa {
+      bottom: calc(140px + env(safe-area-inset-bottom)) !important;
+    }
   }
-}
 
 .trust-box{border:1px solid var(--line);border-radius:16px;background:#fff;padding:20px}
 .trust-row{display:flex;gap:12px;margin-bottom:14px;font-size:.85rem;color:var(--ink);font-weight:600;align-items:flex-start}
 .trust-row:last-child{margin-bottom:0}
 .trust-row .tick{color:#1FA855;background:#E8F6ED;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;flex:none;margin-top:2px}
+
+@media (min-width: 901px) {
+  .booking-sidebar {
+    position: sticky;
+    top: 100px; /* Below navbar */
+    align-self: start;
+  }
+}
 
 
 .pay-card{text-align:center}

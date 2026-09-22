@@ -216,7 +216,7 @@
 
 .puja-section{background:var(--bg-soft);background-image:radial-gradient(rgba(201,162,39,.07) 1.5px,transparent 1.5px);background-size:26px 26px}
 
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:26px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%, 310px),1fr));gap:26px}
 
 .card{background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);border:none;display:flex;flex-direction:column;transition:transform .18s, box-shadow .18s;position:relative}
 
@@ -386,6 +386,7 @@
   grid-template-columns:none;
   gap:24px;
   overflow-x:auto;
+  scroll-behavior:smooth;
   scroll-snap-type:x mandatory;
   -webkit-overflow-scrolling:touch;
   padding:10px 4px 12px;

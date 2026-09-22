@@ -16,6 +16,18 @@
 <link rel="stylesheet" href="assets/css/home.css?v=client-20260920">
 <link rel="stylesheet" href="assets/css/animations.css?v=client-20260920">
 <link rel="stylesheet" href="assets/css/responsive.css?v=client-20260920">  <!-- always last -->
+<style>
+  body:not(.auth-ready) .account-banner,
+  body:not(.auth-ready) .account-grid {
+    display: none !important;
+  }
+</style>
+<script>
+  /* Instant flash-free redirect for definitely logged-out users */
+  if (!localStorage.getItem("token") && !window.location.search.includes("token=")) {
+    window.location.replace("login.html?next=account.html");
+  }
+</script>
 <title data-cms-key="account.title.main">My Account | Shubha Sankalpam</title>
 <meta name="description" content="Manage your profile and view your puja booking history.">
 </head>

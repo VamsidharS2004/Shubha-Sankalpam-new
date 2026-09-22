@@ -30,31 +30,18 @@
     ]
   },
   {
-    "phone": "9391572696",
+    "phone": "+919391572696",
     "name": "Vamsidhar Sanivarapu",
     "token": "KzkxOTM5MTU3MjY5Ng.7hn2S8AUymlCIXzMTYcnUS6sMAbhTiqiHdo2JxyiTko",
-    "loginTime": "2026-09-21T17:58:10.160Z",
-    "lastActiveAt": "2026-09-21T17:58:10.160Z",
+    "loginTime": "2026-09-22T07:24:25.856Z",
+    "lastActiveAt": "2026-09-22T08:40:47.386Z",
     "viewedPujas": [
       {
-        "pujaId": "Navanarasimha Homam-en",
-        "pujaName": "Navanarasimha Homam",
-        "firstViewedAt": "2026-09-21T17:01:52.265Z",
-        "lastViewedAt": "2026-09-21T17:27:04.391Z",
-        "viewCount": 2
-      },
-      {
-        "pujaId": "Go-Grasam Sankalpam-hi",
-        "pujaName": "गो-ग्रासम संकल्पम",
-        "firstViewedAt": "2026-09-21T17:42:45.570Z",
-        "lastViewedAt": "2026-09-21T17:43:08.081Z",
-        "viewCount": 2
-      },
-      {
-        "pujaId": "Venkateswara Swamy Abhishekam-te",
-        "pujaName": "వెంకటేశ్వర స్వామి అభిషేకం (108 ద్రవ్యాలు)",
-        "firstViewedAt": "2026-09-21T17:43:24.794Z",
-        "lastViewedAt": "2026-09-21T17:52:33.615Z",
+        "pujaId": "Navanarasimha Homam-te",
+        "pujaName": "నవనారసింహ హోమం",
+        "lang": "en",
+        "firstViewedAt": "2026-09-22T06:13:45.090Z",
+        "lastViewedAt": "2026-09-22T08:40:47.386Z",
         "viewCount": 2
       }
     ]

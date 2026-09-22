@@ -10,12 +10,12 @@ let ref = getParam("id") || "puja:0";
 let { item, type } = getItem(ref);
 if (!item) location.href = "puja.html";
 if (authToken && item) {
-  api('/api/me/interest', 'POST', { ref: item.id || ref }).catch(() => {});
+  api('/api/me/interest', 'POST', { ref: item.id || ref }, true).catch(() => {});
   api('/api/analytics/view', 'POST', {
     pujaId: item.id || ref,
     pujaName: (typeof localName === 'function' ? localName(item) : item.name) || item.name || item.title_en || ref,
     lang: localStorage.getItem('lang') || 'en'
-  }).catch(() => {});
+  }, true).catch(() => {});
 }
 let D = Object.assign({}, DETAIL_DEFAULTS, item.detail || {});
 

@@ -12,7 +12,11 @@
    ================================================================ */
 initLayout();
 
-if (!authToken) location.replace("login.html?next=account.html");
+if (!authToken) {
+  location.replace("login.html?next=account.html");
+} else {
+  document.body.classList.add('auth-ready');
+}
 
 /* ---------------------------------------------------------------
    PANEL SWITCHING — clicking a sidebar button shows its panel and
@@ -207,60 +211,64 @@ function renderBookingsList() {
     });
 }
 
+function renderProfileData(me) {
+  const name = me.user?.name || "Add your name";
+  const phone = me.user?.phone || "";
+  const email = me.user?.email || "";
+  const gotra = me.user?.gotra || "";
+
+  // Top banner
+  $id("abName").textContent = name;
+  $id("abAvatar").textContent = name !== "Add your name" ? name.charAt(0).toUpperCase() : "D";
+  $id("abPhone").textContent = phone;
+  
+  // Profile dash info
+  $id("dashName").textContent = name;
+  $id("dashPhone").textContent = phone;
+  $id("dashEmail").textContent = (email && !/@example\.com$/i.test(email) ? email : "Add email address");
+  $id("dashGotram").textContent = gotra || "Not provided";
+  
+  // Stats
+  $id("dashBkCount").textContent = (me.bookings || []).length;
+  
+  // Language preference
+  let currentLang = localStorage.getItem("ss_lang") || "en";
+  let langObj = typeof LANGS !== 'undefined' ? LANGS.find(l => l.code === currentLang) : null;
+  $id("dashLang").textContent = langObj ? `${langObj.en} (${langObj.native})` : "English (Default)";
+
+  allBookings = (me.bookings || []).map(b => {
+    if (b.status === "Pending") b.status = "payment-pending";
+    if (b.status === "Confirmed") b.status = "paid";
+    return b;
+  });
+  renderBookingsList();
+}
+
+let isFetchingProfile = false;
 async function loadProfile() {
-  // ── Instant display from localStorage cache (eliminates "Loading profile…" flash) ──
+  if (isFetchingProfile) return;
+  
+  // ⚡ Instant display from full localStorage cache
   try {
     const cached = JSON.parse(localStorage.getItem('ss_profile_cache') || 'null');
-    if (cached && cached.name) {
-      $id("abName").textContent    = cached.name;
-      $id("abAvatar").textContent  = cached.avatar || cached.name.charAt(0).toUpperCase();
-      $id("abPhone").textContent   = cached.phone  || "";
+    if (cached && cached.user) {
+      renderProfileData(cached);
     }
   } catch (_) {}
 
+  isFetchingProfile = true;
   try {
     $id("profileLoadError").hidden = true;
     const me = await api("/api/me");
-    const name = me.user.name || "Add your name";
+    renderProfileData(me);
     
-    // Top banner
-    $id("abName").textContent = name;
-    $id("abAvatar").textContent = name !== "Add your name" ? name.charAt(0).toUpperCase() : "D";
-    $id("abPhone").textContent = me.user.phone;
-    
-    // Profile dash info
-    $id("dashName").textContent = name;
-    $id("dashPhone").textContent = me.user.phone;
-    $id("dashEmail").textContent = (me.user.email && !/@example\.com$/i.test(me.user.email) ? me.user.email : "Add email address");
-    $id("dashGotram").textContent = me.user.gotra || "Not provided";
-    
-    // Stats
-    $id("dashBkCount").textContent = (me.bookings || []).length;
-    
-    // Language preference
-    let currentLang = localStorage.getItem("ss_lang") || "en";
-    let langObj = typeof LANGS !== 'undefined' ? LANGS.find(l => l.code === currentLang) : null;
-    $id("dashLang").textContent = langObj ? `${langObj.en} (${langObj.native})` : "English (Default)";
-
-    allBookings = (me.bookings || []).map(b => {
-      if (b.status === "Pending") b.status = "payment-pending";
-      if (b.status === "Confirmed") b.status = "paid";
-      return b;
-    });
-    renderBookingsList();
-
-    // ── Save to cache so next visit shows name instantly ──
-    try {
-      localStorage.setItem('ss_profile_cache', JSON.stringify({
-        name,
-        avatar: name !== "Add your name" ? name.charAt(0).toUpperCase() : "D",
-        phone: me.user.phone || ""
-      }));
-    } catch (_) {}
-
+    // ⚡ Save FULL profile object to cache
+    try { localStorage.setItem('ss_profile_cache', JSON.stringify(me)); } catch (_) {}
   } catch (e) {
     if (e.status === 401) { clearToken(); location.replace("login.html?next=account.html"); }
     else { $id("profileLoadError").hidden = false; $id("abName").textContent = "My Account"; }
+  } finally {
+    isFetchingProfile = false;
   }
 }
 if (authToken) loadProfile();
