@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { send, readBody } = require("../utils/http");
+const { syncPujasToSupabase, syncPackagesToSupabase, safeWrite } = require("../utils/cmsSync");
 
 const PUJAS_FILE_PATH = path.join(__dirname, "../../frontend/content/pujas.js");
 const PACKAGES_FILE_PATH = path.join(__dirname, "../../frontend/content/packages.js");
@@ -27,32 +28,11 @@ async function updatePujas(req, res) {
       return send(res, 400, { error: "Invalid data format: 'pujas' must be an array." });
     }
 
-    // Format the JS file
-    const fileContent = `/* ================================================================
-   PUJAS — every individual puja shown on the website
-   ================================================================
-   ⭐ THIS IS WHERE YOU EDIT PUJA CONTENT ⭐
-
-   These pujas are dynamically updated by the Admin Panel CMS.
-   You can also edit this file manually.
-   ================================================================ */
-
-const pujas = ${JSON.stringify(pujas, null, 2)};
-
-/* This same file is also read by the backend (bookingController.js)
-   to check that a booking's price hasn't been tampered with in the
-   browser. */
-if (typeof module !== "undefined") module.exports = { pujas };
-
-/* end of pujas list */
-`;
-
-    // Write back to frontend/content/pujas.js
-    fs.writeFileSync(PUJAS_FILE_PATH, fileContent, "utf8");
-
-    // Clear the cache so future requests use the new data
-    const resolvePath = require.resolve("../../frontend/content/pujas");
-    delete require.cache[resolvePath];
+    // Push to Supabase as source of truth
+    await syncPujasToSupabase(pujas);
+    
+    // Overwrite local file to update frontend instantly
+    safeWrite(PUJAS_FILE_PATH, "pujas", pujas);
 
     send(res, 200, { ok: true, message: "Pujas updated successfully" });
   } catch (err) {
@@ -80,21 +60,11 @@ async function updatePackages(req, res) {
     const { packages } = await readBody(req);
     if (!Array.isArray(packages)) return send(res, 400, { error: "Invalid data format" });
 
-    const fileContent = `/* ================================================================
-   PACKAGES — monthly puja subscriptions shown on package.html
-   ================================================================
-   ⭐ THIS IS WHERE YOU EDIT PACKAGE CONTENT ⭐
-   ================================================================ */
+    // Push to Supabase as source of truth
+    await syncPackagesToSupabase(packages);
 
-const packages = ${JSON.stringify(packages, null, 2)};
-
-if (typeof module !== "undefined") module.exports = { packages };
-
-/* end of packages list */
-`;
-    fs.writeFileSync(PACKAGES_FILE_PATH, fileContent, "utf8");
-    const resolvePath = require.resolve("../../frontend/content/packages");
-    delete require.cache[resolvePath];
+    // Overwrite local file to update frontend instantly
+    safeWrite(PACKAGES_FILE_PATH, "packages", packages);
 
     send(res, 200, { ok: true, message: "Packages updated successfully" });
   } catch (err) {

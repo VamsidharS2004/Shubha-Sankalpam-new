@@ -24,9 +24,25 @@ const { send, MIME } = require("./utils/http");
 const { handleApi } = require("./routes/api");
 const { startReminderJob } = require("./controllers/reminderController");
 const analyticsModel = require("./models/analyticsModel");
+const { syncFromSupabase } = require("./utils/cmsSync");
 
 analyticsModel.init();
 startReminderJob();
+
+// Pull latest CMS data from Supabase into static JS files (Fallback handles empty DB)
+syncFromSupabase().then(() => {
+    console.log("[Server] CMS synchronization complete.");
+});
+
+// A simple function to serve static files
+function serveStatic(res, filePath) {
+  fs.stat(filePath, (err, stats) => {
+    if (err || !stats.isFile()) return send(res, 404, "Not found");
+    const ext = path.extname(filePath);
+    res.writeHead(200, { "Content-Type": MIME[ext] || "application/octet-stream" });
+    fs.createReadStream(filePath).pipe(res);
+  });
+}
 
 const server = http.createServer(async (req, res) => {
   try {
