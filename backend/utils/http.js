@@ -40,6 +40,11 @@ function readRawBody(req) {
 }
 
 const clean = (v, max) => String(v ?? "").trim().slice(0, max);
-const normalizePhone = p => clean(p, 20).replace(/[^\d+]/g, "");
+const normalizePhone = p => {
+  let cleaned = clean(p, 20).replace(/[^\d+]/g, "");
+  if (cleaned.startsWith("91") && cleaned.length === 12) return "+" + cleaned;
+  if (cleaned.length === 10 && /^\d{10}$/.test(cleaned)) return "+91" + cleaned;
+  return cleaned;
+};
 
 module.exports = { MIME, send, readBody, readRawBody, clean, normalizePhone };
