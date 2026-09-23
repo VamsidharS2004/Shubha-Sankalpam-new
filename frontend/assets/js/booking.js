@@ -16,22 +16,27 @@
    On submit, sends the booking to the backend then continues to
    payment.html.
    ================================================================ */
-initLayout();
+(function initBooking() {
+  initLayout();
 
-const ref = getParam("id") || "puja:0";
-let { item, type } = getItem(ref);
-if (!item) location.href = "puja.html";
+  const ref = getParam("id") || "puja:0";
+  let { item, type } = getItem(ref);
+  if (!item) {
+    location.href = "puja.html";
+    return;
+  }
 
-/* not logged in? go to login, then come back here */
-if (!authToken) {
-  location.href = "login.html?next=" + encodeURIComponent("booking.html?id=" + ref);
-}
+  /* not logged in? go to login, then come back here */
+  if (!authToken) {
+    location.href = "login.html?next=" + encodeURIComponent("booking.html?id=" + ref);
+    return;
+  }
 
 // A tab-scoped, short-lived draft preserves details across explicit back links.
 const draftFields = ["fPhone", "famName1", "famName2", "famName3", "famName4", "fGotram", "fSankalpam"];
 let ownerHash = 0;
 for (const c of String(authToken || "")) ownerHash = (Math.imul(ownerHash, 31) + c.charCodeAt(0)) >>> 0;
-const draftKey = "booking-draft:" + ownerHash + ":" + (item.id || ref);
+const draftKey = "booking-draft:" + ownerHash + ":" + ((item && item.id) || ref);
 let restoredDraft = null;
 let submittedBooking = null;
 try {
@@ -62,7 +67,7 @@ window.addEventListener("pageshow", () => {
 });
 
 /* POPULATE SUMMARY SIDEBAR */
-$id("bkImg").style.backgroundImage = `url(${item.image || (type === 'pkg' ? 'assets/images/packages/default.jpg' : 'assets/images/pujas/default.jpg')})`;
+$id("bkImg").style.backgroundImage = `url(${item.image || 'assets/images/logo.png'})`;
 $id("bkTitle").textContent = localName(item);
 
 window.addEventListener("languageChanged", () => {
@@ -77,10 +82,10 @@ $id("bkTotalFinal").textContent = formattedPrice;
 $id("bkTotalStrike").textContent = "₹" + (item.price + 675).toLocaleString("en-IN"); /* fake strikethrough showing saved fees */
 }
 showPrice();
-const priceReady = api('/api/catalog/item?ref='+encodeURIComponent(item.id || ref)).then(out=>{
+const priceReady = api('/api/catalog/item?ref='+encodeURIComponent((item && item.id) || ref)).then(out=>{
   item=out.item; showPrice(); return true;
 }).catch(e=>{alert(e.message); return false;});
-api('/api/me/interest','POST',{ref:item.id || ref}).catch(()=>{});
+api('/api/me/interest','POST',{ref:(item && item.id) || ref}).catch(()=>{});
 /* pre-fill phone from the profile */
 api("/api/me").then(me => {
   if (restoredDraft) return;
@@ -145,7 +150,7 @@ $id("payBtn").addEventListener("click", async () => {
   try {
     if (!(await priceReady)) throw new Error("Please refresh to load the latest price.");
     const payload = {
-      ref: item.id || ref,
+      ref: (item && item.id) || ref,
       puja: item.name,
       price: item.price,
       name: primaryName,
@@ -204,7 +209,7 @@ $id("payBtn").addEventListener("click", async () => {
       rzp.open();
     } else {
       /* fallback to QR payment page if Razorpay is not configured */
-      location.href = `payment.html?bookingId=${out.id}&id=${encodeURIComponent(ref)}&start=1`;
+      window.location.href = 'payment.html?bookingId=' + encodeURIComponent(out.id) + '&shortId=' + encodeURIComponent(out.shortId || '') + '&id=' + encodeURIComponent(ref) + '&start=1';
     }
   } catch (e) { 
     alert(e.message); 
@@ -236,6 +241,7 @@ if (document.readyState === 'loading') {
 } else {
   initDockingButton();
 }
+})();
 
 
 

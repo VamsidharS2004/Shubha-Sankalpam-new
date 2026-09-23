@@ -1,12 +1,15 @@
 // Short display reference only; API actions retain the original database ID.
 function numericBookingId(id) {
     const value = String(id || "").toLowerCase();
-    if (/^[0-9a-f]{8}-/.test(value)) return String(parseInt(value.slice(0, 8), 16)).padStart(10, "0");
+    if (/^[0-9a-f]{8}-/.test(value)) return String(parseInt(value.slice(0, 5), 16)).padStart(6, "0").slice(0, 6);
     let hash = 0;
     for (const char of value) hash = (Math.imul(hash, 31) + char.charCodeAt(0)) >>> 0;
-    return String(hash).padStart(10, "0");
+    return String(hash).padStart(6, "0").slice(0, 6);
 }
 let KEY = "";
+try {
+    KEY = sessionStorage.getItem("adminKey") || "";
+} catch (e) {}
 window.allActiveUsers = [];
 let currentAnalyticsFilter = "all";
 let analyticsAutoRefreshInterval = null;
@@ -21,6 +24,14 @@ document.addEventListener("DOMContentLoaded", () => {
         loginBtn.addEventListener("click", doLogin);
         pwInput.addEventListener("keydown", e => {
             if (e.key === "Enter") doLogin();
+        });
+    }
+
+    const logoutBtn = document.querySelector(".user-info button") || document.getElementById("adminLogout");
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            doLogout();
         });
     }
 
@@ -39,7 +50,26 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll('[data-drawer]').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            openDrawer(btn.getAttribute('data-drawer'));
+            const drawerId = btn.getAttribute('data-drawer');
+            if (drawerId === 'drawer-new-booking') {
+                const title = document.getElementById("bookingDrawerTitle");
+                if (title) title.textContent = "New Manual Booking";
+                const oldId = document.getElementById("editBookingOldId");
+                if (oldId) oldId.value = "";
+                const nameInp = document.getElementById("newBookingName");
+                if (nameInp) nameInp.value = "";
+                const phoneInp = document.getElementById("newBookingPhone");
+                if (phoneInp) phoneInp.value = "";
+                const gotraInp = document.getElementById("newBookingGotra");
+                if (gotraInp) gotraInp.value = "";
+                const gotraDef = document.getElementById("newBookingGotraDefault");
+                if (gotraDef) gotraDef.checked = false;
+                const notesInp = document.getElementById("newBookingNotes");
+                if (notesInp) notesInp.value = "";
+                const btnSave = document.getElementById("btnSaveBooking");
+                if (btnSave) btnSave.textContent = "Create Booking";
+            }
+            openDrawer(drawerId);
         });
     });
     document.querySelectorAll('.close-drawer').forEach(btn => {
@@ -107,6 +137,25 @@ document.addEventListener("DOMContentLoaded", () => {
     // Start auto-refresh loop
     startAnalyticsAutoRefresh();
 
+    // Auto-restore admin session from sessionStorage if key is saved
+    if (KEY) {
+        if (pwInput) pwInput.value = KEY;
+        loadBookings().then(async (success) => {
+            if (success) {
+                document.getElementById("loginOverlay")?.classList.add("hidden");
+                await Promise.all([loadDevotees(), loadPujas(), loadPackages(), loadTemples()]);
+                updateDashboardStats();
+                switchTab('view-dashboard', document.querySelector('[data-target="view-dashboard"]'));
+            } else {
+                KEY = "";
+                try { sessionStorage.removeItem("adminKey"); } catch (e) {}
+            }
+        }).catch(() => {
+            KEY = "";
+            try { sessionStorage.removeItem("adminKey"); } catch (e) {}
+        });
+    }
+
 });
 
 
@@ -140,7 +189,8 @@ async function doLogin() {
     KEY = document.getElementById("pw").value;
     const success = await loadBookings();
     if (success) {
-        await Promise.all([loadDevotees(), loadPujas(), loadPackages(), loadTemples(), loadActiveUsersAnalytics()]);
+        try { sessionStorage.setItem("adminKey", KEY); } catch (e) {}
+        await Promise.all([loadDevotees(), loadPujas(), loadPackages(), loadTemples()]);
         updateDashboardStats();
         document.getElementById("loginOverlay").classList.add("hidden");
         // default tab
@@ -149,6 +199,19 @@ async function doLogin() {
         alert("Wrong password.");
     }
 }
+
+function doLogout() {
+    KEY = "";
+    try { sessionStorage.removeItem("adminKey"); } catch (e) {}
+    const pw = document.getElementById("pw");
+    if (pw) pw.value = "";
+    window.allBookings = [];
+    window.allDevotees = [];
+    window.allActiveUsers = [];
+    const overlay = document.getElementById("loginOverlay");
+    if (overlay) overlay.classList.remove("hidden");
+}
+window.doLogout = doLogout;
 
 function updateDashboardStats() {
     const pending = b=>['pending','failed','payment-pending'].includes(String(b.status).toLowerCase());
@@ -247,7 +310,7 @@ function renderBookings() {
             const name = (b.name || "").toLowerCase();
             const phone = (b.phone || "").toLowerCase();
             const puja = (b.puja || "").toLowerCase();
-            return id.includes(query) || numericBookingId(id).includes(query) || name.includes(query) || phone.includes(query) || puja.includes(query);
+            return id.includes(query) || (b.shortId || numericBookingId(id)).includes(query) || name.includes(query) || phone.includes(query) || puja.includes(query);
         });
     }
 
@@ -310,7 +373,7 @@ function renderBookings() {
             const timeStr = isNaN(dt) ? "" : dt.toLocaleTimeString("en-IN", { hour:'numeric', minute:'2-digit'});
             
             const devoteeName = b.name || "Unknown Devotee";
-            const devoteePhone = b.phone ? "+" + b.phone : "";
+            const devoteePhone = b.phone ? (String(b.phone).startsWith("+") ? String(b.phone) : "+" + String(b.phone)) : "";
 
             // Format price cleanly
             const displayPrice = isNaN(b.price) ? b.price : "₹" + Number(b.price).toLocaleString("en-IN");
@@ -322,7 +385,7 @@ function renderBookings() {
             if (displayStatus.toLowerCase().includes("pending")) badgeClass = "badge-warning";
             
             tr.innerHTML = `
-                <td style="white-space: nowrap; font-family: monospace; font-size: 0.85rem; color: var(--text-muted);">${esc(b.id ? numericBookingId(b.id) : "-")}</td>
+                <td style="white-space: nowrap; font-family: monospace; font-size: 0.85rem; color: var(--text-muted);">${esc(b.shortId || (b.id ? numericBookingId(b.id) : "-"))}</td>
                 <td>
                     <div style="font-weight: 500;">${esc(devoteeName)}</div>
                     <div style="font-size: 0.8rem; color: var(--text-muted);">${esc(devoteePhone)}</div>
@@ -424,7 +487,7 @@ function editBooking(id) {
     document.getElementById("newBookingName").value = b.name || "";
     document.getElementById("newBookingPhone").value = b.phone || "";
     if(b.puja) { const pujaSel = document.getElementById('newBookingPujaId'); for(let i=0; i<pujaSel.options.length; i++) { if(pujaSel.options[i].text === b.puja || pujaSel.options[i].value === b.puja) pujaSel.selectedIndex = i; } } document.getElementById('newBookingPrice').value = b.price || '';
-    // In a real app we'd map pujaId, packageId, etc.
+    document.getElementById("newBookingNotes").value = b.notes || "";
     document.getElementById("btnSaveBooking").textContent = "Save Changes";
     openDrawer('drawer-new-booking');
 }
@@ -535,6 +598,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btnSavePuja) btnSavePuja.addEventListener("click", savePuja);
     
     const btnNewPuja = document.getElementById("btnNewPuja");
+    const langSelect = document.getElementById("editPujaLang");
+    if (langSelect) {
+        langSelect.addEventListener("change", (e) => {
+            const lang = e.target.value;
+            const titleLbl = document.getElementById("lblPujaTitle");
+            const descLbl = document.getElementById("lblPujaDesc");
+            if(titleLbl) titleLbl.textContent = "Puja Title (" + (lang==='te'?'Telugu':lang==='hi'?'Hindi':'English') + ")";
+            if(descLbl) descLbl.textContent = "Description (" + (lang==='te'?'Telugu':lang==='hi'?'Hindi':'English') + ")";
+        });
+    }
+
     if (btnNewPuja) btnNewPuja.addEventListener("click", () => openEditPuja(-1));
 
     const savePackageBtn = document.getElementById("savePackageBtn");
@@ -643,22 +717,16 @@ function openEditPuja(index) {
     // General
     document.getElementById("editPujaCat").value = p.cat || "All";
     document.getElementById("editPujaLang").value = p.language || "en";
+      document.getElementById("editPujaLang").dispatchEvent(new Event("change"));
     document.getElementById("editPujaImage").value = p.image || "";
     document.getElementById("editPujaTemple").value = p.temple || "";
+    document.getElementById("editPujaTempleImage").value = (p.detail && p.detail.templeImage) ? p.detail.templeImage : "";
     document.getElementById("editPujaDate").value = p.date || "";
     document.getElementById("editPujaMuhurat").value = p.muhurat || "";
     
     // English
     document.getElementById("editPujaNameEn").value = p.name || "";
-    const nTe = document.getElementById("editPujaNameTe");
-    if (nTe) nTe.value = p.name_te || "";
-    const nHi = document.getElementById("editPujaNameHi");
-    if (nHi) nHi.value = p.name_hi || "";
-    document.getElementById("editPujaDescEn").value = p.desc || "";
-    const dTe = document.getElementById("editPujaDescTe");
-    if (dTe) dTe.value = p.desc_te || "";
-    const dHi = document.getElementById("editPujaDescHi");
-    if (dHi) dHi.value = p.desc_hi || "";
+    
     const det = p.detail || {};
     document.getElementById("editPujaMantraEn").value = det.mantra || "";
     document.getElementById("editPujaTraditionEn").value = det.tradition || "";
@@ -727,19 +795,13 @@ async function savePuja() {
     p.language = document.getElementById("editPujaLang").value;
     p.image = document.getElementById("editPujaImage").value.trim();
     p.temple = document.getElementById("editPujaTemple").value.trim();
+    if (!p.detail) p.detail = {};
+    p.detail.templeImage = document.getElementById("editPujaTempleImage").value.trim();
     p.date = document.getElementById("editPujaDate").value.trim();
     p.muhurat = document.getElementById("editPujaMuhurat").value.trim();
     
         p.name = document.getElementById("editPujaNameEn").value.trim();
-    const nameTe = document.getElementById("editPujaNameTe");
-    if (nameTe) p.name_te = nameTe.value.trim();
-    const nameHi = document.getElementById("editPujaNameHi");
-    if (nameHi) p.name_hi = nameHi.value.trim();
-    p.desc = document.getElementById("editPujaDescEn").value.trim();
-    const descTe = document.getElementById("editPujaDescTe");
-    if (descTe) p.desc_te = descTe.value.trim();
-    const descHi = document.getElementById("editPujaDescHi");
-    if (descHi) p.desc_hi = descHi.value.trim();
+    
     
     if (!p.detail) p.detail = {};
     p.detail.mantra = document.getElementById("editPujaMantraEn").value.trim();
@@ -911,7 +973,7 @@ function addDynamicRow(type, data = null) {
                             body: formData
                         });
                         
-                        if (!res.ok) throw new Error("Upload failed");
+                        if (!res.ok) { const err = await res.json(); throw new Error(err.error || "Upload failed"); }
                         
                         const result = await res.json();
                         const url = result.url || result.path;
@@ -922,7 +984,7 @@ function addDynamicRow(type, data = null) {
                         }
                         alert("Gallery Image uploaded successfully!");
                     } catch (e) {
-                        alert("Error uploading image");
+                        alert("Error uploading image: " + e.message); console.error(e);
                     } finally {
                         upBtn.textContent = "Upload";
                         upBtn.disabled = false;
@@ -1049,7 +1111,8 @@ async function savePackage() {
     
     p.price = parseInt(document.getElementById("editPackagePrice").value, 10) || 0;
     p.badge = document.getElementById("editPackageBadge").value.trim();
-    p.media = document.getElementById("editPackageImage").value.trim();
+    p.image = document.getElementById("editPackageImage").value.trim();
+    p.media = p.image;
     p.temple = document.getElementById("editPackageTemple").value.trim();
     p.date = document.getElementById("editPackageDate").value.trim();
     p.muhurat = document.getElementById("editPackageMuhurat").value.trim();
@@ -1548,12 +1611,10 @@ window.sendVideo = async function(bookingId) {
         
         progressEl.textContent = "Video uploaded. Attaching to booking...";
         
-        const attachRes = await fetch('/api/admin/bookings/video', {
+        const attachRes = await fetch(`/api/admin/bookings/video?key=${encodeURIComponent(KEY)}&id=${encodeURIComponent(bookingId)}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                key: KEY,
-                bookingId: bookingId,
                 videoUrl: videoUrl
             })
         });
@@ -1612,46 +1673,70 @@ function isUserOnline(user) {
     return (Date.now() - lastActiveTime) < (30 * 60 * 1000);
 }
 
+let activeUsersPromise = null;
+
 async function loadActiveUsersAnalytics() {
     if (!KEY) return false;
+    if (activeUsersPromise) return activeUsersPromise;
+
     const refreshIcon = document.getElementById("refreshAnalyticsIcon");
     if (refreshIcon) refreshIcon.classList.add("ph-spin");
 
-    try {
-        let res = await fetch(`/api/admin/analytics/active-users?key=${encodeURIComponent(KEY)}`);
-        if (!res.ok) {
-            res = await fetch(`/api/admin/analytics?key=${encodeURIComponent(KEY)}`);
-        }
-        if (!res.ok) {
-            console.warn("Analytics API unavailable or unauthorized:", res.status);
+    activeUsersPromise = (async () => {
+        try {
+            let res = await fetch(`/api/admin/analytics/active-users?key=${encodeURIComponent(KEY)}`);
+            if (!res.ok && res.status !== 401 && res.status !== 403) {
+                res = await fetch(`/api/admin/analytics?key=${encodeURIComponent(KEY)}`);
+            }
+            if (!res.ok) {
+                console.warn("Analytics API unavailable or unauthorized:", res.status);
+                return false;
+            }
+
+            const data = await res.json();
+            const users = Array.isArray(data) ? data : (data.users || data.activeUsers || []);
+            window.allActiveUsers = users;
+
+            const statEl = document.getElementById("statActiveUsers");
+            if (statEl) {
+                const count = (data && data.activeCount !== undefined)
+                    ? data.activeCount
+                    : (data && data.totalActive !== undefined
+                        ? data.totalActive
+                        : users.length);
+                statEl.textContent = count;
+            }
+
+            renderActiveUsersAnalytics();
+            return true;
+        } catch (err) {
+            console.error("Error loading active user analytics:", err);
             return false;
+        } finally {
+            if (refreshIcon) refreshIcon.classList.remove("ph-spin");
         }
+    })().finally(() => {
+        activeUsersPromise = null;
+    });
 
-        const data = await res.json();
-        const users = Array.isArray(data) ? data : (data.users || data.activeUsers || []);
-        window.allActiveUsers = users;
-
-        const statEl = document.getElementById("statActiveUsers");
-        if (statEl) {
-            const count = (data && data.activeCount !== undefined)
-                ? data.activeCount
-                : (data && data.totalActive !== undefined
-                    ? data.totalActive
-                    : users.length);
-            statEl.textContent = count;
-        }
-
-        renderActiveUsersAnalytics();
-        return true;
-    } catch (err) {
-        console.error("Error loading active user analytics:", err);
-        return false;
-    } finally {
-        if (refreshIcon) refreshIcon.classList.remove("ph-spin");
-    }
+    return activeUsersPromise;
 }
 window.loadActiveUsersAnalytics = loadActiveUsersAnalytics;
 window.loadActiveUsers = loadActiveUsersAnalytics;
+
+async function markCompleted(bookingId) {
+    if (!KEY) return alert("Session expired.");
+    if (!confirm("Mark this booking as Completed?")) return;
+    try {
+        const res = await fetch(`/api/admin/bookings/complete?id=${encodeURIComponent(bookingId)}&key=${encodeURIComponent(KEY)}`, { method: "PUT" });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to mark completed.");
+        await loadBookings();
+    } catch (e) {
+        alert(e.message);
+    }
+}
+window.markCompleted = markCompleted;
 
 function renderActiveUsersAnalytics() {
     const tbody = document.getElementById("activeUsersTbody");

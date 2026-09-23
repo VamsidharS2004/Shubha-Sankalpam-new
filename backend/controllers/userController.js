@@ -1,20 +1,20 @@
 /* ============================================================
    USER CONTROLLER — profile: read and update "me", admin APIs
    ============================================================ */
-const { send, readBody, clean } = require("../utils/http");
+const { send, readBody, clean, normalizePhone } = require("../utils/http");
 const userModel = require("../models/userModel");
 const bookingModel = require("../models/bookingModel");
 const analyticsModel = require("../models/analyticsModel");
 
 async function getMe(req, res) {
-  const p = req.userPhone;
+  const p = normalizePhone(req.userPhone);
   const user = await userModel.findOrCreate(p);
   const bookings = await bookingModel.getUserBookings(p);
   send(res, 200, { user, bookings });
 }
 
 async function updateMe(req, res) {
-  const p = req.userPhone;
+  const p = normalizePhone(req.userPhone);
   const body = await readBody(req);
   const updated = await userModel.updateDevotee(p, body);
   if (updated && updated.name) {
@@ -47,7 +47,7 @@ async function adminCreateDevotee(req, res) {
 }
 
 async function adminUpdateDevotee(req, res, url) {
-  const phone = url.searchParams.get("phone");
+  const phone = normalizePhone(url.searchParams.get("phone"));
   if (!phone) return send(res, 400, { error: "Missing phone parameter" });
   const body = await readBody(req);
   const updated = await userModel.updateDevotee(phone, body);
@@ -56,7 +56,7 @@ async function adminUpdateDevotee(req, res, url) {
 }
 
 async function adminDeleteDevotee(req, res, url) {
-  const phone = url.searchParams.get("phone");
+  const phone = normalizePhone(url.searchParams.get("phone"));
   if (!phone) return send(res, 400, { error: "Missing phone parameter" });
   const success = await userModel.deleteDevotee(phone);
   if (!success) return send(res, 500, { error: "Failed to delete devotee" });

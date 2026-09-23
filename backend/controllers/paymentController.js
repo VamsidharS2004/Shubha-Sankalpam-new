@@ -77,7 +77,7 @@ async function createOrder(req, res) {
   const r = await fetch("https://api.razorpay.com/v1/orders", {
     method: "POST",
     headers: { Authorization: `Basic ${auth}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ amount: amountPaise, currency: "INR", receipt: numericBookingId(booking.id) })
+    body: JSON.stringify({ amount: amountPaise, currency: "INR", receipt: booking.shortId || numericBookingId(booking.id) })
   });
   if (!r.ok) {
     const errText = await r.text();
@@ -96,6 +96,41 @@ async function createOrder(req, res) {
   }
 
   send(res, 200, { orderId: order.id, amount: amountPaise, keyId: RAZORPAY_KEY_ID, contact: contactPhone, bookingId: booking.id });
+}
+
+/* POST /api/payments/link  { bookingId }
+   Generates a payment URL and UPI QR string for manual payment pause flow */
+async function createPaymentLink(req, res) {
+  const body = await readBody(req);
+  const bookingId = body.bookingId || body.id;
+  if (!bookingId) {
+    return send(res, 400, { error: "Missing bookingId." });
+  }
+
+  const booking = await bookingModel.findById(String(bookingId));
+  if (!booking) {
+    return send(res, 404, { error: "Booking not found." });
+  }
+
+  if (req.userPhone && booking.userPhone && booking.userPhone !== req.userPhone) {
+    return send(res, 403, { error: "This booking doesn't belong to your account." });
+  }
+
+  const shortId = booking.shortId || (typeof bookingModel.getShortId === 'function' ? bookingModel.getShortId(booking.notes, booking.id) : String(booking.id).slice(0, 6));
+  const price = Number(booking.price) || 0;
+
+  const { PORT } = require("../config");
+  const host = req.headers?.host || `localhost:${PORT || 3001}`;
+  const paymentLink = `http://${host}/payment.html?bookingId=${encodeURIComponent(booking.id)}&shortId=${encodeURIComponent(shortId)}`;
+  const qrString = `upi://pay?pa=9849033333@ybl&pn=Shubha%20Sankalpam&am=${price}&cu=INR&tn=Booking%20${shortId}`;
+
+  send(res, 200, {
+    ok: true,
+    paymentLink,
+    qrString,
+    shortId,
+    price
+  });
 }
 
 /* POST /api/payments/webhook — Razorpay calls this directly the
@@ -122,6 +157,10 @@ async function webhook(req, res) {
   if (event.event === "payment.captured" && payment) {
     const booking = await bookingModel.findByOrderId(payment.order_id);
     if (booking) {
+      if (booking.status === "Paid" || booking.status === "Confirmed" || booking.payment_status === "Paid" || (booking.notes && booking.notes.includes("razorpay_payment:"))) {
+        console.log(`ℹ️ Duplicate payment.captured webhook ignored for booking ${booking.id}`);
+        return send(res, 200, { ok: true, duplicate: true });
+      }
       await bookingModel.markPaid(booking.id, payment.id);
       console.log(`✅ Payment CONFIRMED via webhook: booking ${booking.id} (₹${booking.price})`);
       // WhatsApp Success Notification (AiSensy)
@@ -170,5 +209,5 @@ async function verifyPayment(req, res) {
 }
 
 module.exports = {
-  verifyPayment, getPaymentConfig, createOrder, webhook, razorpayConfigured };
+  verifyPayment, getPaymentConfig, createOrder, createPaymentLink, webhook, razorpayConfigured };
 

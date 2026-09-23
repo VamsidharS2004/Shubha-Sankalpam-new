@@ -1,0 +1,35 @@
+[
+  {
+    "phone": "+919391572696",
+    "name": "Vamsi Dhar",
+    "token": "KzkxOTM5MTU3MjY5Ng.7hn2S8AUymlCIXzMTYcnUS6sMAbhTiqiHdo2JxyiTko",
+    "loginTime": "2026-09-23T08:02:09.197Z",
+    "lastActiveAt": "2026-09-23T17:37:53.124Z",
+    "viewedPujas": [
+      {
+        "pujaId": "Navanarasimha Homam-te",
+        "pujaName": "నవనారసింహ హోమం",
+        "lang": "en",
+        "firstViewedAt": "2026-09-22T06:13:45.090Z",
+        "lastViewedAt": "2026-09-23T17:37:53.124Z",
+        "viewCount": 27
+      },
+      {
+        "pujaId": "Navanarasimha Homam-en",
+        "pujaName": "Navanarasimha Homam",
+        "lang": "en",
+        "firstViewedAt": "2026-09-22T14:59:09.934Z",
+        "lastViewedAt": "2026-09-23T08:18:44.245Z",
+        "viewCount": 5
+      }
+    ]
+  },
+  {
+    "phone": "+918074257358",
+    "name": "Rama",
+    "token": "KzkxODA3NDI1NzM1OA.50bfMMPkfAowK80dl7JfRz20xPHpH8WpXJnjpi9cjaA",
+    "loginTime": "2026-09-23T04:23:51.684Z",
+    "lastActiveAt": "2026-09-23T04:24:14.703Z",
+    "viewedPujas": []
+  }
+]

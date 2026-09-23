@@ -73,10 +73,7 @@
   box-shadow: 0 16px 48px rgba(0,0,0,0.15);
 }
 
-@media (max-width: 600px) {
-  .hero-slider { min-height: 430px; }
-  .hero-image-wrap { min-height: 430px; height: 430px; }
-}
+
 
 .hero-img {
   position: absolute;
@@ -821,11 +818,7 @@
   }
 }
 
-/* Keep one stable stage height so slide changes never move the CTA or image. */
-@media (max-width: 767px) {
-  .hero-slider { height: 760px; min-height: 760px; }
-  .hero-slide, .hero-image-wrap { height: 100%; }
-}
+
 
 
 @media (max-width: 767px) {
@@ -874,8 +867,16 @@
 /* Keep mobile hero text rhythm identical across slides. Longer Telugu titles must not push CTA buttons down. */
 @media (max-width: 767px) {
   .hero-slider {
-    min-height: 780px;
-    height: auto;
+    height: 780px !important;
+    min-height: 780px !important;
+    max-height: 780px !important;
+    overflow: hidden;
+  }
+  .hero-image-wrap {
+    height: 100% !important;
+  }
+  .hero-slide {
+    height: 100% !important;
   }
   .hero-copy h1 {
     font-size: clamp(1.4rem, 5vw, 1.8rem);

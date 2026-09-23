@@ -34,7 +34,7 @@
       // linger for assistive tech or keyboard tab order
       setTimeout(function () {
         if (splash.parentNode) splash.parentNode.removeChild(splash);
-      }, 2500);
+      }, 600);
     }
   }
 

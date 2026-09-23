@@ -8,7 +8,14 @@ applyDetailI18n();
 
 let ref = getParam("id") || "puja:0";
 let { item, type } = getItem(ref);
-if (!item) location.href = "puja.html";
+let currentPuja = item;
+window.currentPuja = item;
+if (!item) {
+  const container = document.querySelector('main') || document.querySelector('.pd-content') || document.body;
+  if (container) {
+    container.innerHTML = '<div style="text-align:center; padding: 100px 20px; font-family:sans-serif;"><h2 style="color:#d32f2f;">Puja not found</h2><p>The puja you are looking for is currently unavailable or has been discontinued.</p><a href="puja.html" style="display:inline-block; margin-top: 20px; padding: 10px 20px; background:var(--primary, #6B1220); color:#fff; text-decoration:none; border-radius:5px;">View Available Pujas</a></div>';
+  }
+} else {
 if (authToken && item) {
   api('/api/me/interest', 'POST', { ref: item.id || ref }, true).catch(() => {});
   api('/api/analytics/view', 'POST', {
@@ -235,7 +242,7 @@ if (bookingCard && stickyRow) {
 
 $id("pdTemplePhoto").className = "temple-photo";
 const initialLocalTemple = typeof localTemple === 'function' ? localTemple(item) : item.temple;
-$id("pdTemplePhoto").innerHTML = mediaHTML({ image: item.image || item.media }, initialLocalTemple.split(",")[0]);
+$id("pdTemplePhoto").innerHTML = mediaHTML({ image: (item.detail && item.detail.templeImage) ? item.detail.templeImage : (item.image || item.media) }, initialLocalTemple.split(",")[0]);
 $id("pdTempleName").textContent = initialLocalTemple.split(",")[0];
 $id("pdTempleLoc").textContent = "🛕 " + (initialLocalTemple.split(",").slice(1).join(",").trim() || initialLocalTemple);
 
@@ -314,6 +321,9 @@ window.addEventListener('languageChanged', () => {
     const newItemMatch = getItem(newRefId);
     if (newItemMatch.item) {
       item = newItemMatch.item;
+      ref = newRefId;
+      currentPuja = item;
+      window.currentPuja = item;
       D = Object.assign({}, DETAIL_DEFAULTS, item.detail || {});
       const url = new URL(window.location);
       url.searchParams.set('id', newRefId);
@@ -323,6 +333,9 @@ window.addEventListener('languageChanged', () => {
       const fallbackItem = pujas.find(p => p.language === currentLang && p.id && p.id.startsWith(baseId));
       if (fallbackItem) {
         item = fallbackItem;
+        ref = fallbackItem.id;
+        currentPuja = item;
+        window.currentPuja = item;
         D = Object.assign({}, DETAIL_DEFAULTS, item.detail || {});
         const url = new URL(window.location);
         url.searchParams.set('id', fallbackItem.id);
@@ -332,6 +345,7 @@ window.addEventListener('languageChanged', () => {
   }
   renderDetails();
 });
+}
 
 
 

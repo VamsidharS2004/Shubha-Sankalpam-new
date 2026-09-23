@@ -116,11 +116,11 @@ function renderFooter() {
         </div>
         <div>
           <h4>Quick Links</h4>
-          <a href="puja.html">Puja</a><a href="account.html">Contact Us</a><a href="home.html">About Us</a>
+          <a href="puja.html">Puja</a><a href="account.html">Contact Us</a><a href="about.html">About Us</a>
         </div>
         <div>
           <h4>Legal</h4>
-          <a href="#">Privacy Policy</a><a href="#">Terms of Service</a><a href="#">Refund Policy</a>
+          <a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a><a href="refund.html">Refund Policy</a>
         </div>
         <div>
           <h4>Contact</h4>
@@ -248,6 +248,11 @@ async function checkAbandonedBooking() {
         targetUrl = `account.html?panel=bookings&tab=pending`;
       }
 
+      const currentPath = window.location.pathname.toLowerCase();
+      if (currentPath.includes("puja-details") || currentPath.includes("booking") || currentPath.includes("payment")) {
+        return;
+      }
+
       // Floating container
       const widget = document.createElement("a");
       widget.className = "abandoned-fab";
@@ -281,7 +286,7 @@ async function checkAbandonedBooking() {
             opacity: 1; visibility: visible; transform: translateY(0);
           }
           @media (max-width: 900px) { 
-            .abandoned-fab { bottom: 190px; right: 16px; width: 54px; height: 54px; }
+            .abandoned-fab { bottom: calc(146px + env(safe-area-inset-bottom, 0px)); right: 16px; width: 52px; height: 52px; }
             .abandoned-tooltip { bottom: 65px; font-size: 14px; }
           }
         `;

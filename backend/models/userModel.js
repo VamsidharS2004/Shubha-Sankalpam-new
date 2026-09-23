@@ -9,7 +9,7 @@
 const fs = require("fs");
 const path = require("path");
 const { supabase } = require("../utils/supabase");
-const { clean } = require("../utils/http");
+const { clean, normalizePhone } = require("../utils/http");
 
 /* ----------------------------------------------------------------
    LOCAL JSON FILE STORE — only used when supabase is not configured.
@@ -57,7 +57,7 @@ async function all() {
 }
 
 async function createManualDevotee(raw) {
-    const phone = clean(raw.phone, 20);
+    const phone = normalizePhone(raw.phone);
     const name = clean(raw.name, 100);
     if (!phone || !name) return null;
 
@@ -100,7 +100,7 @@ async function createManualDevotee(raw) {
 }
 
 async function findOrCreate(phone, defaults = {}) {
-    const p = clean(phone, 20);
+    const p = normalizePhone(phone);
     if (!p) return null;
 
     if (!supabase) {
@@ -145,7 +145,7 @@ async function findOrCreate(phone, defaults = {}) {
 }
 
 async function updateDevotee(phone, raw) {
-    const p = clean(phone, 20);
+    const p = normalizePhone(phone);
 
     if (!supabase) {
         const users = readLocalUsers();
@@ -164,8 +164,8 @@ async function updateDevotee(phone, raw) {
         if (raw.city  !== undefined) updates.city             = clean(raw.city, 100)  || null;
         if (raw.whatsapp !== undefined) updates.whatsapp_number = clean(raw.whatsapp, 20) || null;
         if (raw.dob   !== undefined) updates.date_of_birth   = raw.dob || null;
-        if (raw.phone !== undefined && clean(raw.phone, 20) !== p) {
-            updates.phone = clean(raw.phone, 20);
+        if (raw.phone !== undefined && normalizePhone(raw.phone) !== p) {
+            updates.phone = normalizePhone(raw.phone);
         }
 
         users[idx] = { ...users[idx], ...updates };
@@ -181,8 +181,8 @@ async function updateDevotee(phone, raw) {
     if (raw.whatsapp !== undefined) updates.whatsapp_number = clean(raw.whatsapp, 20) || null;
     if (raw.dob   !== undefined) updates.date_of_birth   = raw.dob || null;
     // Allow phone number change (rename the record)
-    if (raw.phone !== undefined && clean(raw.phone, 20) !== p) {
-        updates.phone = clean(raw.phone, 20);
+    if (raw.phone !== undefined && normalizePhone(raw.phone) !== p) {
+        updates.phone = normalizePhone(raw.phone);
     }
 
     // If nothing to update, just return the existing record
@@ -200,7 +200,7 @@ async function updateDevotee(phone, raw) {
 }
 
 async function deleteDevotee(phone) {
-    const p = clean(phone, 20);
+    const p = normalizePhone(phone);
 
     if (!supabase) {
         const users = readLocalUsers();

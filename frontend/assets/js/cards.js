@@ -46,7 +46,7 @@ function isRealImagePath(value) {
 function mediaHTML(item, itemName) {
   const key = item.image || item.media || "cm-a";
   if (isRealImagePath(key)) {
-    return `<img src="${key}" alt="${itemName}" style="width:100%;height:100%;object-fit:cover">`;
+    return `<img src="${key}" alt="${itemName}" style="width:100%;height:100%;object-fit:cover" onerror="this.onerror=null;this.src='assets/images/logo.png'">`;
   }
   const theme = IMAGE_THEMES[key] || IMAGE_THEMES["cm-a"];
   return `
@@ -85,8 +85,9 @@ function cardHTML(p, i, type) {
 
 function renderCards(container, list, type, cat) {
   container.innerHTML = "";
+  let renderedCount = 0;
   list.forEach((p, i) => {
-    if (cat && cat !== "All" && p.cat !== cat) return;
+    if (cat && cat !== "All" && p.cat !== cat && !(cat === "Finance" && p.cat === "Wealth") && !(cat === "Wealth" && p.cat === "Finance")) return;
     if (type === "puja" && p.language && p.language !== currentLang) return;
     const card = document.createElement("article");
     card.className = "card";
@@ -98,7 +99,16 @@ function renderCards(container, list, type, cat) {
       heart.textContent = "♥";
     }
     container.appendChild(card);
+    renderedCount++;
   });
+  if (renderedCount === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.style.cssText = "grid-column: 1 / -1; width: 100%; text-align: center; padding: 48px 16px; color: var(--text-muted, #8E8EA0);";
+    const msg = typeof lt === "function" ? lt("no_pujas_found") || "No pujas found in this category at this time." : "No pujas found in this category at this time.";
+    empty.innerHTML = `<div style="font-size: 2rem; margin-bottom: 8px;">🪔</div><p style="font-size: 1rem; font-weight: 500; margin: 0;">${msg}</p>`;
+    container.appendChild(empty);
+  }
 }
 
 function wireTabs(tabsId, container, list, type) {

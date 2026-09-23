@@ -96,7 +96,14 @@ const server = http.createServer(async (req, res) => {
 
     /* 3. Frontend static files */
     let filePath = path.join(FRONTEND_DIR, decodeURIComponent(url.pathname));
-    if (url.pathname === "/") filePath = path.join(FRONTEND_DIR, "home.html");
+    if (url.pathname === "/") {
+      filePath = path.join(FRONTEND_DIR, "home.html");
+    } else if (!path.extname(filePath)) {
+      const htmlCandidate = filePath + ".html";
+      if (fs.existsSync(htmlCandidate)) {
+        filePath = htmlCandidate;
+      }
+    }
     if (!filePath.startsWith(FRONTEND_DIR)) return send(res, 403, { error: "Forbidden" });
     fs.readFile(filePath, (err, data) => {
         if (!err && filePath.endsWith('.html')) {

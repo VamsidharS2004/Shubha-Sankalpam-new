@@ -28,7 +28,7 @@ function paymentTemplateParams(booking, payment, failed = false) {
   const method = text(payment.method, "Not available").toUpperCase();
   const common = [text(booking.name, "Devotee"), text(booking.puja, "Puja booking")];
   
-  const shortId = numericBookingId(booking.id);
+  const shortId = booking.shortId || numericBookingId(booking.id);
   
   if (failed) return [...common, shortId, amount, method,
     text(payment.error_description || payment.error_reason, "Payment could not be completed"), SUPPORT_PHONE];

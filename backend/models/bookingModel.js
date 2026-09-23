@@ -53,13 +53,44 @@ function localCreate(raw) {
    PUBLIC API
    ================================================================ */
 
+async function generateUniqueBookingId() {
+  if (!supabase) return Math.floor(100000 + Math.random() * 900000).toString();
+  while (true) {
+    const shortId = Math.floor(100000 + Math.random() * 900000).toString();
+    const { data } = await supabase.from("bookings").select("id").ilike("notes", "%BookingID: " + shortId + "%").limit(1);
+    if (!data || data.length === 0) return shortId;
+  }
+}
+
+function getSnapshot(notes) {
+  const m = String(notes || "").match(/Snapshot:\s*(\{.*\})/);
+  if (m) {
+    try { return JSON.parse(m[1]); } catch(e) {}
+  }
+  return null;
+}
+
+function getShortId(notes, id) {
+  const m = String(notes || "").match(/BookingID:\s*(\d{6})/);
+  if (m) return m[1];
+  const value = String(id || "").toLowerCase();
+  if (/^[0-9a-f]{8}-/.test(value)) return String(parseInt(value.slice(0, 5), 16)).padStart(6, "0").slice(0, 6);
+  let hash = 0;
+  for (const char of value) hash = (Math.imul(hash, 31) + char.charCodeAt(0)) >>> 0;
+  return String(hash).padStart(6, "0").slice(0, 6);
+}
+
 async function createManualBooking(raw) {
   /* ---- LOCAL fallback ---- */
   if (!supabase) {
-    return localCreate(raw);
+    const shortId = await generateUniqueBookingId();
+    raw.notes = `BookingID: ${shortId}\n${raw.notes || ""}`;
+    const created = localCreate(raw);
+    return { ...created, shortId };
   }
 
   /* ---- Supabase ---- */
+  const shortId = await generateUniqueBookingId();
   const { data: booking, error: bErr } = await supabase
     .from("bookings")
     .insert([{
@@ -68,7 +99,7 @@ async function createManualBooking(raw) {
       price          : Number(raw.price) || 0,
       status         : raw.status        || "Pending",
       payment_status : raw.payment_status || "Pending",
-      notes          : clean(raw.notes, 500)
+      notes          : /BookingID:\s*\d{6}/.test(raw.notes || "") ? (clean(raw.notes, 500) || "") : `BookingID: ${shortId}\n${clean(raw.notes, 500) || ""}`
     }])
     .select()
     .single();
@@ -86,14 +117,14 @@ async function createManualBooking(raw) {
     }]);
   }
 
-  return booking;
+  return { ...booking, shortId };
 }
 
 function bookingPujaName(notes) {
   const lines = String(notes || '').split(/\r?\n/).map(line => line.trim()).filter(Boolean);
   const named = lines.find(line => /^Puja:\s*/i.test(line));
   if (named) return named.replace(/^Puja:\s*/i, '') || 'Puja name unavailable';
-  const legacy = lines.find(line => !/^(?:razorpay_\w+|Family|WhatsApp|Date|Time|Venue):/i.test(line));
+  const legacy = lines.find(line => !/^(?:BookingID|razorpay_\w+|Family|WhatsApp|Date|Time|Venue):/i.test(line));
   return legacy || 'Puja name unavailable';
 }
 
@@ -107,14 +138,15 @@ async function all() {
   /* ---- LOCAL fallback ---- */
   if (!supabase) {
     return readLocalBookings().map(b => ({
-      id        : b.id,
+      id: b.id, shortId: getShortId(b.notes, b.id),
       price     : b.price,
       status    : b.status,
       createdAt : b.created_at,
       videoUrl  : b.video_url  || null,
       name      : b.name       || "Unknown",
       phone     : b.devotee_phone || "",
-      gotram: b.devotees?.gotra || '', puja: bookingPujaName(b.notes), videoUrl: b.video_url || null
+      notes     : b.notes || "",
+      gotram: b.devotees?.gotra || '', puja: bookingPujaName(b.notes), snapshot: getSnapshot(b.notes)
     }));
   }
 
@@ -130,14 +162,15 @@ async function all() {
   if (error) { console.error("Error fetching bookings:", error); return []; }
 
   return data.map(b => ({
-    id        : b.id,
+    id: b.id, shortId: getShortId(b.notes, b.id),
     price     : b.price,
     status    : b.status,
     createdAt : b.created_at,
-    videoUrl  : null,
+    videoUrl  : b.video_url || null,
     name      : b.booking_names?.length > 0 ? b.booking_names[0].name : (b.devotees?.name || "Unknown"),
     phone     : b.devotees?.phone || "",
-    gotram: b.devotees?.gotra || '', puja: bookingPujaName(b.notes), videoUrl: b.video_url || null
+    notes     : b.notes || "",
+    gotram: b.devotees?.gotra || '', puja: bookingPujaName(b.notes), snapshot: getSnapshot(b.notes)
   }));
 }
 
@@ -148,14 +181,15 @@ async function getUserBookings(phone) {
     return readLocalBookings()
       .filter(b => b.devotee_phone === p)
       .map(b => ({
-        id        : b.id,
+        id: b.id, shortId: getShortId(b.notes, b.id),
         price     : b.price,
         status    : b.status,
         createdAt : b.created_at,
         videoUrl  : b.video_url || null,
         name      : b.name || "Unknown",
         phone     : b.devotee_phone || "",
-        puja      : bookingPujaName(b.notes)
+        puja      : bookingPujaName(b.notes),
+    snapshot  : getSnapshot(b.notes)
       }));
   }
 
@@ -164,7 +198,7 @@ async function getUserBookings(phone) {
   const { data, error } = await supabase
     .from("bookings")
     .select(`
-      id, price, status, created_at, notes,
+      id, price, status, created_at, notes, video_url,
       devotees!inner ( phone, name, gotra ),
       booking_names ( name )
     `)
@@ -174,14 +208,15 @@ async function getUserBookings(phone) {
   if (error) { console.error("Error fetching user bookings:", error); return []; }
 
   return data.map(b => ({
-    id        : b.id,
+    id: b.id, shortId: getShortId(b.notes, b.id),
     price     : b.price,
     status    : b.status,
     createdAt : b.created_at,
-    videoUrl  : null,
+    videoUrl  : b.video_url || null,
     name      : b.booking_names?.length > 0 ? b.booking_names[0].name : (b.devotees?.name || "Unknown"),
     phone     : b.devotees?.phone || "",
-    puja      : bookingPujaName(b.notes)
+    puja      : bookingPujaName(b.notes),
+    snapshot  : getSnapshot(b.notes)
   }));
 }
 
@@ -207,6 +242,63 @@ async function updateBookingVideo(bookingId, videoUrl) {
   return true;
 }
 
+function mergePreservedNotes(existingNotes, newNotes) {
+  const existingLines = String(existingNotes || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const isMetaLine = line => /^(?:BookingID:|razorpay_order:|razorpay_payment:|WhatsApp:)/i.test(line);
+  const metaLines = existingLines.filter(isMetaLine);
+
+  if (metaLines.length === 0) {
+    return clean(newNotes, 1000);
+  }
+
+  const newLines = String(newNotes || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const finalLines = [];
+  
+  // 1. BookingID: line
+  const existingBookingId = metaLines.find(l => /^BookingID:\s*/i.test(l));
+  const newBookingId = newLines.find(l => /^BookingID:\s*/i.test(l));
+  if (existingBookingId) {
+    finalLines.push(existingBookingId);
+  } else if (newBookingId) {
+    finalLines.push(newBookingId);
+  }
+
+  // 2. Non-metadata user lines
+  for (const line of newLines) {
+    if (!isMetaLine(line)) {
+      finalLines.push(line);
+    }
+  }
+
+  // 3. WhatsApp: line
+  const existingWa = metaLines.find(l => /^WhatsApp:\s*/i.test(l));
+  const newWa = newLines.find(l => /^WhatsApp:\s*/i.test(l));
+  if (newWa) {
+    finalLines.push(newWa);
+  } else if (existingWa) {
+    finalLines.push(existingWa);
+  }
+
+  // 4. razorpay_order: line
+  const existingOrder = metaLines.find(l => /^razorpay_order:/i.test(l));
+  const newOrder = newLines.find(l => /^razorpay_order:/i.test(l));
+  if (existingOrder) {
+    finalLines.push(existingOrder);
+  } else if (newOrder) {
+    finalLines.push(newOrder);
+  }
+
+  // 5. razorpay_payment: line(s)
+  const existingPayments = metaLines.filter(l => /^razorpay_payment:/i.test(l));
+  const newPayments = newLines.filter(l => /^razorpay_payment:/i.test(l));
+  const allPayments = Array.from(new Set([...existingPayments, ...newPayments]));
+  for (const pay of allPayments) {
+    finalLines.push(pay);
+  }
+
+  return clean(finalLines.join('\n'), 1000);
+}
+
 async function updateBooking(id, data) {
   /* ---- LOCAL fallback ---- */
   if (!supabase) {
@@ -216,7 +308,7 @@ async function updateBooking(id, data) {
     if (data.status)          bookings[idx].status         = clean(data.status, 50);
     if (data.payment_status)  bookings[idx].payment_status = clean(data.payment_status, 50);
     if (data.price !== undefined) bookings[idx].price      = Number(data.price) || 0;
-    if (data.notes !== undefined) bookings[idx].notes      = clean(data.notes, 500);
+    if (data.notes !== undefined) bookings[idx].notes      = mergePreservedNotes(bookings[idx].notes, data.notes);
     writeLocalBookings(bookings);
     return true;
   }
@@ -226,7 +318,10 @@ async function updateBooking(id, data) {
   if (data.status)          updateData.status         = clean(data.status, 50);
   if (data.payment_status)  updateData.payment_status = clean(data.payment_status, 50);
   if (data.price !== undefined) updateData.price      = Number(data.price) || 0;
-  if (data.notes !== undefined) updateData.notes      = clean(data.notes, 500);
+  if (data.notes !== undefined) {
+    const { data: existing } = await supabase.from("bookings").select("notes").eq("id", id).single();
+    updateData.notes = mergePreservedNotes(existing?.notes, data.notes);
+  }
 
   const { error } = await supabase.from("bookings").update(updateData).eq("id", id);
   if (error) { console.error("Error updating booking:", error); return false; }
@@ -252,13 +347,13 @@ async function findById(id) {
   if (!supabase) {
     const b = readLocalBookings().find(b => b.id === id);
     if (!b) return null;
-    return { id: b.id, puja: bookingPujaName(b.notes), price: b.price, userPhone: b.devotee_phone, whatsapp: String(b.notes || "").match(/^WhatsApp: (\d{10})$/m)?.[1] || b.devotee_phone };
+    return { id: b.id, shortId: getShortId(b.notes, b.id), puja: bookingPujaName(b.notes), price: b.price, userPhone: b.devotee_phone, whatsapp: String(b.notes || "").match(/^WhatsApp: (\d{10})$/m)?.[1] || b.devotee_phone };
   }
 
   /* ---- Supabase ---- */
   const { data, error } = await supabase.from("bookings").select("*").eq("id", id).single();
   if (error) return null;
-  return { id: data.id, puja: bookingPujaName(data.notes), price: data.price, userPhone: data.devotee_phone, whatsapp: String(data.notes || "").match(/^WhatsApp: (\d{10})$/m)?.[1] || data.devotee_phone };
+  return { id: data.id, shortId: getShortId(data.notes, data.id), puja: bookingPujaName(data.notes), price: data.price, userPhone: data.devotee_phone, whatsapp: String(data.notes || "").match(/^WhatsApp: (\d{10})$/m)?.[1] || data.devotee_phone };
 }
 
 async function attachOrder(id, orderId) {
@@ -285,7 +380,11 @@ async function attachOrder(id, orderId) {
 function paymentNotificationBooking(b) {
   return {
     id: b.id,
+    shortId: typeof getShortId === 'function' ? getShortId(b.notes, b.id) : undefined,
     price: b.price,
+    status: b.status,
+    payment_status: b.payment_status,
+    notes: b.notes,
     userPhone: b.devotee_phone,
     phone: String(b.notes || "").match(/^WhatsApp: (\d{10})$/m)?.[1] || b.devotee_phone || b.devotees?.phone || "",
     name: b.booking_names?.[0]?.name || b.name || b.devotees?.name || "Devotee",
@@ -304,7 +403,7 @@ async function findByOrderId(orderId) {
   /* ---- Supabase ---- */
   const { data, error } = await supabase
     .from("bookings")
-    .select("id, price, devotee_phone, notes, devotees(name, phone), booking_names(name)")
+    .select("id, price, status, payment_status, devotee_phone, notes, devotees(name, phone), booking_names(name)")
     .ilike("notes", `%razorpay_order:${orderId}%`)
     .limit(1);
 
@@ -320,7 +419,7 @@ async function markPaid(id, paymentId) {
     if (idx === -1) return false;
     bookings[idx].payment_status = "Paid";
     bookings[idx].status         = "Confirmed";
-    bookings[idx].notes = paymentNotes(bookings[idx].notes, paymentId);;
+    bookings[idx].notes = paymentNotes(bookings[idx].notes, paymentId);
     writeLocalBookings(bookings);
     return true;
   }
@@ -353,9 +452,51 @@ async function setStatus(id, status) {
   return !error;
 }
 
+async function findPendingDuplicate({ phone, price, puja, ref }) {
+  if (!supabase) {
+    const bookings = readLocalBookings();
+    const existing = bookings.find(b =>
+      b.devotee_phone === clean(phone, 20) &&
+      b.status === "Pending" &&
+      Number(b.price) === Number(price) &&
+      b.notes && (
+        (puja && (b.notes.includes("Puja: " + puja) || b.notes.includes(puja))) ||
+        (ref && b.notes.includes(ref))
+      )
+    );
+    if (!existing) return null;
+    return { ...existing, shortId: getShortId(existing.notes, existing.id) };
+  }
+  return null;
+}
+
+async function claimBooking(bookingId, orderId) {
+  if (!supabase) {
+    const bookings = readLocalBookings();
+    const idx = bookings.findIndex(b =>
+      (bookingId && b.id === bookingId) ||
+      (orderId && b.notes && b.notes.includes(orderId))
+    );
+    if (idx === -1) return false;
+    bookings[idx].status = "Pending Verification";
+    bookings[idx].payment_status = "Pending Verification";
+    writeLocalBookings(bookings);
+    return true;
+  }
+  let query = supabase.from("bookings").update({
+    status: "Pending Verification",
+    payment_status: "Pending Verification"
+  });
+  if (bookingId) query = query.eq("id", bookingId);
+  else query = query.ilike("notes", `%razorpay_order:${orderId}%`);
+  const { data, error } = await query.select();
+  return !error && data && data.length > 0;
+}
+
 module.exports = {
   createManualBooking,
   all, getUserBookings,
   updateBookingVideo, updateBooking, deleteBooking,
-  findById, attachOrder, findByOrderId, markPaid, setStatus
+  findById, attachOrder, findByOrderId, markPaid, setStatus,
+  getShortId, findPendingDuplicate, claimBooking
 };

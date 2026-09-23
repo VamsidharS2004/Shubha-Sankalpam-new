@@ -1,3 +1,12 @@
+
+function numericBookingId(id) {
+    const value = String(id || '').toLowerCase();
+    if (/^[0-9a-f]{8}-/.test(value)) return String(parseInt(value.slice(0, 5), 16)).padStart(6, '0').slice(0, 6);
+    let hash = 0;
+    for (const char of value) hash = (Math.imul(hash, 31) + char.charCodeAt(0)) >>> 0;
+    return String(hash).padStart(6, '0').slice(0, 6);
+}
+
 /* ================================================================
    ACCOUNT PAGE (login required)
    ================================================================
@@ -129,7 +138,7 @@ function renderBookingsList() {
       const bookingPuja = b.puja || b.puja_name || b.pujaName || b.puja_title || "";
       let displayPuja = bookingPuja || "Puja booking";
       let matchedItem = null;
-      let refId = "puja:0";
+      let refId = "unavailable";
       let type = "puja";
       
       if (typeof pujas !== 'undefined') {
@@ -156,14 +165,17 @@ function renderBookingsList() {
       }
 
       if (!matchedItem) {
-        matchedItem = {
-          name: displayPuja.includes("razorpay_") ? "Puja / Package" : displayPuja,
-          price: b.price,
-          image: "cm-a",
-          temple: "",
-          date: b.createdAt ? new Date(b.createdAt).toLocaleDateString("en-IN") : "Date not available"
-        };
-      }
+          matchedItem = {
+            id: "unavailable",
+            name: b.snapshot?.name || (displayPuja.includes("razorpay_") ? "Puja / Package" : displayPuja),
+            price: b.snapshot?.price || b.price,
+            image: b.snapshot?.image || "assets/images/logo.jpg",
+            temple: "",
+            date: b.createdAt ? new Date(b.createdAt).toLocaleDateString("en-IN") : "Date not available"
+          };
+        } else if (b.snapshot) {
+          matchedItem = { ...matchedItem, image: b.snapshot.image || matchedItem.image, price: b.snapshot.price || matchedItem.price };
+        }
 
       const card = document.createElement("article");
       card.className = "card";
@@ -172,7 +184,9 @@ function renderBookingsList() {
       // 1. Replace the meta info (Temple/Date) with Booking specific info (Gotram/Family/Booking Date)
       const meta = card.querySelector(".card-meta");
       if (meta) {
+        const bookingIdText = b.shortId || (typeof numericBookingId === "function" ? numericBookingId(b.id) : b.id.split('-')[0]);
         meta.innerHTML = `
+          <span title="Booking ID"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px; margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg> ID: ${bookingIdText}</span>
           <span title="Booking Date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> ${b.createdAt ? new Date(b.createdAt).toLocaleDateString("en-IN") : "Date not available"}</span>
           <span title="Gotram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px; margin-right:4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> ${b.gotram || 'N/A'}</span>
         `;
@@ -192,7 +206,7 @@ function renderBookingsList() {
                 <a class="book-link" href="#" onclick="event.preventDefault(); location.href='payment.html?bookingId=${b.id}&id=${refId}&start=1'">Continue <span class="arrow">&rarr;</span></a>
               </div>`;
         } else if (b.status === "video-sent" && b.videoUrl) {
-           actionBtn = `<a class="book-link" href="${b.videoUrl}">Watch Video <span class="arrow">&rarr;</span></a>`;
+           actionBtn = `<a class="book-link" href="video-player.html?url=${encodeURIComponent(b.videoUrl)}">Watch Video <span class="arrow">&rarr;</span></a>`;
         } else {
            // For Ongoing/Completed without video yet, just show status as text on the right
            actionBtn = "";
@@ -237,8 +251,18 @@ function renderProfileData(me) {
   $id("dashLang").textContent = langObj ? `${langObj.en} (${langObj.native})` : "English (Default)";
 
   allBookings = (me.bookings || []).map(b => {
-    if (b.status === "Pending") b.status = "payment-pending";
-    if (b.status === "Confirmed") b.status = "paid";
+    // Normalize backend/admin status strings into the frontend tab statuses.
+    // This ensures a booking is ALWAYS visible in one of the 3 tabs,
+    // regardless of which status the admin has set.
+    const s = (b.status || "").toLowerCase().trim();
+    if (s === "pending")                          b.status = "payment-pending";
+    else if (s === "confirmed" || s === "paid")   b.status = "paid";
+    else if (s === "scheduled")                   b.status = "paid";
+    else if (s === "failed" || s === "cancelled") b.status = "failed";
+    else if (s === "video-sent")                  b.status = "video-sent";
+    else if (s === "payment-pending")             b.status = "payment-pending";
+    else if (s === "payment-claimed")             b.status = "payment-claimed";
+    else                                          b.status = "paid"; // unknown → Ongoing tab
     return b;
   });
   renderBookingsList();

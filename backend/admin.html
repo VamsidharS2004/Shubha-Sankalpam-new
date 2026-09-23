@@ -9,7 +9,7 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- Styles -->
     <link rel="stylesheet" href="/assets/css/admin.css">
-    <link rel="stylesheet" href="assets/css/responsive.css?v=client-20260920">
+    <link rel="stylesheet" href="assets/css/responsive.css?v=client-20260923">
 </head>
 <body>
 
@@ -537,8 +537,8 @@
                 <h4 style="margin-bottom:16px; color:var(--text-main); font-size:1rem;">General Details</h4>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
                     <div class="form-group">
-                        <label>Language</label><select id="editPujaLang" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border); background:var(--bg-main); color:var(--text-main);"><option value="en">English</option><option value="te">Telugu</option><option value="hi">Hindi</option></select></div><div class="form-group"><label>Category</label>
-                        <select id="editPujaCat" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border); background:var(--bg-main); color:var(--text-main);">
+                        <label>Language</label><select id="editPujaLang" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border); background:var(--bg-input); color:var(--text-main);"><option value="en">English</option><option value="te">Telugu</option><option value="hi">Hindi</option></select></div><div class="form-group"><label>Category</label>
+                        <select id="editPujaCat" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border); background:var(--bg-input); color:var(--text-main);">
                             <option value="All">All</option>
                             <option value="Health">Health</option>
                             <option value="Finance">Finance</option>
@@ -563,6 +563,18 @@
                         <input type="text" id="editPujaTemple">
                     </div>
                     <div class="form-group">
+                        <label>Temple Image (Path or Theme)</label>
+                        <input type="text" id="editPujaTempleImage" placeholder="assets/images/temples/...">
+                        <div class="img-upload-widget" data-target="editPujaTempleImage" data-entity="temples">
+                            <img id="prevPujaTempleImage" class="img-preview" src="" alt="" style="display:none; max-width:120px; max-height:80px; object-fit:cover; border-radius:6px; margin-top:8px; border:1px solid var(--line);">
+                            <div style="display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap;">
+                                <input type="file" id="filePujaTempleImage" accept="image/jpeg,image/png,image/webp" style="flex:1; min-width:0;">
+                                <button type="button" class="btn btn-primary upload-img-btn" style="padding:6px 14px; font-size:0.85rem;" data-file="filePujaTempleImage" data-text="editPujaTempleImage" data-prev="prevPujaTempleImage" data-entity="temples">Upload Temple Image</button>
+                            </div>
+                            <span id="statusPujaTempleImage" style="font-size:0.8rem; margin-top:4px; display:block;"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label>Display Date</label>
                         <input type="text" id="editPujaDate">
                     </div>
@@ -578,11 +590,11 @@
             <div style="border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
                 <h4 style="margin-bottom:16px; color:var(--text-main); font-size:1rem;">Puja Content</h4>
                 <div class="form-group">
-                    <label>Puja Title</label>
+                    <label id="lblPujaTitle">Puja Title</label>
                     <input type="text" id="editPujaNameEn">
                 </div>
                 <div class="form-group">
-                    <label>Description</label>
+                    <label id="lblPujaDesc">Description</label>
                     <textarea id="editPujaDescEn" rows="3"></textarea>
                 </div>
                 <h5 style="margin:16px 0 8px; color:var(--text-muted); font-size:0.9rem;">Details Page Data</h5>
@@ -608,58 +620,6 @@
                 </div>
             </div>
 
-            <!-- Telugu -->
-            <div style="border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
-                <h4 style="margin-bottom:16px; color:var(--text-main); font-size:1rem;">Telugu (తెలుగు)</h4>
-                <div class="form-group">
-                    <label>Puja Title</label>
-                    <input type="text" id="editPujaNameTe" placeholder="e.g. రుద్రాభిషేకం">
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="editPujaDescTe" rows="3"></textarea>
-                </div>
-                <h5 style="margin:16px 0 8px; color:var(--text-muted); font-size:0.9rem;">Details Page Data (Telugu)</h5>
-                <div class="form-group">
-                    <label>Tradition</label>
-                    <input type="text" id="editPujaTraditionTe">
-                </div>
-                <div class="form-group">
-                    <label>Duration</label>
-                    <input type="text" id="editPujaDurationTe">
-                </div>
-                <div class="form-group">
-                    <label>For Whom</label>
-                    <input type="text" id="editPujaForWhomTe">
-                </div>
-            </div>
-
-            <!-- Hindi -->
-            <div style="border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
-                <h4 style="margin-bottom:16px; color:var(--text-main); font-size:1rem;">Hindi (हिंदी)</h4>
-                <div class="form-group">
-                    <label>Puja Title</label>
-                    <input type="text" id="editPujaNameHi" placeholder="e.g. रुद्राभिषेक">
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="editPujaDescHi" rows="3"></textarea>
-                </div>
-                <h5 style="margin:16px 0 8px; color:var(--text-muted); font-size:0.9rem;">Details Page Data (Hindi)</h5>
-                <div class="form-group">
-                    <label>Tradition</label>
-                    <input type="text" id="editPujaTraditionHi">
-                </div>
-                <div class="form-group">
-                    <label>Duration</label>
-                    <input type="text" id="editPujaDurationHi">
-                </div>
-                <div class="form-group">
-                    <label>For Whom</label>
-                    <input type="text" id="editPujaForWhomHi">
-                </div>
-            </div>
-
             <!-- Advanced Arrays -->
             <div style="border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
                 <h4 style="margin-bottom:16px; color:var(--text-main); font-size:1rem;">Advanced Puja Details</h4>
@@ -682,7 +642,8 @@
                 <button class="btn" style="margin-top:8px; font-size:0.8rem;" onclick="addDynamicRow('gallery')">+ Add Gallery Image</button>
             </div>
             
-            <p class="text-muted" style="font-size: 0.8rem;">Note: Saving will update the live content immediately.</p>
+            </div>
+              <p class="text-muted" style="font-size: 0.8rem;">Note: Saving will update the live content immediately.</p>
         </div>
     </aside>
 
@@ -699,7 +660,24 @@
             <input type="hidden" id="editPackageId">
             <input type="hidden" id="editPackageIndex" value="-1">
             
-            <h4 style="margin-bottom:12px; color:var(--text-main); border-bottom:1px solid #eee; padding-bottom:4px;">1. General Details</h4>
+            
+<div class="form-group" style="margin-top: 16px;">
+    <label>Editing Language</label>
+    <select id="editPackageLangToggle" onchange="togglePackageLangs(this.value)" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border); background:var(--bg-input); color:var(--text-main);">
+        <option value="en">English</option>
+        <option value="te">Telugu</option>
+        <option value="hi">Hindi</option>
+    </select>
+</div>
+<script>
+function togglePackageLangs(lang) {
+    document.getElementById("pkg-lang-en").style.display = lang === 'en' ? 'block' : 'none';
+    document.getElementById("pkg-lang-te").style.display = lang === 'te' ? 'block' : 'none';
+    document.getElementById("pkg-lang-hi").style.display = lang === 'hi' ? 'block' : 'none';
+}
+</script>
+
+<h4 style="margin-bottom:12px; color:var(--text-main); border-bottom:1px solid #eee; padding-bottom:4px;">1. General Details</h4>
             
             <div class="form-group">
                 <label>Package Badge (e.g. Monthly)</label>
@@ -742,7 +720,7 @@
             </div>
             
             <!-- We can re-use identical fields by giving them package-specific IDs to avoid conflict -->
-            <h4 style="margin-top:24px; margin-bottom:12px; color:var(--text-main); border-bottom:1px solid #eee; padding-bottom:4px;">2. English Content</h4>
+            <div id="pkg-lang-en"><h4 style="margin-top:24px; margin-bottom:12px; color:var(--text-main); border-bottom:1px solid #eee; padding-bottom:4px;">2. English Content</h4>
             <div class="form-group">
                 <label>Package Name (English)</label>
                 <input type="text" id="editPackageNameEn" placeholder="Name">
@@ -760,7 +738,7 @@
                 <textarea id="editPackageAboutEn" rows="3"></textarea>
             </div>
             
-            <h4 style="margin-top:24px; margin-bottom:12px; color:var(--text-main); border-bottom:1px solid #eee; padding-bottom:4px;">3. Telugu Content</h4>
+            </div><div id="pkg-lang-te" style="display:none;"><h4 style="margin-top:24px; margin-bottom:12px; color:var(--text-main); border-bottom:1px solid #eee; padding-bottom:4px;">3. Telugu Content</h4>
             <div class="form-group">
                 <label>Package Name (Telugu)</label>
                 <input type="text" id="editPackageNameTe">
@@ -778,7 +756,7 @@
                 <textarea id="editPackageAboutTe" rows="3"></textarea>
             </div>
             
-            <h4 style="margin-top:24px; margin-bottom:12px; color:var(--text-main); border-bottom:1px solid #eee; padding-bottom:4px;">4. Hindi Content</h4>
+            </div><div id="pkg-lang-hi" style="display:none;"><h4 style="margin-top:24px; margin-bottom:12px; color:var(--text-main); border-bottom:1px solid #eee; padding-bottom:4px;">4. Hindi Content</h4>
             <div class="form-group">
                 <label>Package Name (Hindi)</label>
                 <input type="text" id="editPackageNameHi">
@@ -796,6 +774,7 @@
                 <textarea id="editPackageAboutHi" rows="3"></textarea>
             </div>
 
+            </div>
             <div style="margin-top:24px; display:flex; gap:12px;">
                 <button class="btn btn-primary" id="savePackageBtn" style="flex:1; justify-content:center;">Save Changes</button>
                 <button class="btn" id="deletePackageBtn" style="color:var(--red); border-color:var(--red); display:none;"><i class="ph ph-trash"></i></button>
@@ -838,7 +817,7 @@
                 <textarea id="editTempleBlurbEn" rows="2"></textarea>
             </div>
             
-            <h4 style="margin-top:24px; margin-bottom:12px; color:var(--text-main); border-bottom:1px solid #eee; padding-bottom:4px;">Telugu Content</h4>
+            </div><div id="tpl-lang-te" style="display:none;"><h4 style="margin-top:24px; margin-bottom:12px; color:var(--text-main); border-bottom:1px solid #eee; padding-bottom:4px;">Telugu Content</h4>
             <div class="form-group">
                 <label>Temple Name (Telugu)</label>
                 <input type="text" id="editTempleNameTe">
@@ -848,7 +827,7 @@
                 <textarea id="editTempleBlurbTe" rows="2"></textarea>
             </div>
             
-            <h4 style="margin-top:24px; margin-bottom:12px; color:var(--text-main); border-bottom:1px solid #eee; padding-bottom:4px;">Hindi Content</h4>
+            </div><div id="tpl-lang-hi" style="display:none;"><h4 style="margin-top:24px; margin-bottom:12px; color:var(--text-main); border-bottom:1px solid #eee; padding-bottom:4px;">Hindi Content</h4>
             <div class="form-group">
                 <label>Temple Name (Hindi)</label>
                 <input type="text" id="editTempleNameHi">
@@ -858,6 +837,7 @@
                 <textarea id="editTempleBlurbHi" rows="2"></textarea>
             </div>
 
+            </div>
             <div style="margin-top:24px; display:flex; gap:12px;">
                 <button class="btn btn-primary" id="saveTempleBtn" style="flex:1; justify-content:center;">Save Changes</button>
                 <button class="btn" id="deleteTempleBtn" style="color:var(--red); border-color:var(--red); display:none;"><i class="ph ph-trash"></i></button>
@@ -865,7 +845,7 @@
         </div>
     </aside>
 
-    <script src="/content/pujas.js"></script><script src="/content/packages.js"></script><script src="/assets/js/admin.js?v=client-20260920"></script>
+    <script src="/content/pujas.js"></script><script src="/content/packages.js"></script><script src="/assets/js/admin.js?v=client-20260923"></script>
 </body>
 </html>
 

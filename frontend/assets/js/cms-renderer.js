@@ -115,6 +115,8 @@ function applyCmsContent() {
 function mergeArrayContent() {
     if (!window.CMS_DATA || !window.CMS_DATA["home"]) return;
     const homeCMS = window.CMS_DATA["home"];
+    let faqChanged = false;
+    let testChanged = false;
 
     const langs = ["en", "te", "hi"];
 
@@ -127,10 +129,16 @@ function mergeArrayContent() {
                     const aNode = homeCMS[`home.faq.${idx}.a`];
                     
                     if (qNode && qNode.translations && qNode.translations[lang] && qNode.translations[lang].trim() !== "") {
-                        item.q = qNode.translations[lang];
+                        if (item.q !== qNode.translations[lang]) {
+                            item.q = qNode.translations[lang];
+                            faqChanged = true;
+                        }
                     }
                     if (aNode && aNode.translations && aNode.translations[lang] && aNode.translations[lang].trim() !== "") {
-                        item.a = aNode.translations[lang];
+                        if (item.a !== aNode.translations[lang]) {
+                            item.a = aNode.translations[lang];
+                            faqChanged = true;
+                        }
                     }
                 });
             }
@@ -148,24 +156,44 @@ function mergeArrayContent() {
                     const rateNode = homeCMS[`home.testimonial.${idx}.rating`];
 
                     if (textNode && textNode.translations && textNode.translations[lang] && textNode.translations[lang].trim() !== "") {
-                        item.text = textNode.translations[lang];
+                        if (item.text !== textNode.translations[lang]) {
+                            item.text = textNode.translations[lang];
+                            testChanged = true;
+                        }
                     }
                     if (nameNode && nameNode.translations && nameNode.translations[lang] && nameNode.translations[lang].trim() !== "") {
-                        item.name = nameNode.translations[lang];
+                        if (item.name !== nameNode.translations[lang]) {
+                            item.name = nameNode.translations[lang];
+                            testChanged = true;
+                        }
                     }
                     if (locNode && locNode.translations && locNode.translations[lang] && locNode.translations[lang].trim() !== "") {
-                        item.location = locNode.translations[lang];
+                        if (item.location !== locNode.translations[lang]) {
+                            item.location = locNode.translations[lang];
+                            testChanged = true;
+                        }
                     }
                     if (rateNode && rateNode.translations && rateNode.translations[lang] && rateNode.translations[lang].trim() !== "") {
-                        item.rating = parseFloat(rateNode.translations[lang]) || item.rating;
+                        const newRate = parseFloat(rateNode.translations[lang]) || item.rating;
+                        if (item.rating !== newRate) {
+                            item.rating = newRate;
+                            testChanged = true;
+                        }
                     }
                 });
             }
         });
     }
 
-    // Trigger home.js to rebuild the DOM with the merged data
-    window.dispatchEvent(new Event("languageChanged"));
+    // Surgically update only the components whose data actually changed,
+    // avoiding a global languageChanged event that wipes puja cards and resets the hero slider!
+    const curLang = window.currentLang || localStorage.getItem("preferredLanguage") || "en";
+    if (faqChanged && typeof buildFaqList === "function" && document.getElementById("faqList") && window.FAQS) {
+        buildFaqList(document.getElementById("faqList"), window.FAQS[curLang] || window.FAQS.en);
+    }
+    if (testChanged && typeof buildTestimonialList === "function" && document.getElementById("testimonialGrid") && window.TESTIMONIALS) {
+        buildTestimonialList(document.getElementById("testimonialGrid"), window.TESTIMONIALS[curLang] || window.TESTIMONIALS.en);
+    }
 }
 
 // Re-apply when language is changed via existing language.js dropdown

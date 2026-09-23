@@ -45,6 +45,7 @@ const routes = [
   { method: "PUT",  path: "/api/admin/packages", middleware: [adminOnly],    handler: cms.updatePackages },
   { method: "GET",  path: "/api/admin/temples",  middleware: [adminOnly],    handler: cms.getTemples },
   { method: "PUT",  path: "/api/admin/temples",  middleware: [adminOnly],    handler: cms.updateTemples },
+  { method: "PUT",  path: "/api/admin/bookings/complete", middleware: [adminOnly], handler: booking.adminCompleteBooking },
   { method: "PUT",  path: "/api/admin/bookings/update", middleware: [adminOnly], handler: booking.adminUpdateBooking },
   { method: "DELETE", path: "/api/admin/bookings", middleware: [adminOnly], handler: booking.adminDeleteBooking },
   { method: "PUT",  path: "/api/admin/content/global", middleware: [adminOnly], handler: websiteContent.updateWebsiteContent },
@@ -53,6 +54,7 @@ const routes = [
   // --- Payment Endpoints ---
   { method: "GET",  path: "/api/payments/config",        middleware: [],              handler: payment.getPaymentConfig },
   { method: "POST", path: "/api/payments/order",         middleware: [optionalLogin], handler: payment.createOrder },
+  { method: "POST", path: "/api/payments/link",          middleware: [optionalLogin], handler: payment.createPaymentLink },
   { method: "POST", path: "/api/payments/webhook",       middleware: [],              handler: payment.webhook },
   { method: "POST", path: "/api/payments/verify",        middleware: [],              handler: payment.verifyPayment },
 

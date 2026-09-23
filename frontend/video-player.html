@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Watch Video - Shubha Sankalpam</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="assets/css/global.css">
+  <style>
+    body { background: #000; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+    .header { width: 100%; padding: 15px 20px; background: #111; display: flex; align-items: center; box-sizing: border-box; }
+    .back-btn { background: #333; color: #fff; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-size: 16px; display: flex; align-items: center; gap: 8px; text-decoration: none; font-weight: bold; }
+    .back-btn:hover { background: #444; }
+    video { max-width: 100%; max-height: calc(100vh - 80px); outline: none; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <a href="account.html" class="back-btn">&larr; Go Back</a>
+  </div>
+  <video id="player" controls autoplay></video>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoUrl = urlParams.get('url');
+    if (videoUrl) {
+      document.getElementById('player').src = videoUrl;
+    } else {
+      document.body.innerHTML = "<h2 style='color:white; margin:auto;'>Video not found</h2>";
+    }
+  </script>
+</body>
+</html>

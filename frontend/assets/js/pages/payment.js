@@ -14,12 +14,17 @@
       a. "Enable AutoPay" → create subscription → Razorpay mandate flow
       b. "Skip for now"   → redirect to account.html
    ================================================================ */
-initLayout();
+(function initPayment() {
+  initLayout();
 
-const bookingId = getParam("bookingId");
-const ref       = getParam("id") || "puja:0";
-const { item, type } = getItem(ref);
-if (!item || !bookingId) location.href = "puja.html";
+  const bookingId = getParam("bookingId");
+  let shortId     = getParam("shortId") || "";
+  const ref       = getParam("id") || "puja:0";
+  const { item, type } = getItem(ref);
+  if (!item || !bookingId) {
+    location.href = "puja.html";
+    return;
+  }
 
 let checkoutProfile = {};
 const checkoutProfileReady = api("/api/me").then(me => {
@@ -30,8 +35,8 @@ const checkoutProfileReady = api("/api/me").then(me => {
 }).catch(() => {});
 const isPackage = type === "pkg";   // AutoPay only for packages
 
-$id("payPuja").textContent   = localName(item);
-$id("payAmount").textContent = item.price.toLocaleString("en-IN");
+if ($id("payPuja") && item) $id("payPuja").textContent   = localName(item);
+if ($id("payAmount") && item && typeof item.price === "number") $id("payAmount").textContent = item.price.toLocaleString("en-IN");
 
 if (isPackage) {
   if ($id("pkg-steps")) {
@@ -140,12 +145,13 @@ async function showAutopayCard(keyId) {
    QR Flow (no Razorpay keys)
    ---------------------------------------------------------------- */
 async function startQrFlow() {
-  function numericBookingId(id) {
-    const value = String(id || "").toLowerCase();
-    if (/^[0-9a-f]{8}-/.test(value)) return String(parseInt(value.slice(0, 8), 16)).padStart(10, "0");
-    let hash = 0;
-    for (const char of value) hash = (Math.imul(hash, 31) + char.charCodeAt(0)) >>> 0;
-    return String(hash).padStart(10, "0");
+  if (!shortId && bookingId) {
+    try {
+      const linkRes = await api("/api/payments/link", "POST", { bookingId });
+      if (linkRes && linkRes.shortId) {
+        shortId = linkRes.shortId;
+      }
+    } catch (e) {}
   }
 
   $id("payUpi").textContent = SITE.UPI_ID;
@@ -153,7 +159,7 @@ async function startQrFlow() {
     "upi://pay?pa=" + encodeURIComponent(SITE.UPI_ID) +
     "&pn=" + encodeURIComponent(SITE.UPI_NAME) +
     "&am=" + item.price +
-    "&cu=INR&tn=" + encodeURIComponent("Booking " + numericBookingId(bookingId));
+    "&cu=INR&tn=" + encodeURIComponent("Booking " + (shortId || ""));
 
   if (typeof QRCode !== "undefined") {
     new QRCode($id("qrcode"), {
@@ -296,3 +302,4 @@ api("/api/payments/config").then(cfg => {
     startQrFlow();
   }
 }).catch(() => { $id("paymentStatus").textContent="Could not load payment settings. Please retry."; $id("paidBtn").textContent="Retry"; $id("paidBtn").onclick=()=>location.reload(); });
+})();

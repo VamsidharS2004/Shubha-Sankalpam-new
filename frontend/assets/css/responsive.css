@@ -80,6 +80,14 @@
   /* hide .nav-links entirely */
   .nav-links { display: none; }
 
+  /* Suppress abandoned cart FAB when booking/detail sticky bars are present to avoid multi-widget overlap */
+  body:has(.pd-sticky-bottom) .abandoned-fab,
+  body:has(.booking-layout) .abandoned-fab,
+  .pd-sticky-bottom ~ .abandoned-fab,
+  .booking-layout ~ .abandoned-fab {
+    display: none !important;
+  }
+
   /* Generic 3-up card grid: 3 columns -> 2 columns */
   .why-grid, .temple-grid, .testimonial-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
 
@@ -120,6 +128,40 @@
   .pd-tabs { gap: 20px; }
   
   .account-banner { flex-direction: column; align-items: flex-start; padding: 24px 20px; gap: 20px; }
+  .account-grid { display: flex !important; flex-direction: column !important; gap: 16px !important; }
+  .account-grid > .side-card {
+    position: static !important;
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    padding: 8px !important;
+    background: #fff !important;
+    border-radius: 14px !important;
+  }
+  .account-grid > .side-card::-webkit-scrollbar { display: none !important; }
+  .account-grid > .side-card .side-item {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    white-space: nowrap !important;
+    padding: 8px 14px !important;
+    font-size: 0.85rem !important;
+    border-radius: 20px !important;
+    margin: 0 !important;
+    background: #f8f6f2 !important;
+    border: 1px solid #ebdccb !important;
+  }
+  .account-grid > .side-card .side-item.active {
+    background: var(--red) !important;
+    color: #fff !important;
+    border-color: var(--red) !important;
+  }
+  .account-grid > div { width: 100% !important; min-width: 0 !important; }
   .ab-left { gap: 14px; }
   .ab-avatar { width: 56px; height: 56px; font-size: 1.6rem; }
   .ab-name-row { flex-wrap: wrap; gap: 10px; }

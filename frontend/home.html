@@ -34,26 +34,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-  html.fonts-loading .hero-landing {
-    opacity: 0;
-    pointer-events: none;
-  }
-  html:not(.fonts-loading) .hero-landing {
-    transition: opacity 0.3s ease;
-    opacity: 1;
-  }
-</style>
-<script>document.documentElement.classList.add('fonts-loading');document.fonts.ready.then(function(){document.documentElement.classList.remove('fonts-loading')});</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Serif+Telugu:wght@500;600;700&family=Noto+Serif+Devanagari:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/global.css?v=client-20260920">
-<link rel="stylesheet" href="assets/css/navbar.css?v=client-20260920">
-<link rel="stylesheet" href="assets/css/hero.css?v=client-20260920">
-<link rel="stylesheet" href="assets/css/home.css?v=client-20260920">
-<link rel="stylesheet" href="assets/css/animations.css?v=client-20260920">
-<link rel="stylesheet" href="assets/css/responsive.css?v=client-20260920">  <!-- always last -->
+<link rel="stylesheet" href="assets/css/global.css?v=client-20260923-1790184938020">
+<link rel="stylesheet" href="assets/css/navbar.css?v=client-20260923-1790184938020">
+<link rel="stylesheet" href="assets/css/hero.css?v=client-20260923-1790184938020">
+<link rel="stylesheet" href="assets/css/home.css?v=client-20260923-1790184938020">
+<link rel="stylesheet" href="assets/css/animations.css?v=client-20260923-1790184938020">
+<link rel="stylesheet" href="assets/css/responsive.css?v=client-20260923-1790184938020">  <!-- always last -->
 <title>Online Puja Booking — Book Vedic Pujas & Homams | Shubha Sankalpam</title>
 <meta name="description" content="Book authentic Vedic pujas and homams at sacred temples across India. Verified purohits, video proof within 48 hours, 100% secure booking.">
 </head>
@@ -203,6 +193,7 @@
       <button class="tab" data-cat="Special" data-i18n-list="filter_special">Special</button>
     </div>
     <div class="cards puja-carousel" id="pujaCards" style="text-align: left;"></div>
+    <div class="puja-dots" id="pujaDots"></div>
     
     <div class="view-all" style="margin-top: 35px;">
       <a href="puja.html" class="btn" style="background: #E85A1C; color: #fff; border-radius: 999px; padding: 10px 24px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;" data-i18n-list="view_all_pujas">View All Pujas <span>→</span></a>
@@ -249,7 +240,6 @@
   <button class="lightbox-nav next" id="lightboxNext" aria-label="Next image">›</button>
   <div class="lightbox-caption" id="lightboxCaption"></div>
 </div>
-</section>
 
 <section class="section" id="testimonials">
   <div class="container">
@@ -269,22 +259,22 @@
 <div id="site-footer"></div>
 
 <!-- ============ CONTENT (edit these files to change text/prices/images) ============ -->
-<script src="content/site-settings.js?v=client-20260920"></script>
-<script src="content/pujas.js?v=client-20260920"></script>
-<script src="content/packages.js?v=client-20260920"></script>
-<script src="content/puja-detail-defaults.js?v=client-20260920"></script>
-<script src="content/trust-highlights.js?v=client-20260920"></script>
-<script src="content/why-us.js?v=client-20260920"></script>
-<script src="content/temples.js?v=client-20260920"></script>
-<script src="content/testimonials.js?v=client-20260920"></script>
-<script src="content/faq.js?v=client-20260920"></script>
+<script src="content/site-settings.js?v=client-20260923-1790184938020"></script>
+<script src="content/pujas.js?v=client-20260923-1790184938020"></script>
+<script src="content/packages.js?v=client-20260923-1790184938020"></script>
+<script src="content/puja-detail-defaults.js?v=client-20260923-1790184938020"></script>
+<script src="content/trust-highlights.js?v=client-20260923-1790184938020"></script>
+<script src="content/why-us.js?v=client-20260923-1790184938020"></script>
+<script src="content/temples.js?v=client-20260923-1790184938020"></script>
+<script src="content/testimonials.js?v=client-20260923-1790184938020"></script>
+<script src="content/faq.js?v=client-20260923-1790184938020"></script>
 
 <!-- ============ SITE CODE (do not need to edit for content changes) ============ -->
-<script src="assets/js/main.js?v=client-20260920"></script>
-<script src="assets/js/language.js?v=client-20260920"></script>
-<script src="assets/js/navbar.js?v=client-20260920"></script>
-<script src="assets/js/animations.js?v=client-20260920"></script>
-<script src="assets/js/cards.js?v=client-20260920"></script>
-<script src="assets/js/pages/home.js?v=client-20260920"></script>  <script src="assets/js/cms-renderer.js?v=client-20260920"></script>
+<script src="assets/js/main.js?v=client-20260923-1790184938020"></script>
+<script src="assets/js/language.js?v=client-20260923-1790184938020"></script>
+<script src="assets/js/navbar.js?v=client-20260923-1790184938020"></script>
+<script src="assets/js/animations.js?v=client-20260923-1790184938020"></script>
+<script src="assets/js/cards.js?v=client-20260923-1790184938020"></script>
+<script src="assets/js/pages/home.js?v=client-20260923-1790184938020"></script>  <script src="assets/js/cms-renderer.js?v=client-20260923-1790184938020"></script>
 </body>
 </html>

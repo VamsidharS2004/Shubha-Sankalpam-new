@@ -398,13 +398,13 @@
   scroll-snap-align:start;
 }
 
-.puja-dots{display:flex;justify-content:center;gap:9px;margin-top:22px; display: none !important;}
+.puja-dots{display:flex;justify-content:center;gap:9px;margin-top:22px;}
 .puja-dots .dot{
   width:9px;height:9px;border-radius:50%;border:none;padding:0;
-  background:rgba(255,255,255,.3);cursor:pointer;
+  background:rgba(107,18,32,.25);cursor:pointer;
   transition:background var(--dur-fast,.22s) ease,width var(--dur-med,.5s) ease;
 }
-.puja-dots .dot.active{background:var(--gold);width:24px;border-radius:5px}
+.puja-dots .dot.active{background:var(--maroon,#6B1220);width:24px;border-radius:5px}
 
 /* ================================================================
    WHY SHUBHA SANKALPAM — value-prop grid

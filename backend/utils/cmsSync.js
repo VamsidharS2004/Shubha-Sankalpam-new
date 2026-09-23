@@ -70,7 +70,7 @@ async function syncFromSupabase() {
                 muhurat: pkg.muhurat,
                 price: pkg.price,
                 badge: pkg.badge,
-                image: (pkg.media && pkg.media.image) ? pkg.media.image : pkg.media, // Handle legacy string or object
+                image: (pkg.media && typeof pkg.media === 'string') ? pkg.media : (pkg.media && pkg.media.image) ? pkg.media.image : "",
                 detail: pkg.detail || {}
             }));
             safeWrite(PACKAGES_FILE, "packages", packages);
@@ -95,6 +95,7 @@ async function syncFromSupabase() {
                 basePrice: row.base_price,
                 cat: row.cat,
                 image: row.image,
+                gallery: Array.isArray(row.gallery) ? row.gallery : [],
                 detail: row.detail || {}
             }));
             
@@ -112,22 +113,25 @@ async function syncFromSupabase() {
 async function syncPackagesToSupabase(packagesArray) {
     if (!supabase) return;
     
-    const rows = packagesArray.map(pkg => ({
-        id: pkg.id || makeId(pkg.name),
-        name: pkg.name || "",
-        name_te: pkg.name_te || "",
-        name_hi: pkg.name_hi || "",
-        description: pkg.desc || "",
-        description_te: pkg.desc_te || "",
-        description_hi: pkg.desc_hi || "",
-        temple: pkg.temple || "",
-        date: pkg.date || "",
-        muhurat: pkg.muhurat || "",
-        price: Number(pkg.price) || 0,
-        badge: pkg.badge || "",
-        media: pkg.image ? { image: pkg.image } : {},
-        detail: pkg.detail || {}
-    }));
+    const rows = packagesArray.map(pkg => {
+        const img = pkg.image || (pkg.media && typeof pkg.media === 'string' ? pkg.media : pkg.media?.image) || "";
+        return {
+            id: pkg.id || makeId(pkg.name),
+            name: pkg.name || "",
+            name_te: pkg.name_te || "",
+            name_hi: pkg.name_hi || "",
+            description: pkg.desc || "",
+            description_te: pkg.desc_te || "",
+            description_hi: pkg.desc_hi || "",
+            temple: pkg.temple || "",
+            date: pkg.date || "",
+            muhurat: pkg.muhurat || "",
+            price: Number(pkg.price) || 0,
+            badge: pkg.badge || "",
+            media: img ? { image: img } : {},
+            detail: pkg.detail || {}
+        };
+    });
     
     const { error } = await supabase.from('cms_packages').upsert(rows, { onConflict: 'id' });
     if (error) console.error("[CMS Sync] Error pushing packages:", error.message);
@@ -153,6 +157,7 @@ async function syncPujasToSupabase(pujasArray) {
         base_price: Number(puja.basePrice) || Number(puja.price) || 0,
         cat: puja.cat || "All",
         image: puja.image || "",
+        gallery: Array.isArray(puja.gallery) ? puja.gallery : [],
         detail: puja.detail || {}
     }));
     
