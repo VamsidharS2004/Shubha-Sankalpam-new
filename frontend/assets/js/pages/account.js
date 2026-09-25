@@ -181,10 +181,11 @@ function renderBookingsList() {
       card.className = "card";
       card.innerHTML = cardHTML(matchedItem, refId.split(":")[1] || 0, type);
 
+      const bookingIdText = b.shortId || (typeof numericBookingId === "function" ? numericBookingId(b.id) : b.id.split('-')[0]);
+
       // 1. Replace the meta info (Temple/Date) with Booking specific info (Gotram/Family/Booking Date)
       const meta = card.querySelector(".card-meta");
       if (meta) {
-        const bookingIdText = b.shortId || (typeof numericBookingId === "function" ? numericBookingId(b.id) : b.id.split('-')[0]);
         meta.innerHTML = `
           <span title="Booking ID"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px; margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg> ID: ${bookingIdText}</span>
           <span title="Booking Date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> ${b.createdAt ? new Date(b.createdAt).toLocaleDateString("en-IN") : "Date not available"}</span>
@@ -196,6 +197,8 @@ function renderBookingsList() {
       const foot = card.querySelector(".card-foot");
       if (foot) {
         let actionBtn = "";
+        const detailsBtn = `<a class="book-link" href="#" onclick="event.preventDefault(); location.href='payment.html?bookingId=${b.id}&id=${refId}'" style="background:#f1f1f1; color:#333; border: 1px solid #ddd;">Your Booking Details &rarr;</a>`;
+
         if (b.status === "payment-pending" || b.status === "failed") {
              actionBtn = `
               <div style="display:flex; align-items:center; gap:8px;">
@@ -206,10 +209,13 @@ function renderBookingsList() {
                 <a class="book-link" href="#" onclick="event.preventDefault(); location.href='payment.html?bookingId=${b.id}&id=${refId}&start=1'">Continue <span class="arrow">&rarr;</span></a>
               </div>`;
         } else if (b.status === "video-sent" && b.videoUrl) {
-           actionBtn = `<a class="book-link" href="video-player.html?url=${encodeURIComponent(b.videoUrl)}">Watch Video <span class="arrow">&rarr;</span></a>`;
+           actionBtn = `
+             <div style="display:flex; align-items:center; gap:8px;">
+               ${detailsBtn}
+               <a class="book-link" href="video-player.html?url=${encodeURIComponent(b.videoUrl)}">Watch Video <span class="arrow">&rarr;</span></a>
+             </div>`;
         } else {
-           // For Ongoing/Completed without video yet, just show status as text on the right
-           actionBtn = "";
+           actionBtn = detailsBtn;
         }
         
         foot.innerHTML = `

@@ -18,7 +18,7 @@
 .discover h1 {
     position: relative;
     padding-left: 22px;
-    font-family: 'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;
+    font-family: var(--font);
     font-weight: 800;
     letter-spacing: -.01em;
     font-size: clamp(1.8rem,4.2vw,2.9rem);
@@ -41,7 +41,7 @@
 }
 
 .discover p {
-    font-family: Georgia,'Times New Roman',serif;
+    font-family: var(--font);
     color: #F7ECE2;
     font-size: .98rem;
     max-width: 620px;
@@ -63,7 +63,7 @@
     border: 2px solid var(--gold);
     background: rgba(255, 255, 255, 0.95);
     box-shadow: 0 8px 28px rgba(0,0,0,0.4);
-    font-family: 'Manrope',sans-serif;
+    font-family: var(--font);
     font-size: .95rem;
     color: var(--ink);
     transition: all 0.3s ease;
@@ -101,7 +101,7 @@
 .wm-r { right: 40px; }
 
 .listing-heading {
-    font-family: 'Manrope',sans-serif;
+    font-family: var(--font);
     font-weight: 800;
     font-size: clamp(1.4rem,3vw,1.9rem);
     color: var(--ink);

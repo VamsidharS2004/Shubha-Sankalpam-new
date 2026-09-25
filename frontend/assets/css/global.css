@@ -33,7 +33,7 @@
   --line: #E8D9C3;         /* Borders and dividers */
   --radius: 16px;          /* Card/button border-radius */
   --shadow: 0 12px 36px rgba(155, 28, 28, 0.08); /* Maroon-tinted shadow */
-  --font: 'Manrope', 'Noto Sans Telugu', 'Noto Sans Devanagari', sans-serif;
+  --font: 'Poppins', 'Anek Telugu', sans-serif;
   --header-h: 78px;        /* Fixed header height offset */
   
   /* Modern Fluid Typography & Spacing */
@@ -211,9 +211,9 @@ body{padding-top:var(--header-h, 78px)}
 
 /* Big display headings now use the elegant serif, like the real site */
 
-.section-title{font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-weight:800;letter-spacing:-.01em}
+.section-title{font-family: var(--font);font-weight:800;letter-spacing:-.01em}
 
-.detail-info h1{font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-weight:800;letter-spacing:-.01em;color:var(--red)}
+.detail-info h1{font-family: var(--font);font-weight:800;letter-spacing:-.01em;color:var(--red)}
 
 /* ============ DISCOVER BANNER (matched to screenshot) ============ */
 

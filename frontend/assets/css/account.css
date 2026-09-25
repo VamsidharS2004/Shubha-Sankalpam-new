@@ -20,8 +20,7 @@
 .ab-left{display:flex;align-items:center;gap:24px}
 .ab-avatar{width:70px;height:70px;background:#DDBB93;color:#500e16;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:700;font-family:serif;flex:none;border:3px solid #7a1523}
 .ab-name-row{display:flex;align-items:center;gap:12px;margin-bottom:6px}
-.ab-name-row h2{font-size:1.6rem;font-weight:700;margin:0;font-family:'Fraunces', serif}
-.ab-badge{background:transparent;border:1px solid #DDBB93;color:#DDBB93;padding:2px 8px;border-radius:6px;font-size:0.7rem;font-weight:700;letter-spacing:1px}
+.ab-name-row h2{font-size:1.6rem;font-weight:700;margin:0;font-family: var(--font);border:1px solid #DDBB93;color:#DDBB93;padding:2px 8px;border-radius:6px;font-size:0.7rem;font-weight:700;letter-spacing:1px}
 .ab-phone-row{display:flex;align-items:center;gap:8px;font-size:0.95rem;color:#f0e6d6}
 .ab-icon{color:#DDBB93}
 .ab-dot{margin:0 4px;font-size:0.8rem;color:#DDBB93}
@@ -47,17 +46,14 @@
 
 .panel-title .pt-icon{width:34px;height:34px;border-radius:9px;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1rem}
 
-.panel-title h2{font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-weight:800;letter-spacing:-.01em;font-size:1.5rem;color:var(--ink)}
+.panel-title h2{font-family: var(--font);font-weight:800;letter-spacing:-.01em;font-size:1.5rem;color:var(--ink)}
 
 /* DASHBOARD STATS */
 .dash-stats{display:grid;grid-template-columns:repeat(3,minmax(0, 1fr));gap:20px;margin-bottom:34px}
 .dash-stat{background:#fff;border:1px solid #E8D9C3;border-radius:14px;padding:24px;text-align:center;box-shadow:var(--shadow)}
 .dash-stat span{display:block;font-size:0.8rem;font-weight:700;color:var(--muted);letter-spacing:0.5px;margin-bottom:12px}
-.dash-stat b{display:block;font-size:2.2rem;font-weight:800;color:var(--red);font-family:'Fraunces', serif}
-
-/* DASHBOARD CARD */
-.dash-card{background:#fff;border:1px solid #E8D9C3;border-radius:14px;padding:30px;box-shadow:var(--shadow)}
-.dash-card h3{font-size:1.4rem;font-family:'Fraunces', serif;color:var(--red);margin-bottom:24px;font-weight:800}
+.dash-stat b{display:block;font-size:2.2rem;font-weight:800;color:var(--red);font-family: var(--font);border:1px solid #E8D9C3;border-radius:14px;padding:30px;box-shadow:var(--shadow)}
+.dash-card h3{font-size:1.4rem;font-family: var(--font);color:var(--red);margin-bottom:24px;font-weight:800}
 .dash-grid{display:grid;grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);gap:24px}
 .dash-item{display:flex;flex-direction:column;gap:6px}
 .dash-item label{font-size:0.85rem;color:var(--red);font-weight:600}

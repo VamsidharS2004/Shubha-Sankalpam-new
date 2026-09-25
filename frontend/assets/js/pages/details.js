@@ -13,7 +13,7 @@ window.currentPuja = item;
 if (!item) {
   const container = document.querySelector('main') || document.querySelector('.pd-content') || document.body;
   if (container) {
-    container.innerHTML = '<div style="text-align:center; padding: 100px 20px; font-family:sans-serif;"><h2 style="color:#d32f2f;">Puja not found</h2><p>The puja you are looking for is currently unavailable or has been discontinued.</p><a href="puja.html" style="display:inline-block; margin-top: 20px; padding: 10px 20px; background:var(--primary, #6B1220); color:#fff; text-decoration:none; border-radius:5px;">View Available Pujas</a></div>';
+    container.innerHTML = '<div style="text-align:center; padding: 100px 20px; font-family:sans-serif;"><h2 style="color:#d32f2f; margin-bottom:15px;">This puja is currently unavailable</h2><p style="color:#555; margin-bottom:25px;">The puja you booked has been removed or is no longer available for new bookings. You can still access your booking details in My Account.</p><a href="puja.html" style="display:inline-block; margin-top: 20px; padding: 12px 24px; background:var(--primary, #8B1A1A); color:#fff; text-decoration:none; border-radius:8px; font-weight:bold;">Explore Other Pujas</a></div>';
   }
 } else {
 if (authToken && item) {

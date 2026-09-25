@@ -1,84 +1,124 @@
 const fs = require('fs');
 const path = require('path');
-const Busboy = require('busboy');
-const { send } = require('../utils/http');
 const crypto = require('crypto');
+const { send } = require('../utils/http');
 
-async function uploadLocalVideo(req, res) {
-  if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
-
-  const contentType = req.headers['content-type'] || '';
-  if (!contentType.includes('multipart/form-data')) {
-    return send(res, 400, { error: 'Invalid content type' });
-  }
-
-  // 3 GB max for large pujas
-  const MAX_BYTES = 3 * 1024 * 1024 * 1024; 
-  
-  let busboy;
-  try {
-    busboy = Busboy({
-      headers: req.headers,
-      limits: {
-        files: 1, 
-        fileSize: MAX_BYTES
-      }
-    });
-  } catch (err) {
-    return send(res, 400, { error: 'Invalid multipart payload' });
-  }
-
-  let hasResponded = false;
-  let savedFilePath = null;
-
-  const abortRequest = (statusCode, message) => {
-    if (hasResponded) return;
-    hasResponded = true;
-    req.unpipe(busboy);
-    busboy.removeAllListeners();
-    res.statusCode = statusCode;
-    res.end(JSON.stringify({ error: message }));
-  };
-
-  busboy.on('error', () => abortRequest(400, 'Malformed stream'));
-  busboy.on('filesLimit', () => abortRequest(400, 'Multiple files are not allowed'));
-
-  // Ensure uploads/videos dir exists
-  const uploadDir = path.join(__dirname, '..', 'uploads', 'videos');
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
-
-  let fileUrl = null;
-
-  busboy.on('file', (name, file, info) => {
-    const ext = path.extname(info.filename) || '.mp4';
-    const uuid = crypto.randomUUID();
-    const filename = `${uuid}${ext}`;
-    
-    savedFilePath = path.join(uploadDir, filename);
-    fileUrl = `/uploads/videos/${filename}`;
-
-    const writeStream = fs.createWriteStream(savedFilePath);
-    
-    file.on('limit', () => {
-      writeStream.destroy();
-      fs.unlink(savedFilePath, () => {});
-      abortRequest(413, 'File too large. Maximum 3GB.');
-    });
-
-    file.pipe(writeStream);
-  });
-
-  busboy.on('finish', () => {
-    if (hasResponded) return;
-    if (!fileUrl) return abortRequest(400, 'No video file provided.');
-    
-    hasResponded = true;
-    send(res, 200, { success: true, url: fileUrl });
-  });
-
-  req.pipe(busboy);
+function getTempDir() {
+  const dir = path.join(__dirname, '..', 'uploads', 'temp');
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  return dir;
 }
 
-module.exports = { uploadLocalVideo };
+async function startVideoUpload(req, res) {
+  if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
+  const { supabase: activeSupabase } = require('../utils/supabase');
+  if (!activeSupabase) return send(res, 503, { error: 'Storage configuration missing' });
+
+  const uploadId = crypto.randomUUID();
+  const tempPath = path.join(getTempDir(), uploadId);
+  fs.writeFileSync(tempPath, Buffer.alloc(0)); // create empty file
+  
+  send(res, 200, { success: true, uploadId });
+}
+
+async function uploadVideoChunk(req, res) {
+  if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
+  
+  const uploadId = req.query.id;
+  const chunkIndex = parseInt(req.query.index, 10);
+  const chunkSize = parseInt(req.query.size, 10);
+  
+  if (!uploadId || isNaN(chunkIndex) || isNaN(chunkSize)) {
+    return send(res, 400, { error: 'Missing chunk metadata' });
+  }
+
+  const tempPath = path.join(getTempDir(), uploadId);
+  if (!fs.existsSync(tempPath)) {
+    return send(res, 404, { error: 'Upload session not found' });
+  }
+
+  // 1.5 GB limit check
+  const MAX_BYTES = 1.5 * 1024 * 1024 * 1024;
+
+  const buffers = [];
+  let bytesReceived = 0;
+
+  req.on('data', chunk => {
+    buffers.push(chunk);
+    bytesReceived += chunk.length;
+  });
+
+  req.on('end', () => {
+    const chunkBuffer = Buffer.concat(buffers);
+    const offset = chunkIndex * chunkSize;
+    
+    if (offset + chunkBuffer.length > MAX_BYTES) {
+      return send(res, 413, { error: 'File size exceeds 1.5 GB limit' });
+    }
+
+    try {
+      const fd = fs.openSync(tempPath, 'r+');
+      fs.writeSync(fd, chunkBuffer, 0, chunkBuffer.length, offset);
+      fs.closeSync(fd);
+      send(res, 200, { success: true });
+    } catch (err) {
+      console.error("Chunk write error", err);
+      send(res, 500, { error: 'Failed to write chunk' });
+    }
+  });
+  
+  req.on('error', (err) => {
+    console.error("Chunk stream error", err);
+    send(res, 500, { error: 'Stream error' });
+  });
+}
+
+async function finishVideoUpload(req, res) {
+  if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
+  const { supabase: activeSupabase } = require('../utils/supabase');
+  
+  const uploadId = req.query.id;
+  if (!uploadId) return send(res, 400, { error: 'Missing upload ID' });
+
+  const tempPath = path.join(getTempDir(), uploadId);
+  if (!fs.existsSync(tempPath)) {
+    return send(res, 404, { error: 'Upload session not found' });
+  }
+
+  try {
+    const stat = fs.statSync(tempPath);
+    if (stat.size === 0) {
+      return send(res, 400, { error: 'Empty file' });
+    }
+
+    const ext = '.mp4';
+    const filename = `${uploadId}${ext}`;
+    const storagePath = `videos/${filename}`;
+
+    const fileStream = fs.createReadStream(tempPath);
+    
+    // Upload to Supabase using duplex: half for streams
+    const { data, error } = await activeSupabase.storage.from('media').upload(storagePath, fileStream, {
+      contentType: 'video/mp4',
+      duplex: 'half',
+      upsert: false
+    });
+
+    if (error) {
+      console.error('Supabase upload error:', error);
+      return send(res, 502, { error: 'Storage upload failed' });
+    }
+
+    const { data: publicUrlData } = activeSupabase.storage.from('media').getPublicUrl(storagePath);
+    
+    // Cleanup local file
+    try { fs.unlinkSync(tempPath); } catch (e) {}
+
+    send(res, 200, { success: true, url: publicUrlData.publicUrl });
+  } catch (err) {
+    console.error("Finish upload error", err);
+    send(res, 500, { error: 'Failed to finish upload' });
+  }
+}
+
+module.exports = { startVideoUpload, uploadVideoChunk, finishVideoUpload };

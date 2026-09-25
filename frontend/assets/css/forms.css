@@ -53,7 +53,7 @@
 
 .login-card h2{font-size:1.5rem;font-weight:700;margin-bottom:10px}
 
-.login-card p{font-family:Georgia,'Times New Roman',serif;color:#4A4F5C;font-size:.98rem;margin-bottom:26px}
+.login-card p{font-family: var(--font);color:#4A4F5C;font-size:.98rem;margin-bottom:26px}
 
 .login-big-btn{width:100%;background:var(--red);color:#fff;border:none;border-radius:999px;padding:15px 24px;font-weight:700;font-size:1rem;font-family:inherit;position:relative;display:flex;align-items:center;justify-content:center}
 
@@ -71,12 +71,10 @@
 .login-phone-wrapper select:focus { background: #fdfdfd; }
 .login-phone-wrapper input { border: none !important; margin-bottom: 0 !important; border-radius: 0 !important; text-align: left !important; flex: 1; }
 
-.demo-otp{background:var(--red-soft);color:var(--red);border-radius:10px;padding:10px;font-weight:700;font-size:.9rem;margin-bottom:16px!important;font-family:'Manrope',sans-serif!important}
-
-.form-page{padding:0 20px 70px;display:flex;justify-content:center}
+.demo-otp{background:var(--red-soft);color:var(--red);border-radius:10px;padding:10px;font-weight:700;font-size:.9rem;margin-bottom:16px!important;font-family: var(--font);display:flex;justify-content:center}
 
 .booking-progress-container{text-align:center;padding:44px 20px 30px;}
-.booking-progress-container h2{font-family:'Noto Sans Telugu','Noto Sans Devanagari',sans-serif;font-size:1.6rem;font-weight:700;color:var(--ink);margin-bottom:24px}
+.booking-progress-container h2{font-family: var(--font);font-size:1.6rem;font-weight:700;color:var(--ink);margin-bottom:24px}
 .booking-progress{display:flex;align-items:center;justify-content:center;gap:12px;max-width:400px;margin:0 auto;}
 .step{display:flex;flex-direction:column;align-items:center;gap:8px}
 .step-circle{width:34px;height:34px;border-radius:50%;border:2px solid #ddd;color:#999;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;background:#fff}
@@ -109,7 +107,7 @@
 .summary-card{background:#fff;border-radius:16px;border:1px solid var(--line);box-shadow:var(--shadow);padding:24px;margin-bottom:16px}
 .summary-puja-header{display:flex;gap:14px;margin-bottom:18px}
 .summary-img{width:70px;height:70px;border-radius:8px;background:var(--line);flex:none;background-size:cover;background-position:center}
-.summary-title h3{font-family:'Fraunces',serif;font-weight:700;font-size:1.1rem;color:var(--ink);margin-bottom:4px;line-height:1.3}
+.summary-title h3{font-family: var(--font);font-weight:700;font-size:1.1rem;color:var(--ink);margin-bottom:4px;line-height:1.3}
 .summary-title p{font-size:.85rem;color:var(--muted);font-weight:600}
 .summary-date{display:flex;align-items:center;gap:8px;padding:12px 14px;background:#F7ECE2;border-radius:8px;color:var(--forest);font-weight:700;font-size:.9rem;margin-bottom:20px}
 .summary-breakdown{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:16px}

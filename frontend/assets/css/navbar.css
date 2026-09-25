@@ -34,13 +34,36 @@ header.flow-header .logo {margin:auto}
 
 .logo{display:flex;align-items:center;gap:10px}
 
-.logo svg{width:40px;height:48px}
+.logo svg{width:clamp(36px, 5vw, 44px);height:clamp(44px, 6vw, 54px);flex-shrink:0}
 
-.logo-text{line-height:1.05}
 
-.logo-text b{display:block;font-weight:700;font-size:1.65rem;color:var(--red-dark);letter-spacing:0;font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif}
 
-.logo-text small{display:block;font-weight:600;font-size:.65rem;color:var(--red-dark);letter-spacing:.42em;text-transform:lowercase;margin-top:-2px}
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.1;
+  gap: 1px;
+}
+
+.logo-text b {
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: clamp(1.2rem, 3.5vw, 1.85rem);
+  color: var(--red-dark);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.logo-text small {
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: clamp(0.55rem, 1.5vw, 0.75rem);
+  color: var(--red-dark);
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
 
 /* .nav-links{display:flex;gap:40px;font-weight:700;font-size:.7rem;letter-spacing:.05em;margin-left:auto;justify-content:flex-end;align-items:center} */
 .nav-links{display:flex;gap:40px;font-weight:700;font-size:.85rem;letter-spacing:.05em;margin-left:auto;justify-content:flex-end;align-items:center}
@@ -128,13 +151,13 @@ header.flow-header .logo {margin:auto}
 .footer-wrap::after{display:none}
 
 .cta-band{text-align:center;padding:72px 20px 48px;position:relative;z-index:1}
-.cta-band h2{color:var(--gold);font-size:clamp(1.6rem,3.4vw,2.4rem);margin-bottom:12px;font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-weight:700;letter-spacing:0.02em}
+.cta-band h2{color:var(--gold);font-size:clamp(1.6rem,3.4vw,2.4rem);margin-bottom:12px;font-family: var(--font);font-weight:700;letter-spacing:0.02em}
 .cta-band p{color:#E8D2B8;margin-bottom:30px;font-size:1.05rem;max-width:600px;margin-left:auto;margin-right:auto}
 .cta-note{margin-top:22px;font-size:.85rem;font-weight:600;color:var(--gold);display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
 
 /* "Follow us" social row */
 .follow-row{display:flex;align-items:center;justify-content:center;gap:10px;margin:12px 0 34px;flex-wrap:wrap;position:relative;z-index:1}
-.follow-label{font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-size:clamp(1.4rem,3vw,1.8rem);color:var(--gold);margin-right:8px}
+.follow-label{font-family: var(--font);font-size:clamp(1.4rem,3vw,1.8rem);color:var(--gold);margin-right:8px}
 .soc{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;transition:transform .2s,box-shadow .2s;flex:none;box-shadow:0 3px 9px rgba(0,0,0,0.2);line-height:0}
 .soc svg{display:block;width:20px !important;height:20px !important}
 .soc:hover{transform:translateY(-3px);box-shadow:0 6px 16px rgba(0,0,0,0.4)}
@@ -146,7 +169,7 @@ header.flow-header .logo {margin:auto}
 
 /* Quick Links / Legal / Contact columns */
 .foot-grid{display:grid;grid-template-columns:minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr);gap:40px;padding:50px 0 40px;border-top:1px solid rgba(201,162,39,0.15);position:relative;z-index:1}
-.foot-grid h4{color:#fff;margin-bottom:18px;font-size:1.05rem;font-family:'Fraunces','Noto Serif Devanagari',Georgia,serif;font-weight:600;letter-spacing:0.04em}
+.foot-grid h4{color:#fff;margin-bottom:18px;font-size:1.05rem;font-family: var(--font);font-weight:600;letter-spacing:0.04em}
 .foot-grid a{display:block;font-size:.9rem;margin-bottom:12px;color:#E8D2B8;overflow-wrap:break-word;transition:color 0.2s;opacity: 0.85;}
 .foot-grid a:hover{color:#fff;opacity: 1;}
 .foot-brand p{font-size:.9rem;max-width:290px;margin-top:12px;color:#E8D2B8;line-height:1.7;opacity: 0.85;}

@@ -44,13 +44,13 @@ function serveStatic(res, filePath) {
   });
 }
 
-const server = http.createServer(async (req, res) => {
+const requestHandler = async (req, res) => {
   try {
     /* URL parsing must be INSIDE the try block — a malformed request
        path (e.g. a bot probing "//" or other odd paths) would throw
        here, and if that throw isn't caught, it takes down the ENTIRE
        server for every visitor, not just that one request. */
-    const url = new URL(req.url, "http://localhost");
+    const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
 
     /* 1. API */
     if (await handleApi(req, res, url)) return;
@@ -61,7 +61,6 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, html, "text/html");
     }
 
-    
     /* 2.5 Local Video Uploads (Streaming) */
     if (url.pathname.startsWith("/uploads/")) {
       const uploadPath = path.join(__dirname, decodeURIComponent(url.pathname));
@@ -123,7 +122,9 @@ const server = http.createServer(async (req, res) => {
   } catch (e) {
     send(res, 400, { error: e.message || "Bad request" });
   }
-});
+};
+
+const server = http.createServer(requestHandler);
 
 /* Safety net: if any bug anywhere in the code throws an error that
    nothing else caught, log it instead of crashing the whole server.
@@ -141,12 +142,16 @@ process.on("SIGTERM", handleShutdown);
 
 const SERVER_PORT = process.env.PORT || PORT;
 
-server.listen(SERVER_PORT, "0.0.0.0", () => {
-  console.log("");
-  console.log("🪔  Puja booking site is running!");
-  console.log(`    Website:  http://0.0.0.0:${SERVER_PORT}`);
-  console.log(`    Admin:    http://0.0.0.0:${SERVER_PORT}/admin`);
-  console.log("");
-  console.log("    OTPs are printed here (and shown on screen in demo mode).");
-  console.log("    Press Ctrl+C to stop the server.");
-});
+if (require.main === module) {
+  server.listen(SERVER_PORT, "0.0.0.0", () => {
+    console.log("");
+    console.log("🪔  Puja booking site is running!");
+    console.log(`    Website:  http://0.0.0.0:${SERVER_PORT}`);
+    console.log(`    Admin:    http://0.0.0.0:${SERVER_PORT}/admin`);
+    console.log("");
+    console.log("    OTPs are printed here (and shown on screen in demo mode).");
+    console.log("    Press Ctrl+C to stop the server.");
+  });
+}
+
+module.exports = requestHandler;

@@ -23,7 +23,7 @@
 
 .pd-arrow.next{right:12px}
 
-.pd-caption{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(60,5,5,.85));color:#fff;font-family:'Manrope',sans-serif;font-weight:800;font-size:1.35rem;padding:34px 18px 14px;text-align:center;letter-spacing:.02em}
+.pd-caption{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(60,5,5,.85));color:#fff;font-family: var(--font);font-weight:800;font-size:1.35rem;padding:34px 18px 14px;text-align:center;letter-spacing:.02em}
 
 .pd-swipe{position:absolute;right:14px;bottom:14px;color:#fff;font-size:.78rem;font-weight:700;opacity:.9}
 
@@ -45,7 +45,7 @@
 
 .om-line em{font-style:normal;font-size:.74rem;font-weight:800;letter-spacing:.12em;color:#5A0F1C;white-space:nowrap}
 
-.pd-right h1{position:relative;padding-left:18px;font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-weight:800;letter-spacing:-.01em;font-size:clamp(1.5rem,2.8vw,2.1rem);color:var(--maroon);margin-bottom:18px}
+.pd-right h1{position:relative;padding-left:18px;font-family: var(--font);font-weight:800;letter-spacing:-.01em;font-size:clamp(1.5rem,2.8vw,2.1rem);color:var(--maroon);margin-bottom:18px}
 .pd-right h1::before{content:"";position:absolute;left:0;top:.1em;bottom:.1em;width:4px;border-radius:2px;background:var(--gold)}
 
 .pd-info-card{border:1px solid var(--line);border-radius:12px;background:#fff}
@@ -105,7 +105,7 @@
 
 .pd-grid{display:grid;grid-template-columns:minmax(0, 1fr) 330px;gap:36px;padding-top:26px;padding-bottom:110px;align-items:start}
 
-.pd-h{font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-weight:800;letter-spacing:-.01em;font-size:1.75rem;margin:34px 0 18px;display:flex;align-items:center;gap:12px}
+.pd-h{font-family: var(--font);font-weight:800;letter-spacing:-.01em;font-size:1.75rem;margin:34px 0 18px;display:flex;align-items:center;gap:12px}
 .pd-h::before{content:"";width:9px;height:9px;flex:none;background:var(--gold);transform:rotate(45deg);border-radius:2px}
 
 .pd-main section:first-child .pd-h{margin-top:0}
@@ -124,7 +124,7 @@
 
 .ben-icon{width:42px;height:42px;border-radius:10px;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex:none}
 
-.benefit-card h3{font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-weight:700;font-size:1.1rem;margin-bottom:6px}
+.benefit-card h3{font-family: var(--font);font-weight:700;font-size:1.1rem;margin-bottom:6px}
 
 .benefit-card p{font-size:.88rem;color:var(--muted)}
 
@@ -140,7 +140,7 @@
 
 .proc-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 12px 24px rgba(107, 18, 32, 0.12)}
 
-.proc-card h3{font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-weight:700;font-size:1.15rem;margin-bottom:8px}
+.proc-card h3{font-family: var(--font);font-weight:700;font-size:1.15rem;margin-bottom:8px}
 
 .proc-card p{font-size:.92rem;color:var(--muted);line-height:1.7}
 
@@ -161,7 +161,7 @@
 
 .temple-info{padding:28px;position:relative}
 
-.temple-info h3{font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-weight:700;font-size:1.35rem;margin-bottom:8px}
+.temple-info h3{font-family: var(--font);font-weight:700;font-size:1.35rem;margin-bottom:8px}
 
 .temple-info p{color:var(--red);font-weight:600;font-size:.9rem}
 
@@ -174,7 +174,7 @@
 
 .rc-num{position:absolute;top:20px;right:22px;font-weight:800;color:#EAC9A0;font-size:1.05rem}
 
-.receive-card h3{font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-weight:700;font-size:1.05rem;line-height:1.5}
+.receive-card h3{font-family: var(--font);font-weight:700;font-size:1.05rem;line-height:1.5}
 
 .pd-side{position:sticky;top:calc(var(--header-h, 78px) + 56px);display:flex;flex-direction:column;gap:20px}
 
@@ -185,7 +185,7 @@
 
 .inc-icon{width:40px;height:40px;border-radius:10px;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.05rem}
 
-.inc-head b{font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-weight:600;display:block}
+.inc-head b{font-family: var(--font);font-weight:600;display:block}
 
 .inc-head small{font-size:.62rem;font-weight:800;letter-spacing:.1em;color:var(--red)}
 
@@ -198,7 +198,7 @@
 .advisor-card{border:1px solid rgba(201, 162, 39, 0.3);border-radius:14px;background:#fff;padding:22px;box-shadow:0 6px 16px rgba(107, 18, 32, 0.06);transition:all 0.3s}
 .advisor-card:hover{border-color:var(--gold);box-shadow:0 12px 24px rgba(107, 18, 32, 0.12)}
 
-.advisor-card b{font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-weight:600;font-size:1.15rem}
+.advisor-card b{font-family: var(--font);font-weight:600;font-size:1.15rem}
 
 .advisor-card p{font-size:.88rem;color:var(--muted);margin:8px 0 16px}
 
@@ -248,7 +248,7 @@
 
 .info-table .it-label{display:block;font-size:.72rem;font-weight:800;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
 
-.info-table .it-value{font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-weight:600;font-size:1.02rem;color:var(--ink)}
+.info-table .it-value{font-family: var(--font);font-weight:600;font-size:1.02rem;color:var(--ink)}
 
 .pd-grid > *, .pd-top > *, .account-grid > *, .temple-card > *,
 .benefit-grid > *, .receive-grid > *, .info-table > *,
@@ -270,7 +270,7 @@
 
 .review-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
 
-.review-quote{font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-size:2.2rem;color:var(--red);line-height:.6}
+.review-quote{font-family: var(--font);font-size:2.2rem;color:var(--red);line-height:.6}
 
 .review-rating{color:var(--gold);font-weight:700;font-size:.92rem}
 
@@ -286,7 +286,7 @@
 
 .review-stats span{flex:1;min-width:200px;background:var(--forest-soft);color:var(--forest);border-radius:12px;padding:16px;text-align:center;font-size:.9rem;font-weight:600}
 
-.review-stats b{display:block;font-family:'Fraunces','Noto Serif Devanagari','Noto Serif Telugu',Georgia,serif;font-size:1.3rem;color:var(--forest);margin-bottom:2px}
+.review-stats b{display:block;font-family: var(--font);font-size:1.3rem;color:var(--forest);margin-bottom:2px}
 
 
 .muhurat-label span{display:block;font-size:.68rem;font-weight:800;letter-spacing:.14em;color:var(--muted)}
@@ -407,7 +407,7 @@ body {
 }
 
 .pd-hero-title {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font);
   font-size: 2.2rem;
   color: var(--maroon);
   margin: 0 0 16px 0;
@@ -451,7 +451,7 @@ body {
   color: var(--maroon);
 }
 .pd-card-price {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font);
   font-size: 2.4rem;
   margin: 0;
   line-height: 1;
@@ -538,7 +538,7 @@ body {
   box-shadow: 0 2px 8px rgba(0,0,0,0.02);
 }
 .pd-cd-val {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font);
   font-size: 1.4rem;
   font-weight: 700;
   color: var(--maroon);
@@ -601,7 +601,7 @@ body {
 }
 .pd-hl-title {
   text-align: center;
-  font-family: 'Fraunces', serif;
+  font-family: var(--font);
   color: var(--maroon);
   font-size: 1.1rem;
   font-weight: 600;
@@ -748,7 +748,7 @@ body {
 }
 
 .pd-section-title {
-  font-family: 'Fraunces', serif;
+  font-family: var(--font);
   color: var(--maroon);
   font-size: 1.6rem;
   margin: 0 0 24px;
@@ -907,7 +907,7 @@ body {
   font-size: 1.5rem;
   font-weight: 800;
   color: rgba(103, 18, 27, 0.1);
-  font-family: 'Fraunces', serif;
+  font-family: var(--font);
   margin-left: auto;
 }
 .receive-card h3 {

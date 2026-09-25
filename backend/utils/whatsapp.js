@@ -9,7 +9,7 @@ const { AISENSY_API_KEY } = require("../config");
  * @param {Array<string>} templateParams Array of dynamic values for the template (e.g. ['Vamsi', 'Ganesh Puja']).
  * @returns {Promise<boolean>} True if successful, false otherwise.
  */
-async function sendAiSensyMessage(phone, campaignName, userName = "Devotee", templateParams = []) {
+async function sendAiSensyMessage(phone, campaignName, userName = "Devotee", templateParams = [], media = null) {
   if (!AISENSY_API_KEY || !campaignName) {
     console.error("[AiSensy] Missing API Key or Campaign Name. Skipping WhatsApp message.");
     return false;
@@ -36,7 +36,8 @@ async function sendAiSensyMessage(phone, campaignName, userName = "Devotee", tem
         campaignName: campaignName,
         destination: digits,
         userName: userName || "Devotee",
-        templateParams: templateParams.map(String)
+        templateParams: templateParams.map(String),
+        ...(media ? { media } : {})
       })
     });
     
