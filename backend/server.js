@@ -137,7 +137,11 @@ const requestHandler = async (req, res) => {
             data = Buffer.from(htmlStr, 'utf8');
         }
       if (err) return send(res, 404, "<h1>404 — Page not found</h1>", "text/html");
-      send(res, 200, data, MIME[path.extname(filePath)] || "application/octet-stream");
+      let cacheHeader = {};
+      if (filePath.match(/\.(png|jpg|jpeg|webp|gif|svg|ico|css|js)$/)) {
+          cacheHeader = { "Cache-Control": "public, max-age=31536000, immutable" };
+      }
+      send(res, 200, data, MIME[path.extname(filePath)] || "application/octet-stream", cacheHeader);
     });
   } catch (e) {
     send(res, 400, { error: e.message || "Bad request" });

@@ -46,7 +46,7 @@ function isRealImagePath(value) {
 function mediaHTML(item, itemName) {
   const key = item.image || item.media || "cm-a";
   if (isRealImagePath(key)) {
-    return `<img src="${key}" alt="${itemName}" style="width:100%;height:100%;object-fit:cover" onerror="this.onerror=null;this.src='assets/images/logo.png'">`;
+    return `<img loading="lazy" src="${key}" alt="${itemName}" style="width:100%;height:100%;object-fit:cover" onerror="this.onerror=null;this.src='assets/images/logo.png'">`;
   }
   const theme = IMAGE_THEMES[key] || IMAGE_THEMES["cm-a"];
   return `
