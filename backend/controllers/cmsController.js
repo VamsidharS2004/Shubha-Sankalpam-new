@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { send, readBody } = require("../utils/http");
-const { syncPujasToSupabase, syncPackagesToSupabase, safeWrite } = require("../utils/cmsSync");
+const { syncPujasToSupabase, syncPackagesToSupabase, syncTemplesToSupabase, safeWrite, safeRead, syncFromSupabase } = require("../utils/cmsSync");
 
 const PUJAS_FILE_PATH = path.join(__dirname, "../../frontend/content/pujas.js");
 const PACKAGES_FILE_PATH = path.join(__dirname, "../../frontend/content/packages.js");
@@ -9,18 +9,12 @@ const TEMPLES_FILE_PATH = path.join(__dirname, "../../frontend/content/temples.j
 
 async function getPujas(req, res) {
   try {
-    let pujas;
-    if (global.__cmsCache && global.__cmsCache[PUJAS_FILE_PATH]) {
-        pujas = global.__cmsCache[PUJAS_FILE_PATH].pujas;
-    } else {
-        const resolvePath = require.resolve("../../frontend/content/pujas");
-        delete require.cache[resolvePath];
-        pujas = require("../../frontend/content/pujas").pujas;
-    }
+    await syncFromSupabase();
+    const pujas = safeRead(PUJAS_FILE_PATH, 'pujas');
     send(res, 200, { ok: true, pujas });
   } catch (err) {
-    console.error("Error reading pujas:", err);
-    send(res, 500, { error: "Failed to load pujas." });
+    console.error('Error reading pujas:', err);
+    send(res, 500, { error: 'Failed to load pujas.' });
   }
 }
 
@@ -48,18 +42,12 @@ async function updatePujas(req, res) {
 
 async function getPackages(req, res) {
   try {
-    let packages;
-    if (global.__cmsCache && global.__cmsCache[PACKAGES_FILE_PATH]) {
-        packages = global.__cmsCache[PACKAGES_FILE_PATH].packages;
-    } else {
-        const resolvePath = require.resolve("../../frontend/content/packages");
-        delete require.cache[resolvePath];
-        packages = require("../../frontend/content/packages").packages;
-    }
+    await syncFromSupabase();
+    const packages = safeRead(PACKAGES_FILE_PATH, 'packages');
     send(res, 200, { ok: true, packages });
   } catch (err) {
-    console.error("Error reading packages:", err);
-    send(res, 500, { error: "Failed to load packages." });
+    console.error('Error reading packages:', err);
+    send(res, 500, { error: 'Failed to load packages.' });
   }
 }
 
@@ -85,18 +73,12 @@ async function updatePackages(req, res) {
 
 async function getTemples(req, res) {
   try {
-    let TEMPLES;
-    if (global.__cmsCache && global.__cmsCache[TEMPLES_FILE_PATH]) {
-        TEMPLES = global.__cmsCache[TEMPLES_FILE_PATH].TEMPLES;
-    } else {
-        const resolvePath = require.resolve("../../frontend/content/temples");
-        delete require.cache[resolvePath];
-        TEMPLES = require("../../frontend/content/temples").TEMPLES;
-    }
+    await syncFromSupabase();
+    const TEMPLES = safeRead(TEMPLES_FILE_PATH, 'TEMPLES');
     send(res, 200, { ok: true, temples: TEMPLES });
   } catch (err) {
-    console.error("Error reading temples:", err);
-    send(res, 500, { error: "Failed to load temples." });
+    console.error('Error reading temples:', err);
+    send(res, 500, { error: 'Failed to load temples.' });
   }
 }
 

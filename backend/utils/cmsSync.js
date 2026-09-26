@@ -89,6 +89,19 @@ async function syncFromSupabase() {
             console.log(`[CMS Sync] Loaded ${packages.length} packages from Supabase.`);
         }
 
+
+        const { data: dbTemples, error: templeError } = await supabase.from("cms_temples").select("*");
+        if (!templeError && dbTemples && dbTemples.length > 0) {
+            const TEMPLES = dbTemples.map(row => ({
+                id: row.id,
+                name: row.name,
+                description: row.description,
+                image: row.image
+            }));
+            safeWrite(path.join(__dirname, "../../frontend/content/temples.js"), "TEMPLES", TEMPLES);
+            console.log(`[CMS Sync] Loaded ${TEMPLES.length} temples from Supabase.`);
+        }
+
         const { data: dbPujas, error: pujaError } = await supabase.from("cms_pujas").select("*");
         if (pujaError) throw pujaError;
         
@@ -177,10 +190,28 @@ async function syncPujasToSupabase(pujasArray) {
     if (error) console.error("[CMS Sync] Error pushing pujas:", error.message);
 }
 
+
+async function syncTemplesToSupabase(templesArray) {
+    if (!supabase) return;
+    const rows = templesArray.map(t => ({
+        id: t.id || makeId(t.name),
+        name: t.name || "",
+        description: t.description || "",
+        image: t.image || ""
+    }));
+    try {
+        const { error } = await supabase.from('cms_temples').upsert(rows, { onConflict: 'id' });
+        if (error) console.error("[CMS Sync] Error pushing temples:", error.message);
+    } catch(e) {
+        console.error("[CMS Sync] Error pushing temples:", e.message);
+    }
+}
+
 module.exports = {
     syncFromSupabase,
     syncPackagesToSupabase,
     syncPujasToSupabase,
+    syncTemplesToSupabase,
     safeWrite,
     safeRead
 };
