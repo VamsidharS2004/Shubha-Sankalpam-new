@@ -15,13 +15,23 @@ const ${variableName} = ${JSON.stringify(data, null, 2)};
 
 if (typeof module !== "undefined") module.exports = { ${variableName} };
 `;
-    fs.writeFileSync(filePath, fileContent, "utf8");
-    const resolvePath = require.resolve(filePath);
-    delete require.cache[resolvePath];
+    try {
+        fs.writeFileSync(filePath, fileContent, "utf8");
+        const resolvePath = require.resolve(filePath);
+        delete require.cache[resolvePath];
+    } catch (e) {
+        console.warn("[CMS Sync] Cannot write to local filesystem (likely Vercel environment):", e.message);
+        // We will store the data in memory cache so getPujas returns fresh data
+        if (!global.__cmsCache) global.__cmsCache = {};
+        global.__cmsCache[filePath] = { [variableName]: data };
+    }
 }
 
 function safeRead(filePath, variableName) {
     try {
+        if (global.__cmsCache && global.__cmsCache[filePath]) {
+            return global.__cmsCache[filePath][variableName] || [];
+        }
         const resolvePath = require.resolve(filePath);
         delete require.cache[resolvePath];
         const data = require(filePath);

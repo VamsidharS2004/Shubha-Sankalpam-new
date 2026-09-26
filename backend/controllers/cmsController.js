@@ -9,11 +9,14 @@ const TEMPLES_FILE_PATH = path.join(__dirname, "../../frontend/content/temples.j
 
 async function getPujas(req, res) {
   try {
-    // Clear require cache to ensure we get the latest file content if it was modified
-    const resolvePath = require.resolve("../../frontend/content/pujas");
-    delete require.cache[resolvePath];
-    const { pujas } = require("../../frontend/content/pujas");
-
+    let pujas;
+    if (global.__cmsCache && global.__cmsCache[PUJAS_FILE_PATH]) {
+        pujas = global.__cmsCache[PUJAS_FILE_PATH].pujas;
+    } else {
+        const resolvePath = require.resolve("../../frontend/content/pujas");
+        delete require.cache[resolvePath];
+        pujas = require("../../frontend/content/pujas").pujas;
+    }
     send(res, 200, { ok: true, pujas });
   } catch (err) {
     console.error("Error reading pujas:", err);
@@ -45,9 +48,14 @@ async function updatePujas(req, res) {
 
 async function getPackages(req, res) {
   try {
-    const resolvePath = require.resolve("../../frontend/content/packages");
-    delete require.cache[resolvePath];
-    const { packages } = require("../../frontend/content/packages");
+    let packages;
+    if (global.__cmsCache && global.__cmsCache[PACKAGES_FILE_PATH]) {
+        packages = global.__cmsCache[PACKAGES_FILE_PATH].packages;
+    } else {
+        const resolvePath = require.resolve("../../frontend/content/packages");
+        delete require.cache[resolvePath];
+        packages = require("../../frontend/content/packages").packages;
+    }
     send(res, 200, { ok: true, packages });
   } catch (err) {
     console.error("Error reading packages:", err);
@@ -77,24 +85,15 @@ async function updatePackages(req, res) {
 
 async function getTemples(req, res) {
   try {
-    const resolvePath = require.resolve("../../frontend/content/temples");
-    delete require.cache[resolvePath];
-    // Notice that temples.js defines `const TEMPLES = [...]` but doesn't export it for Node.js!
-    // Wait, let's check how temples.js is structured.
-    // Actually, I should just read it and parse it, or append module.exports to it.
-    // If I can't require it, I will read it as a string and parse it.
-    const content = fs.readFileSync(TEMPLES_FILE_PATH, "utf8");
-    const jsonStr = content.match(/const TEMPLES = (\[[\s\S]*?\]);/);
-    if (jsonStr) {
-      // evaluate it or parse it
-      // Since it might not be strict JSON, eval is easiest but risky. JSON.parse if we stringify.
-      // Wait, let's export it at the bottom of temples.js instead!
-      // I will assume I can add module.exports to temples.js in a separate step.
-      const { TEMPLES } = require("../../frontend/content/temples");
-      send(res, 200, { ok: true, temples: TEMPLES });
+    let TEMPLES;
+    if (global.__cmsCache && global.__cmsCache[TEMPLES_FILE_PATH]) {
+        TEMPLES = global.__cmsCache[TEMPLES_FILE_PATH].TEMPLES;
     } else {
-      send(res, 500, { error: "Could not parse temples.js" });
+        const resolvePath = require.resolve("../../frontend/content/temples");
+        delete require.cache[resolvePath];
+        TEMPLES = require("../../frontend/content/temples").TEMPLES;
     }
+    send(res, 200, { ok: true, temples: TEMPLES });
   } catch (err) {
     console.error("Error reading temples:", err);
     send(res, 500, { error: "Failed to load temples." });
@@ -116,9 +115,15 @@ const TEMPLES = ${JSON.stringify(temples, null, 2)};
 
 if (typeof module !== "undefined") module.exports = { TEMPLES };
 `;
-    fs.writeFileSync(TEMPLES_FILE_PATH, fileContent, "utf8");
-    const resolvePath = require.resolve("../../frontend/content/temples");
-    delete require.cache[resolvePath];
+    try {
+      fs.writeFileSync(TEMPLES_FILE_PATH, fileContent, "utf8");
+      const resolvePath = require.resolve("../../frontend/content/temples");
+      delete require.cache[resolvePath];
+    } catch (e) {
+      console.warn("Vercel EROFS handling for temples");
+      if (!global.__cmsCache) global.__cmsCache = {};
+      global.__cmsCache[TEMPLES_FILE_PATH] = { TEMPLES: temples };
+    }
 
     send(res, 200, { ok: true, message: "Temples updated successfully" });
   } catch (err) {
