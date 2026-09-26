@@ -95,7 +95,8 @@ const requestHandler = async (req, res) => {
 
     /* 2.8 Dynamic JS content (Vercel Fix) */
     if (url.pathname.startsWith('/content/') && url.pathname.endsWith('.js')) {
-      const { safeRead } = require('./utils/cmsSync');
+      const { safeRead, syncFromSupabase } = require('./utils/cmsSync');
+      await syncFromSupabase(); // Guarantee fresh data across all Vercel instances
       if (url.pathname === '/content/pujas.js') {
         const filePath = path.join(__dirname, "../frontend/content/pujas.js");
         const data = safeRead(filePath, "pujas");

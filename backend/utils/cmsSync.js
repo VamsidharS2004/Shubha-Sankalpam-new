@@ -19,11 +19,13 @@ if (typeof module !== "undefined") module.exports = { ${variableName} };
         fs.writeFileSync(filePath, fileContent, "utf8");
         const resolvePath = require.resolve(filePath);
         delete require.cache[resolvePath];
+        global.__cmsCacheTime = Date.now();
     } catch (e) {
         console.warn("[CMS Sync] Cannot write to local filesystem (likely Vercel environment):", e.message);
         // We will store the data in memory cache so getPujas returns fresh data
         if (!global.__cmsCache) global.__cmsCache = {};
         global.__cmsCache[filePath] = { [variableName]: data };
+        global.__cmsCacheTime = Date.now();
     }
 }
 
