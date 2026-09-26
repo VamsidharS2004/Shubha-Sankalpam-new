@@ -768,6 +768,9 @@ function openEditPuja(index) {
     document.getElementById("editor-receive").innerHTML = "";
     if (det.receive) det.receive.forEach(r => addDynamicRow('receive', r));
     
+    document.getElementById("editor-faqs").innerHTML = "";
+    if (det.faqs) det.faqs.forEach(f => addDynamicRow('faqs', f));
+    
     document.getElementById("editor-gallery").innerHTML = "";
     if (p.gallery) p.gallery.forEach(g => addDynamicRow('gallery', g));
     
@@ -869,6 +872,17 @@ async function savePuja() {
     } else {
         delete p.detail.receive;
     }
+
+    const faqRows = document.getElementById("editor-faqs").children;
+    if (faqRows.length > 0) {
+        p.detail.faqs = Array.from(faqRows).map(row => ({
+            q: row.querySelector('.dyn-q').value.trim(),
+            a: row.querySelector('.dyn-a').value.trim()
+        })).filter(x => x.q || x.a);
+        if (p.detail.faqs.length === 0) delete p.detail.faqs;
+    } else {
+        delete p.detail.faqs;
+    }
     
     const galRows = document.getElementById("editor-gallery").children;
     if (galRows.length > 0) {
@@ -913,7 +927,17 @@ function addDynamicRow(type, data = null) {
     const row = document.createElement("div");
     row.style = "display:flex; gap:8px; align-items:flex-start; margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:8px;";
     
-    if (type === 'benefits' || type === 'procedure') {
+    if (type === 'faqs') {
+        const q = data ? (data.q || "") : "";
+        const a = data ? (data.a || "") : "";
+        row.innerHTML = `
+            <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                <input type="text" placeholder="Question" value="${esc(q)}" class="dyn-q" style="padding:8px; border:1px solid var(--border); border-radius:4px; font-weight:600;">
+                <textarea placeholder="Answer" class="dyn-a" rows="2" style="padding:8px; border:1px solid var(--border); border-radius:4px; font-family:inherit;">${esc(a)}</textarea>
+            </div>
+            <button class="btn" style="color:var(--red); padding:8px;" onclick="this.parentElement.remove()"><i class="ph ph-trash"></i></button>
+        `;
+    } else if (type === 'benefits' || type === 'procedure') {
         const title = data ? (data.t || "") : "";
         const desc = data ? (data.d || "") : "";
         row.innerHTML = `
