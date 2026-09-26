@@ -146,7 +146,11 @@ header.flow-header .logo {margin:auto}
    FOOTER - the premium dark CTA band + footer links
    ================================================================ */
 .footer-wrap {
-    background: url('../images/premium_footer.jpg') center/cover no-repeat, #2A040A;
+    background-color: #2A040A;
+    background-image: url('../images/premium_footer.jpg');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
     color: #E8D2B8;
     margin-top: 70px;
     width: 100%;
