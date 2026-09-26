@@ -95,41 +95,86 @@ function renderFooter() {
   $id("site-footer").innerHTML = `
   <div class="footer-wrap">
     <div class="cta-band">
-      <h2>A Sacred Path to Divine Blessings<br>Book Your Sacred Puja</h2>
-      <p>Connect with divine blessings through authentic Vedic rituals.</p>
-      <div class="follow-row">
-        <span class="follow-label">Follow us -</span>
-        <a class="soc fb" href="${SITE.SOCIAL.facebook}" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7h2.4l.4-3h-2.8V9.1c0-.9.3-1.5 1.6-1.5h1.3V4.9c-.3 0-1.1-.1-2-.1-2 0-3.4 1.2-3.4 3.5V11H8.5v3H11v7h2.5Z"/></svg></a>
-        <a class="soc ig" href="${SITE.SOCIAL.instagram}" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg></a>
-        <a class="soc x" href="${SITE.SOCIAL.x}" target="_blank" rel="noopener" aria-label="X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3h4.6l4.1 5.8L17.6 3H21l-6.6 7.7L21.5 21h-4.6l-4.5-6.3L7 21H3.5l7-8.1L4 3Z"/></svg></a>
-        <a class="soc th" href="${SITE.SOCIAL.threads}" target="_blank" rel="noopener" aria-label="Threads"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.2 2C7 2 3.7 5.1 3.7 10v4c0 4.9 3.3 8 8.5 8 4.2 0 7.1-2 7.9-5.3.4-1.7.1-3.3-1-4.4-.7-.8-1.8-1.3-3-1.5.1-1.6-.4-2.9-1.5-3.7-1-.8-2.4-1-3.7-.6-1.2.4-2 1.3-2.3 2.5l1.7.4c.2-.7.6-1.1 1.1-1.3.6-.2 1.3 0 1.8.4.5.4.8 1.1.7 2-.7-.1-1.5-.1-2.3.1-2 .4-3.2 1.7-3 3.4.2 1.7 1.8 2.7 3.7 2.5 1.5-.2 2.6-1 3.1-2.4.2.2.4.4.5.6.6.7.8 1.6.5 2.7-.5 2.1-2.4 3.3-5.3 3.3-3.6 0-5.7-2.1-5.7-6.1v-4c0-4 2.1-6.1 5.7-6.1 2.5 0 4.3.9 5.2 2.6l1.6-.9C15.9 3 13.7 2 12.2 2Zm.5 9.9c.6-.1 1.2-.1 1.8 0-.2.9-.8 1.5-1.7 1.6-1 .1-1.7-.3-1.8-1-.1-.6.5-1.3 1.7-1.6Z"/></svg></a>
-        <a class="soc yt" href="${SITE.SOCIAL.youtube}" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a>
-      </div>
+      <h2>Connect with divine blessings<br><small>through authentic Vedic rituals.</small></h2>
       <a href="puja.html" class="btn" style="background:var(--gold);color:#1A0B0E;box-shadow:0 8px 24px rgba(201,162,39,0.25)">Find the Right Puja <span class="arrow">→</span></a>
-      <div class="cta-note"><span>🔒 100% Secure</span><span>•</span><span>🎥 Video Recording Proof</span></div>
+      <div class="cta-note">
+        <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg> 100% Secure</span>
+        <span class="sep">|</span>
+        <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg> Video Recording Proof</span>
+      </div>
     </div>
+
+    <div class="footer-divider">
+      <div class="line"></div>
+      <svg class="lotus-icon" viewBox="0 0 24 24" fill="var(--gold)" width="28" height="28"><path d="M12 2c0 0-4 4-4 9s2.5 5 4 7c1.5-2 4-2 4-7s-4-9-4-9zm0 0c0 0-2 4-2 9s1.5 5 2 7c.5-2 2-2 2-7s-2-9-2-9zm-5 6c0 0-3 3-3 7s2 4 3 5c1-1 3-1 3-5s-3-7-3-7zm10 0c0 0 3 3 3 7s-2 4-3 5c-1-1-3-1-3-5s3-7 3-7z"/></svg>
+      <div class="line"></div>
+    </div>
+
     <footer class="container">
       <div class="foot-grid">
-        <div class="foot-brand">
-          <h4>${SITE.BRAND}</h4>
-          <p>A spiritual platform that enables devotees to book authentic Vedic pujas at sacred temples across India.</p>
+        <div class="foot-col-brand">
+          <div class="foot-logo-box">
+            <img src="assets/images/logo_transparent.png" alt="Shubha Sankalpam Logo">
+            <div class="foot-logo-text">
+              <b>${SITE.BRAND}</b>
+              <small>DIVINE RITUALS FOR A BRIGHTER TOMORROW</small>
+            </div>
+          </div>
+          <p>Making authentic temple rituals accessible<br>to devotees, wherever they are.</p>
+          
+          <div class="foot-socials">
+            <span class="follow-label">Follow us on</span>
+            <div class="follow-row">
+                <a class="soc fb" href="${SITE.SOCIAL.facebook}" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7h2.4l.4-3h-2.8V9.1c0-.9.3-1.5 1.6-1.5h1.3V4.9c-.3 0-1.1-.1-2-.1-2 0-3.4 1.2-3.4 3.5V11H8.5v3H11v7h2.5Z"/></svg></a>
+                <a class="soc ig" href="${SITE.SOCIAL.instagram}" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg></a>
+                <a class="soc x" href="${SITE.SOCIAL.x}" target="_blank" rel="noopener" aria-label="X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3h4.6l4.1 5.8L17.6 3H21l-6.6 7.7L21.5 21h-4.6l-4.5-6.3L7 21H3.5l7-8.1L4 3Z"/></svg></a>
+                <a class="soc th" href="${SITE.SOCIAL.threads}" target="_blank" rel="noopener" aria-label="Threads"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.2 2C7 2 3.7 5.1 3.7 10v4c0 4.9 3.3 8 8.5 8 4.2 0 7.1-2 7.9-5.3.4-1.7.1-3.3-1-4.4-.7-.8-1.8-1.3-3-1.5.1-1.6-.4-2.9-1.5-3.7-1-.8-2.4-1-3.7-.6-1.2.4-2 1.3-2.3 2.5l1.7.4c.2-.7.6-1.1 1.1-1.3.6-.2 1.3 0 1.8.4.5.4.8 1.1.7 2-.7-.1-1.5-.1-2.3.1-2 .4-3.2 1.7-3 3.4.2 1.7 1.8 2.7 3.7 2.5 1.5-.2 2.6-1 3.1-2.4.2.2.4.4.5.6.6.7.8 1.6.5 2.7-.5 2.1-2.4 3.3-5.3 3.3-3.6 0-5.7-2.1-5.7-6.1v-4c0-4 2.1-6.1 5.7-6.1 2.5 0 4.3.9 5.2 2.6l1.6-.9C15.9 3 13.7 2 12.2 2Zm.5 9.9c.6-.1 1.2-.1 1.8 0-.2.9-.8 1.5-1.7 1.6-1 .1-1.7-.3-1.8-1-.1-.6.5-1.3 1.7-1.6Z"/></svg></a>
+                <a class="soc yt" href="${SITE.SOCIAL.youtube}" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a>
+            </div>
+          </div>
         </div>
-        <div>
+        
+        <div class="foot-col">
           <h4>Quick Links</h4>
-          <a href="puja.html">Puja</a><a href="account.html">Contact Us</a><a href="about.html">About Us</a>
+          <a href="puja.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg> Puja <span>›</span></a>
+          <a href="account.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> Contact Us <span>›</span></a>
+          <a href="about.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> About Us <span>›</span></a>
         </div>
-        <div>
+
+        <div class="foot-col">
           <h4>Legal</h4>
-          <a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a><a href="refund.html">Refund Policy</a>
+          <a href="privacy.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Privacy Policy <span>›</span></a>
+          <a href="terms.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Terms of Service <span>›</span></a>
+          <a href="refund.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Refund Policy <span>›</span></a>
         </div>
-        <div>
+
+        <div class="foot-col foot-contact-col">
           <h4>Contact</h4>
-          <a href="mailto:support@${SITE.DOMAIN}">support@${SITE.DOMAIN}</a>
-          <a href="https://wa.me/${SITE.WHATSAPP}">+${SITE.WHATSAPP}</a>
+          <div class="foot-contact-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            <span>support@${SITE.DOMAIN}</span>
+          </div>
+          <div class="foot-contact-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+            <span>+${SITE.WHATSAPP}</span>
+          </div>
+          <div class="foot-contact-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>Mon - Sat &nbsp;|&nbsp; 9:00 AM - 7:00 PM<br>(IST)</span>
+          </div>
         </div>
       </div>
-      <div class="copyright">© 2026 ${SITE.BRAND}. All rights reserved.<br>Operated by Gowthrix Innovations Private Limited</div>
     </footer>
+    
+    <div class="footer-divider-bottom">
+      <div class="line"></div>
+      <svg class="lotus-icon" viewBox="0 0 24 24" fill="var(--gold)" width="28" height="28"><path d="M12 2c0 0-4 4-4 9s2.5 5 4 7c1.5-2 4-2 4-7s-4-9-4-9zm0 0c0 0-2 4-2 9s1.5 5 2 7c.5-2 2-2 2-7s-2-9-2-9zm-5 6c0 0-3 3-3 7s2 4 3 5c1-1 3-1 3-5s-3-7-3-7zm10 0c0 0 3 3 3 7s-2 4-3 5c-1-1-3-1-3-5s3-7 3-7z"/></svg>
+      <div class="line"></div>
+    </div>
+    
+    <div class="copyright-row">
+      © 2026 ${SITE.BRAND}. All rights reserved. &nbsp;&nbsp;|&nbsp;&nbsp; Operated by Gowthrix Innovations Private Limited
+    </div>
   </div>`;
 }
 

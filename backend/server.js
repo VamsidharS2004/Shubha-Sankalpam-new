@@ -93,6 +93,26 @@ const requestHandler = async (req, res) => {
       });
     }
 
+    /* 2.8 Dynamic JS content (Vercel Fix) */
+    if (url.pathname.startsWith('/content/') && url.pathname.endsWith('.js')) {
+      const { safeRead } = require('./utils/cmsSync');
+      if (url.pathname === '/content/pujas.js') {
+        const filePath = path.join(__dirname, "../frontend/content/pujas.js");
+        const data = safeRead(filePath, "pujas");
+        return send(res, 200, `const pujas = ${JSON.stringify(data, null, 2)};\nif (typeof module !== "undefined") module.exports = { pujas };`, "application/javascript");
+      }
+      if (url.pathname === '/content/packages.js') {
+        const filePath = path.join(__dirname, "../frontend/content/packages.js");
+        const data = safeRead(filePath, "packages");
+        return send(res, 200, `const packages = ${JSON.stringify(data, null, 2)};\nif (typeof module !== "undefined") module.exports = { packages };`, "application/javascript");
+      }
+      if (url.pathname === '/content/temples.js') {
+        const filePath = path.join(__dirname, "../frontend/content/temples.js");
+        const data = safeRead(filePath, "TEMPLES");
+        return send(res, 200, `const TEMPLES = ${JSON.stringify(data, null, 2)};\nif (typeof module !== "undefined") module.exports = { TEMPLES };`, "application/javascript");
+      }
+    }
+
     /* 3. Frontend static files */
     let filePath = path.join(FRONTEND_DIR, decodeURIComponent(url.pathname));
     if (url.pathname === "/") {
