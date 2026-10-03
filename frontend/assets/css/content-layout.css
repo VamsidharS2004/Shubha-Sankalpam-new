@@ -1,0 +1,60 @@
+/* Shared content layout: supports new, long Telugu/Hindi/English content. */
+:where(h1,h2,h3,h4,h5,h6,p,li,td,th,label,b,strong,small,a){overflow-wrap:anywhere;word-break:normal}
+:where(.hero-copy,.card-body,.pd-hero-left,.pd-hero-right,.pd-content,.benefit-card,.proc-card,.receive-card,.bk-item){min-width:0;max-width:100%}
+:where(h1,h2,h3,h4){text-wrap:pretty}
+html:lang(te) :where(h1,h2,h3,h4),html:lang(hi) :where(h1,h2,h3,h4){line-height:1.45;letter-spacing:normal}
+:where(.hero-copy h1,.pd-hero-title,.card-body h3){height:auto!important;max-height:none!important;overflow:visible!important;white-space:normal!important;-webkit-line-clamp:unset!important}
+:where(.hero-desc,.card-desc){height:auto!important;max-height:none!important;overflow:visible!important;white-space:normal!important;display:block!important;-webkit-line-clamp:unset!important;line-height:1.65}
+.hero-copy h1{margin-bottom:16px}
+.hero-copy .hero-desc{margin-bottom:20px}
+.hero-meta,.pd-hero-meta,.hero-buttons,.card-foot,.pd-price-row{flex-wrap:wrap;row-gap:12px}
+.hero-meta .hm-item,.pd-meta-item{min-width:0;max-width:100%;align-items:flex-start}
+.hero-meta svg,.card-meta svg,.pd-meta-item .ic{flex-shrink:0}
+.pd-meta-item b,.pd-meta-item span:not(.ic){min-width:0;overflow-wrap:anywhere}
+.pd-breadcrumbs{white-space:normal;line-height:1.7;overflow-wrap:anywhere}
+.card-body{display:flex;flex-direction:column;gap:12px;text-align:start}
+.card-body h3,.card-body .card-desc{margin:0}
+.card-foot{margin-top:auto;padding-top:12px;align-items:center;gap:12px}
+.card-meta{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 16px;align-items:start}
+.card-meta>span{min-width:0;line-height:1.6;overflow-wrap:anywhere}
+.card-meta svg{display:inline-block}
+.pd-info-table,.pd-info-table .it-col{min-width:0}
+:where(.pd-btn-main,.pd-btn-white,.book-link,.hero-buttons .btn){white-space:normal;line-height:1.4;text-align:center}
+input,select,textarea{max-width:100%;min-width:0;font:inherit}
+[hidden]{display:none!important}
+@media(max-width:600px){
+ .pd-hero-title{font-size:clamp(1.4rem,5.5vw,2rem)}
+ .pd-hero-meta{gap:12px 16px;font-size:.9rem}
+ .pd-price-row{align-items:baseline}
+ .pd-card-price{font-size:clamp(1.65rem,7vw,2.4rem)}
+ .hero-copy h1{font-size:clamp(1.45rem,6vw,2rem)}
+ .hero-buttons{gap:12px}
+ .card-body{padding:16px}
+}
+/* Let dynamic hero content grow instead of clipping long names/descriptions. */
+@media(max-width:1199px){
+ .hero-slide.hero-slide-overlay .hero-image-wrap{height:auto!important;min-height:0!important;overflow:visible}
+ .hero-slide.hero-slide-overlay .hero-copy{height:auto!important;max-height:none!important;overflow:visible!important}
+}
+@media(min-width:768px){
+ /* Put text in normal flow so newly added content determines its own height. */
+ .hero-slide.hero-slide-overlay .hero-image-wrap{display:grid;grid-template-columns:minmax(0,1fr);height:auto!important;min-height:0!important}
+ .hero-slide.hero-slide-overlay .hero-image-wrap>picture{grid-area:1/1;min-width:0}
+ .hero-slide.hero-slide-overlay .hero-copy{position:relative;inset:auto;grid-area:1/1;max-width:65%;align-self:center;padding:32px 8%;min-width:0}
+ .hero-slide.hero-slide-overlay .hero-img{height:100%!important;min-height:100%;object-fit:cover}
+}
+@media(max-width:767px){
+ .hero-slide.hero-slide-overlay{height:auto!important}
+ .hero-copy h1{min-height:0!important;display:block!important}
+}
+
+/* Compact mobile metadata: a wrapped duration cannot stretch the date row. */
+@media(max-width:600px){
+ .pd-hero-meta:not(.pd-temple-meta){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 12px;align-items:start}
+ .pd-hero-meta:not(.pd-temple-meta)>.pd-meta-item:nth-child(1){grid-column:1;grid-row:1}
+ .pd-hero-meta:not(.pd-temple-meta)>.pd-meta-item:nth-child(2){grid-column:1;grid-row:3}
+ .pd-hero-meta:not(.pd-temple-meta)>.pd-meta-item:nth-child(3){grid-column:2;grid-row:1 / span 2}
+ .pd-hero-meta:not(.pd-temple-meta)>.pd-meta-item:nth-child(4){grid-column:1;grid-row:2}
+ .pd-hero-meta .pd-meta-item{gap:5px;line-height:1.45}
+ .pd-temple-meta{margin-top:6px!important}
+}

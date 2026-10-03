@@ -1,0 +1,60 @@
+# Never commit real secrets
+backend/.env
+.env*
+
+# Local data files (bookings/users) if using JSON-file database instead of Supabase
+backend/*.json
+!backend/package.json
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+node_modules/
+
+# Runtime / generated data
+data/analytics.json
+
+# Dev-only scratch files and agent artifacts
+scratch/
+.agents/
+artifacts/
+*.tmp
+
+# Backend uploads (large binary files)
+backend/uploads/
+
+# Docs / notes (not needed in production)
+ORIGINAL_REQUEST.md
+prompt_draft.md
+qa_audit_report.md
+phase2_code.txt
+transcript_match.json
+
+# Lighthouse reports (large generated files)
+*.report.html
+*.report.json
+lighthouse_*.html
+lighthouse_*.json
+
+# Backup files
+*.bak
+*.step3d.bak
+*.step4c.bak
+*.step3c.bak
+*.step4e.bak
+*.phase6.bak
+*.before-otp-fix.bak
+*.pre-resend
+backend/admin.html.tmp
+backend/admin.html.bak
+backend_backup/
+pre-razorpay-commit-backup/
+
+# Vercel internals
+.vercel
+
+# npm cache
+.npm-cache/
+
+# Frontend lighthouse tmp
+frontend/lighthouse_tmp/

@@ -1,0 +1,12 @@
+# Never commit real secrets
+backend/.env
+
+# Local data files (bookings/users) if you're using the built-in
+# JSON-file database instead of Supabase
+backend/*.json
+!backend/package.json
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+node_modules/

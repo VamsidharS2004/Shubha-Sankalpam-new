@@ -1,0 +1,22 @@
+
+@media (max-width: 767px) {
+  .hero-copy {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .hero-tagline {
+    justify-content: center;
+  }
+  .hero-feature-row {
+    width: 100%;
+  }
+  .hero-buttons {
+    width: 100%;
+  }
+  .hero-meta {
+    width: 100%;
+  }
+}
+

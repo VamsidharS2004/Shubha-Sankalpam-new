@@ -1,0 +1,216 @@
+<!DOCTYPE html><!-- ================================================================
+     BOOKING FORM PAGE (booking.html)
+     ================================================================
+     The form labels/hints below can be edited directly in this file.
+     This page requires the devotee to be logged in — see
+     assets/js/booking.js for that logic. No puja content is
+     shown here directly (just the puja name/price pulled from the
+     puja they clicked, via content/pujas.js).
+     ================================================================ --><html lang="en"><head>
+<script>
+(function(){var l="te";try{l=localStorage.getItem("ss_lang")||"te";}catch(e){}document.documentElement.lang=/^(en|te|hi)$/.test(l)?l:"te";document.documentElement.classList.add("ss-booting");})();
+</script>
+<style>.ss-booting body,.ss-booting body *{visibility:hidden!important}</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Anek+Telugu:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Anek+Telugu:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+<link rel="stylesheet" href="assets/css/global.css?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/navbar.css?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/forms.css?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/animations.css?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/responsive.css?v=20261003-navigation-v3">  <!-- always last -->
+<title data-i18n="bk_heading">Shubha Sankalpam | Booking — Enter Sankalpam Details</title>
+<meta name="description" content="Complete your puja booking with your sankalpam details — name, gotra, and family members to be blessed.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/images/favicon-optimized.webp?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/content-layout.css?v=20261003-layout">
+<style>.booking-extra-field{margin:20px 0}.booking-extra-field label{display:block;margin-bottom:8px;overflow-wrap:anywhere}.booking-extra-field input:not([type=checkbox]),.booking-extra-field select,.booking-extra-field textarea{width:100%;padding:14px;border:2px solid var(--border);border-radius:12px;font:inherit;background:var(--bg-input,#fff);color:inherit}</style>
+</head>
+<body class="booking-page">
+<div id="site-header"></div>
+
+<div class="booking-progress-container">
+  <h2 data-i18n="bk_heading" class="desktop-booking-header">పూజ కోసం మీ వివరాలు నమోదు చేయండి</h2>
+  <div class="booking-progress">
+    <div class="step active">
+      <div class="step-circle">1</div>
+      <div class="step-label" data-i18n="bk_step1">భక్తుల వివరాలు</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step">
+      <div class="step-circle">2</div>
+      <div class="step-label" data-i18n="bk_step3">Payment</div>
+    </div>
+  </div>
+</div>
+
+<div class="container booking-layout">
+  <div class="booking-main">
+    <div class="form-card">
+      <div class="wa-display">
+        <label for="fPhone" data-i18n="bk_wa_label">Your WhatsApp Number ✏️</label>
+        <div class="wa-input-box">
+          <span class="flag">🇮🇳 +91</span>
+          <input id="fPhone" type="tel" inputmode="tel" autocomplete="tel"
+                 placeholder="Enter 10-digit number" aria-describedby="whatsappHelp"
+                 maxlength="10">
+          <span class="verified-tick" aria-hidden="true">✔</span>
+        </div>
+        <p id="whatsappHelp" class="hint" data-i18n="bk_wa_hint">Puja video and blessing details will be sent to this number.</p>
+      </div>
+
+      <div id="regularPujaSection">
+        <div class="family-names-section">
+        <label data-i18n="bk_names_label">Names of members participating in the puja</label>
+        <div class="names-grid">
+          <input type="text" id="famName1" placeholder="" data-i18n-placeholder="bk_name_placeholder" data-cms-attr="placeholder">
+          <input type="text" id="famName2" placeholder="" data-i18n-placeholder="bk_name_placeholder" data-cms-attr="placeholder">
+          <input type="text" id="famName3" placeholder="" data-i18n-placeholder="bk_name_placeholder" data-cms-attr="placeholder">
+          <input type="text" id="famName4" placeholder="" data-i18n-placeholder="bk_name_placeholder" data-cms-attr="placeholder">
+        </div>
+        <p class="hint required-hint" id="namesRequired" style="color: var(--red); font-weight: 600; display:none;" data-i18n="bk_names_req">Please enter at least one devotee name</p>
+        <p class="hint" data-i18n="bk_names_hint">This name will be included during the Puja sankalpam.</p>
+      </div>
+
+      <div class="gotram-section"><small>Gotram is optional / గోత్రం ఐచ్ఛికం</small>
+        <label for="fGotram"><span data-i18n="bk_gotram_label">పాల్గొనేవారి గోత్రాన్ని భర్తీ చేయండి</span></label>
+        <input id="fGotram" type="text" placeholder="Gotram (optional)" data-i18n-placeholder="bk_gotram_label" data-cms-attr="placeholder">
+        <label class="checkbox-label">
+          <input type="checkbox" id="noGotramCheck">
+          <span data-i18n="bk_gotram_unknown">I don't know my gotra</span>
+        </label>
+      </div>
+
+      <div class="sankalpam-section">
+        <label for="fSankalpam"><span data-i18n="bk_sankalpam_label">మీ ఆకాంక్ష జోడించండి</span> <span class="hint-inline" data-i18n="bk_optional">(ఐచ్ఛికం)</span></label>
+        <textarea id="fSankalpam" rows="3" placeholder="ఉదాహరణ: ఆరోగ్యం, ఐశ్వర్యం, కుటుంబ శ్రేయస్సు కోసం" data-i18n-placeholder="bk_sankalpam_hint" data-cms-attr="placeholder"></textarea>
+            </div>
+      </div>
+      <!-- SPECIAL PUJA SECTION -->
+      <div id="specialPujaSection" style="display:none;">
+        
+        <div class="family-names-section">
+          <label><span data-i18n="sp_karta_name">Karta Name</span> <span style="color:var(--red)">*</span></label>
+          <div style="display:flex; gap:10px;">
+            <select id="spKartaPrefix" style="width:90px; padding:14px; border-radius:12px; border:2px solid var(--border); background:var(--bg-input); font-size:0.95rem; font-family:var(--font); outline:none; color:var(--text-main);">
+              <option value="Mr." data-i18n="sp_mr">Mr.</option>
+              <option value="Mrs." data-i18n="sp_mrs">Mrs.</option>
+              <option value="Ms." data-i18n="sp_ms">Ms.</option>
+            </select>
+            <input type="text" id="spKartaName" placeholder="Enter Karta's full name" data-i18n-placeholder="sp_karta_hint" style="flex:1;">
+          </div>
+        </div>
+
+        <div class="family-names-section" style="margin-top:24px;">
+          <label><span data-i18n="sp_gotram">Gotram</span> <span style="color:var(--red)">*</span></label>
+          <input type="text" id="spGotram" placeholder="Enter Gotram" data-i18n-placeholder="sp_gotram_hint">
+        </div>
+
+        <div class="family-names-section" style="margin-top:24px;">
+          <label style="font-weight:700; font-size:1.05rem; display:block; margin-bottom:10px;" data-i18n="sp_pat_lineage">Paternal Lineage (Father's Side)</label>
+          <input type="text" id="spPatFather" placeholder="Father's Name" data-i18n-placeholder="sp_father_hint" style="margin-bottom:10px;">
+          <input type="text" id="spPatGrandfather" placeholder="Grandfather's Name" data-i18n-placeholder="sp_gf_hint" style="margin-bottom:10px;">
+          <input type="text" id="spPatGreatGrandfather" placeholder="Great-grandfather's Name" data-i18n-placeholder="sp_ggf_hint">
+        </div>
+
+        <div class="family-names-section" style="margin-top:24px; margin-bottom:24px;">
+          <label style="font-weight:700; font-size:1.05rem; display:block; margin-bottom:10px;" data-i18n="sp_mat_lineage">Maternal Lineage (Mother's Side)</label>
+          <input type="text" id="spMatMother" placeholder="Mother's Name" data-i18n-placeholder="sp_mother_hint" style="margin-bottom:10px;">
+          <input type="text" id="spMatGrandmother" placeholder="Grandmother's Name" data-i18n-placeholder="sp_gm_hint" style="margin-bottom:10px;">
+          <input type="text" id="spMatGreatGrandmother" placeholder="Great-grandmother's Name" data-i18n-placeholder="sp_ggm_hint">
+        </div>
+
+        <div class="sankalpam-section">
+          <label for="spSankalpam"><span data-i18n="sp_wish_label">Add your sankalpam</span> <span class="hint-inline" data-i18n="bk_optional">(optional)</span></label>
+          <textarea id="spSankalpam" rows="3" placeholder="Example: For health, wealth, and family well-being" data-i18n-placeholder="sp_wish_hint" data-cms-attr="placeholder"></textarea>
+        </div>
+
+      </div>
+      <p id="bookingFormStatus" role="status" style="margin:16px 0">Loading booking form…</p>
+      <div id="bookingExtraFields"></div>
+    </div>
+  </div>
+
+  <div class="booking-sidebar">
+    <div class="summary-card">
+      <div class="summary-puja-header">
+        <div class="summary-img" id="bkImg"></div>
+        <div class="summary-title">
+          <h3 id="bkTitle">Puja Title</h3>
+          <p><span data-i18n="bk_family_puja">Family Puja</span> - <span id="bkPriceBase">₹0</span></p>
+        </div>
+      </div>
+      <div class="summary-date">
+        <span class="icon">📅</span> <span id="bkDate"></span>
+      </div>
+
+      <div class="summary-breakdown">
+        <div class="price-row">
+          <span>Family Puja</span>
+          <b id="bkPriceBreakdown">₹0</b>
+        </div>
+        <div class="price-row">
+          <span>Convenience Fee</span>
+          <span><s style="color:var(--muted)">₹25</s> <b>Free</b></span>
+        </div>
+        <div class="price-row">
+          <span>Pandit Fee</span>
+          <span><s style="color:var(--muted)">₹150</s> <b>Free</b></span>
+        </div>
+        <div class="price-row">
+          <span>Photo and video recording Fee</span>
+          <span><s style="color:var(--muted)">₹500</s> <b>Free</b></span>
+        </div>
+      </div>
+
+      <div class="summary-total">
+        <span>Total</span>
+        <div class="total-price-box">
+          <b id="bkTotalFinal" class="final-price">₹0</b>
+          <s id="bkTotalStrike" class="strike-price">₹0</s>
+        </div>
+      </div>
+
+      <div id="payBtnPlaceholder" style="min-height: 52px; width: 100%; margin: 16px 0;">
+        <button class="btn btn-red continue-btn" id="payBtn" style="width: 100%; border-radius: 999px;">Continue Payment</button>
+      </div>
+      <div class="secure-badge">
+        🔒 <span data-i18n="bk_secure">100% Secure</span>
+      </div>
+    </div>
+
+    <div class="trust-box">
+      <div class="trust-row"><span class="tick">✔</span><span data-i18n="trust1">పూజ వీడియో 24 గంటల్లో అందుతుంది</span></div>
+      <div class="trust-row"><span class="tick">✔</span><span data-i18n="trust2">ధృవీకరించబడిన, అనుభవజ్ఞులైన పురోహితులు</span></div>
+      <div class="trust-row"><span class="tick">✔</span><span data-i18n="trust3">పవిత్ర దేవాలయాల్లో పూజలు నిర్వహించబడతాయి</span></div>
+      <div class="trust-row"><span class="tick">✔</span><span data-i18n="trust4">100% ప్రామాణిక వైదిక పూజలు</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="site-footer"></div>
+<!-- ============ CONTENT (edit these files to change text/prices/images) ============ -->
+<script defer src="content/site-settings.js?v=20261003-navigation-v3"></script>
+<script defer src="content/pujas.js?v=20261003-navigation-v3"></script>
+<script defer src="content/packages.js?v=20261003-navigation-v3"></script>
+<script defer src="content/puja-detail-defaults.js?v=20261003-navigation-v3"></script>
+<script defer src="content/trust-highlights.js?v=20261003-navigation-v3"></script>
+<script defer src="content/faq.js?v=20261003-navigation-v3"></script>
+
+<!-- ============ SITE CODE (do not need to edit for content changes) ============ -->
+<script defer src="assets/js/language.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/main.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/navbar.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/animations.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/cards.js?v=20261003-navigation-v3"></script>
+
+<script defer src="assets/js/booking-form-ui.js?v=20261003-form"></script>
+<script defer src="assets/js/booking-form.js?v=20261003-form"></script>
+<script defer src="assets/js/booking.js?v=20261003-form"></script>
+
+<script defer src="assets/js/analytics-tracker.js?v=20261003-admin-v3"></script>
+</body></html>

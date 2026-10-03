@@ -1,0 +1,14 @@
+{
+  "assets/images/pujas/narasimha.jpg": {
+    "webp_desktop": "assets/images/hero/webp/narasimha.webp",
+    "webp_mobile": "assets/images/hero/webp/narasimha_mobile.webp",
+    "avif_desktop": "assets/images/hero/avif/narasimha.avif",
+    "avif_mobile": "assets/images/hero/avif/narasimha_mobile.avif"
+  },
+  "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/ae1f9674-e524-46f2-894b-8bb8eee2a7ff.jpg": {
+    "webp_desktop": "assets/images/hero/webp/moksha-narayan-bali.webp",
+    "webp_mobile": "assets/images/hero/webp/moksha-narayan-bali_mobile.webp",
+    "avif_desktop": "assets/images/hero/avif/moksha-narayan-bali.avif",
+    "avif_mobile": "assets/images/hero/avif/moksha-narayan-bali_mobile.avif"
+  }
+}

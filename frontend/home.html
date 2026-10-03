@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<!-- ================================================================
+     HOME PAGE (home.html)
+     ================================================================
+     WHERE TO FIND THINGS ON THIS PAGE:
+
+       Hero slides (temple headline, description, price)
+         ? content/pujas.js  (uses the first two pujas in that file)
+
+       Trust highlights box ("Puja Video Delivered Within 48 Hours"...)
+         ? content/trust-highlights.js
+
+       Stats numbers (10L+, 100%, Loved)
+         ? edit directly below, in the "STATS" section of this file
+
+       "From Booking to Divine Blessings" steps
+         ? edit directly below, in the "4 STEPS" section of this file
+
+       Puja cards ("Our Pujas" section)
+         ? content/pujas.js  (shows ALL pujas from that file)
+
+       Puja Gallery images
+         ? edit directly below, in the "GALLERY" section of this file
+           (currently placeholder boxes � see the comment there for
+           how to swap in real photos)
+
+       FAQ accordion ("Doubts? We're Here.")
+         ? content/faq.js
+
+       Header, footer, and language switcher (same on every page)
+         ? assets/js/navbar.js
+     ================================================================ -->
+<html lang="en">
+<head>
+<script>
+(function(){var l="te";try{l=localStorage.getItem("ss_lang")||"te";}catch(e){}document.documentElement.lang=/^(en|te|hi)$/.test(l)?l:"te";document.documentElement.classList.add("ss-booting");})();
+</script>
+<style>.ss-booting body,.ss-booting body *{visibility:hidden!important}</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Anek+Telugu:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Anek+Telugu:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+<style>/* Above-the-fold critical layout; final responsive rules live in hero.css. */
+.hero-landing{position:relative;background:#fffaf2;padding:16px 2vw 0}.hero-slider{display:grid;position:relative;width:100%;height:auto;min-height:0}.hero-skeleton-ph{width:100%;min-height:0!important;aspect-ratio:16/9;border-radius:18px;background:linear-gradient(90deg,#fdf8f0 25%,#fff 50%,#fdf8f0 75%);background-size:200% 100%}@media(max-width:767px){.hero-landing{padding:10px 12px 0}.hero-skeleton-ph{border-radius:12px}}</style>
+<link rel="stylesheet" href="assets/css/global.css?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/navbar.css?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/hero.css?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/home.css?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/animations.css?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/responsive.css?v=20261003-navigation-v3">  <!-- always last -->
+<title>Shubha Sankalpam | Online Puja Booking � Book Vedic Pujas & Homams</title>
+<meta name="description" content="Book authentic Vedic pujas and homams at sacred temples across India. Verified purohits, video proof within 48 hours, 100% secure booking.">
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/images/favicon-optimized.webp?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/content-layout.css?v=20261003-layout">
+</head>
+<body>
+<!-- ================= LANDING SPLASH ================= 
+     A brief, elegant brand intro that plays once on the home page's
+     first paint, then fades away on its own � purely decorative
+     (aria-hidden, pointer-events:none from the very first frame, so
+     it can NEVER block a click on the real page underneath it, even
+     mid-animation). See assets/css/animations.css for the timing,
+     and assets/js/animations.js for the reduced-motion / repeat-visit
+     handling. -->
+<div id="siteSplash" class="site-splash" aria-hidden="true" style="display:none;">
+  <div class="site-splash-stage">
+    <img class="site-splash-mark" src="assets/images/logo_transparent.webp" alt="Shubha Sankalpam Logo" style="width:80vw;max-width:400px;height:auto;object-fit:contain;">
+    <span class="site-splash-shadow" aria-hidden="true"></span>
+  </div>
+</div>
+
+<div id="site-header">
+  <header class="">
+    <div class="container nav">
+      <a class="logo" href="home.html" aria-label="Home" style="width:clamp(160px, 20vw, 220px); aspect-ratio:3.2/1; display:block; text-decoration:none;">
+        <img src="assets/images/logo_transparent.webp" alt="Shubha Sankalpam Logo" style="width:100%; height:100%; object-fit:cover; object-position:center; display:block;">
+      </a>
+      <nav class="nav-links" aria-label="Main">
+        <a href="home.html" class="active">
+          <span class="nl-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></span>
+          <span>HOME</span>
+        </a>
+        <a href="puja.html">
+          <span class="nl-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/></svg></span>
+          <span>PUJA</span>
+        </a>
+        <a href="package.html">
+          <span class="nl-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg></span>
+          <span>PACKAGES</span>
+        </a>
+        <a href="account.html">
+          <span class="nl-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></span>
+          <span>ACCOUNT</span>
+        </a>
+      </nav>
+      <div class="nav-right">
+        <div class="lang-wrap">
+          <button class="lang" id="langBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg> <span id="langLabel">Eng</span> <span class="lang-arr">▾</span></button>
+          <div class="lang-menu hidden" id="langMenu">
+            <div class="lang-head">CHOOSE LANGUAGE</div>
+            <div id="langItems"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+  
+  <a class="floating-wa" href="https://wa.me/917075568530?text=I%20need%20help%20with%20puja%20booking" target="_blank" rel="noopener" aria-label="WhatsApp Help">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><path d="M12.031 2C6.495 2 2 6.496 2 12.032c0 1.838.48 3.633 1.391 5.215L2 22l4.896-1.285A9.972 9.972 0 0 0 12.031 22c5.535 0 10.031-4.496 10.031-10.032S17.566 2 12.031 2zm5.568 14.542c-.237.669-1.381 1.283-1.921 1.348-.541.066-1.236.195-3.523-.75-2.756-1.139-4.512-3.957-4.654-4.146-.141-.189-1.111-1.478-1.111-2.822 0-1.344.697-2.008.946-2.26.248-.252.54-.315.719-.315.18 0 .359 0 .506.006.155.006.35-.052.532.385.188.452.64 1.564.697 1.678.058.114.095.247.024.385-.072.138-.109.225-.216.351-.109.126-.229.273-.326.37-.109.108-.225.228-.103.438.122.209.544.898 1.168 1.455.808.72 1.488.941 1.7 1.05.212.109.335.089.461-.052.126-.143.541-.63.687-.847.146-.217.291-.182.485-.109.194.073 1.225.578 1.436.684.212.106.352.158.403.247.052.089.052.52-.185 1.189z"/></svg>
+  </a>
+  <nav class="bottom-nav" aria-label="Mobile">
+    <a href="home.html" class="active"><span class="bn-icon"><svg aria-hidden="true" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10H3z"/><path d="M9 20v-7h6v7"/></svg></span>Home</a>
+    <a href="puja.html"><span class="bn-icon"><svg aria-hidden="true" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h16a8 8 0 0 1-16 0Z"/><path d="M12 11c-5-3 0-8 0-8s5 5 0 8Z"/></svg></span>Puja</a>
+    <a href="package.html"><span class="bn-icon"><svg aria-hidden="true" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7 9-4 9 4v10l-9 4-9-4Z"/><path d="m3 7 9 4 9-4M12 11v10M7 5l10 4"/></svg></span>Packages</a>
+    <a href="account.html"><span class="bn-icon"><svg aria-hidden="true" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span>Account</a>
+  </nav>
+</div>
+
+<!-- ================= HERO LANDING ================= -->
+
+<section class="hero-landing" id="top">
+  <!-- Hero slides are injected by home.js based on pujas with show_in_hero:true for the current language -->
+  <style>.hero-skeleton-ph{width:100%;min-height:0!important;aspect-ratio:16/9;background:linear-gradient(90deg,#fdf8f0 25%,#fff 50%,#fdf8f0 75%);background-size:200% 100%;border-radius:18px}@media(max-width:767px){.hero-skeleton-ph{border-radius:12px}}</style>
+  <div class="hero-slider" id="heroSlider">
+    <div id="heroSkeleton" class="hero-slide active hero-skeleton-ph"></div>
+  </div>
+
+  <!-- Shown by JS when no show_in_hero puja matches the current language -->
+  <div id="heroEmptyBanner" style="display:none; position:relative; width:100%; min-height:520px; background:linear-gradient(135deg,#1A0B0E 0%,#2d1218 50%,#1A0B0E 100%); align-items:center; justify-content:center; text-align:center; padding:80px 24px;">
+    <div style="max-width:600px; margin:auto;">
+      <div style="font-size:2.5rem; margin-bottom:12px;">🪔</div>
+      <h1 id="heroEmptyTitle" style="color:#fff; font-size:clamp(1.6rem,4vw,2.6rem); font-weight:700; line-height:1.25; margin-bottom:16px;">
+        <span style="color:var(--gold,#C9A227)">Divine</span> Puja Services
+      </h1>
+      <p id="heroEmptyDesc" style="color:rgba(255,255,255,0.75); font-size:1.05rem; line-height:1.6; margin-bottom:28px;">
+        Authentic Vedic rituals performed by experienced purohits at sacred temples across India.
+      </p>
+      <a href="puja.html" id="heroEmptyBtn" class="btn hero-btn-primary" style="display:inline-block;">View All Pujas &rarr;</a>
+    </div>
+  </div>
+
+  <button class="hero-arrow hero-arrow-prev" id="heroPrev" aria-label="Previous slide">&lsaquo;</button>
+  <button class="hero-arrow hero-arrow-next" id="heroNext" aria-label="Next slide">&rsaquo;</button>
+  <div class="hero-slider-dots" id="heroDots"></div>
+</section>
+
+<!-- ================= STATS BAR ================= -->
+<section class="stats-bar">
+  <div class="container stats-container">
+    <div class="stat-item">
+      <div class="stat-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22v-7l-2-2a4 4 0 1 1 4 0l-2 2v7"></path><rect width="18" height="12" x="3" y="6" rx="2"></rect></svg></div>
+      <div class="stat-text">
+        <strong data-i18n-list="stat1_num">1000+</strong>
+        <span data-i18n-list="stat1_lbl">Pujas Performed</span>
+      </div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v12"></path><path d="M20 10v12"></path><path d="M12 14v8"></path><path d="M2 10l10-5 10 5"></path><path d="M12 2v3"></path></svg></div>
+      <div class="stat-text">
+        <strong data-i18n-list="stat2_num">50+</strong>
+        <span data-i18n-list="stat2_lbl">Sacred Temples</span>
+      </div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+      <div class="stat-text">
+        <strong data-i18n-list="stat3_num">250K+</strong>
+        <span data-i18n-list="stat3_lbl">Happy Devotees</span>
+      </div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></div>
+      <div class="stat-text">
+        <strong data-i18n-list="stat4_num">4.8/5</strong>
+        <span data-i18n-list="stat4_lbl">Devotee Rating</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section process-section">
+  <!-- ============ "FROM BOOKING TO DIVINE BLESSINGS" ============ -->
+  <div class="container">
+    <h2 class="section-title" data-i18n-list="process_title">From <em>Booking</em> to Divine <em>Blessings</em></h2>
+    
+
+    
+    <div class="process-horizontal">
+      
+      <div class="process-step">
+        <div class="step-connector"></div>
+        <div class="step-circle">
+          <div class="step-num">1</div>
+          <div class="step-icon">
+            <!-- Calendar/Booking Icon -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 4H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2z"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M9 16l2 2 4-4"/></svg>
+          </div>
+        </div>
+        <h4 data-i18n-list="proc_step1_title">Choose Your Puja</h4>
+        <p data-i18n-list="proc_step1_desc">Select the puja you wish to perform and provide your details.</p>
+      </div>
+      
+      <div class="process-step">
+        <div class="step-connector"></div>
+        <div class="step-circle">
+          <div class="step-num">2</div>
+          <div class="step-icon">
+            <!-- Credit Card Icon -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 4H3a2 2 0 00-2 2v12a2 2 0 002 2h18a2 2 0 002-2V6a2 2 0 00-2-2zM1 10h22"/><path d="M7 15h3M14 15h.01"/></svg>
+          </div>
+        </div>
+        <h4 data-i18n-list="proc_step2_title">Complete Booking</h4>
+        <p data-i18n-list="proc_step2_desc">Choose your preferred date and complete the payment securely.</p>
+      </div>
+      
+      <div class="process-step">
+        <div class="step-connector"></div>
+        <div class="step-circle">
+          <div class="step-num">3</div>
+          <div class="step-icon">
+            <!-- Fire/Homa Icon -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4l3 3"/></svg>
+          </div>
+        </div>
+        <h4 data-i18n-list="proc_step3_title">Puja is Performed</h4>
+        <p data-i18n-list="proc_step3_desc">Our verified purohits perform the puja with devotion on your behalf.</p>
+      </div>
+      
+      <div class="process-step">
+        <div class="step-circle">
+          <div class="step-num">4</div>
+          <div class="step-icon">
+            <!-- Hands/Lotus Icon -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 21h10"/><path d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/><path d="M5 16s2-3 7-3 7 3 7 3v3H5v-3z"/></svg>
+          </div>
+        </div>
+        <h4 data-i18n-list="proc_step4_title">Receive Puja video & Blessings</h4>
+        <p data-i18n-list="proc_step4_desc">Receive the divine blessings and Puja video</p>
+      </div>
+      
+    </div>
+  </div>
+</section>
+
+<section class="section puja-section" id="pujas">
+  <!-- ============ "OUR PUJAS" CARDS ============
+       These cards are generated automatically from content/pujas.js �
+       there is nothing to edit here. Add/edit a puja in that file and
+       its card appears here automatically. -->
+  <div class="container" style="text-align: center;">
+    <h2 class="section-title" data-i18n-list="our_pujas">Our <em>Pujas</em></h2>
+    
+    <div class="tabs" id="tabs" style="justify-content: center; gap: 10px; margin-bottom: 30px;">
+      <button class="tab active" data-cat="All" data-i18n-list="filter_all">All</button>
+      <button class="tab" data-cat="Health" data-i18n-list="filter_health">Health</button>
+      <button class="tab" data-cat="Education" data-i18n-list="filter_edu">Education</button>
+      <button class="tab" data-cat="Special Puja" data-i18n-list="filter_special">Special</button>
+    </div>
+    <div class="cards puja-carousel" id="pujaCards" style="text-align: left;"></div>
+    <div class="puja-dots" id="pujaDots"></div>
+    
+    <div class="view-all" style="margin-top: 35px;">
+      <a href="puja.html" class="btn" style="background: #E85A1C; color: #fff; border-radius: 999px; padding: 10px 24px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;" data-i18n-list="view_all_pujas">View All Pujas <span>?</span></a>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="why-us">
+  <div class="container">
+    <h2 class="section-title" data-i18n-list="why_us">Why <em>Shubha Sankalpam</em></h2>
+    <div class="why-grid" id="whyUsGrid"></div>
+  </div>
+</section>
+
+<section class="section" id="temples" style="background:var(--bg-soft)">
+  <div class="container">
+    <h2 class="section-title" data-i18n-list="sacred_temples">Sacred <em>Temples</em></h2>
+    <p class="section-sub" data-i18n-list="sacred_temples_sub">The temples where your pujas are performed, by verified purohits.</p>
+    <div class="temple-grid" id="templeGrid"></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2 class="section-title" data-i18n-list="puja_gallery">Puja <em>Gallery</em></h2>
+    <div class="gallery" id="gallery">
+      <button class="g-item" data-caption="Bhairava Homam"><img loading="lazy" decoding="async" width="800" height="600" src="assets/images/pujas/bhairava.webp" alt="Bhairava Homam"></button>
+      <button class="g-item" data-caption="Narasimha Homam"><img loading="lazy" decoding="async" width="800" height="600" src="assets/images/pujas/narasimha.webp" alt="Narasimha Homam"></button>
+      <button class="g-item" data-caption="Venkateswara Swamy Abhishekam"><img loading="lazy" decoding="async" width="800" height="600" src="assets/images/pujas/venkateswara.webp" alt="Venkateswara Swamy Abhishekam"></button>
+      <button class="g-item" data-caption="Shiva Lingam Abhishekam"><img loading="lazy" decoding="async" width="800" height="600" src="assets/images/pujas/shiva.webp" alt="Shiva Lingam Abhishekam"></button>
+      <button class="g-item" data-caption="Bhadrakali Homam"><img loading="lazy" decoding="async" width="800" height="600" src="assets/images/pujas/bhadrakali.webp" alt="Bhadrakali Homam"></button>
+      <button class="g-item" data-caption="Naga Homam"><img loading="lazy" decoding="async" width="800" height="600" src="assets/images/pujas/naga.webp" alt="Naga Homam"></button>
+      <button class="g-item" data-caption="Varaha Homam"><img loading="lazy" decoding="async" width="800" height="600" src="assets/images/pujas/varaha.webp" alt="Varaha Homam"></button>
+      <button class="g-item" data-caption="Gograsam Seva"><img loading="lazy" decoding="async" width="800" height="600" src="assets/images/pujas/gograsam.webp" alt="Gograsam Seva"></button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GALLERY LIGHTBOX (fullscreen image preview) ============ -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image preview">
+  <button class="lightbox-close" id="lightboxClose" aria-label="Close preview">�</button>
+  <button class="lightbox-nav prev" id="lightboxPrev" aria-label="Previous image">�</button>
+  <div class="lightbox-frame" id="lightboxFrame"></div>
+  <button class="lightbox-nav next" id="lightboxNext" aria-label="Next image">�</button>
+  <div class="lightbox-caption" id="lightboxCaption"></div>
+</div>
+
+<section class="section" id="testimonials">
+  <div class="container">
+    <h2 class="section-title" data-i18n-list="devotees_say">What <em>Devotees</em> Say</h2>
+    <div class="testimonial-grid" id="testimonialGrid"></div>
+  </div>
+</section>
+
+<section class="section" id="faq" style="background:var(--bg-soft)">
+  <div class="container">
+    <h2 class="section-title" data-i18n-list="faq_title">Doubts? <em>We're Here.</em></h2>
+    <p class="faq-intro" data-i18n-list="faq_sub">Our devotee care team is available on WhatsApp, phone, and email. Meanwhile, here are answers to common questions.</p>
+    <div class="faq-list" id="faqList"></div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+
+<!-- ============ CONTENT (edit these files to change text/prices/images) ============ -->
+<script defer src="content/site-settings.js?v=20261003-navigation-v3"></script>
+<script defer src="content/pujas.js?v=20261003-navigation-v3"></script>
+<script defer src="content/packages.js?v=20261003-navigation-v3"></script>
+<script defer src="content/puja-detail-defaults.js?v=20261003-navigation-v3"></script>
+<script defer src="content/trust-highlights.js?v=20261003-navigation-v3"></script>
+<script defer src="content/why-us.js?v=20261003-navigation-v3"></script>
+<script defer src="content/temples.js?v=20261003-navigation-v3"></script>
+<script defer src="content/testimonials.js?v=20261003-navigation-v3"></script>
+<script defer src="content/faq.js?v=20261003-navigation-v3"></script>
+
+<!-- ============ SITE CODE (do not need to edit for content changes) ============ -->
+<script defer src="assets/js/main.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/language.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/navbar.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/animations.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/cards.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/pages/home.js?v=20261003-navigation-v3"></script>  <script defer src="assets/js/cms-renderer.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/analytics-tracker.js?v=20261003-admin-v3"></script>
+</body>
+</html>

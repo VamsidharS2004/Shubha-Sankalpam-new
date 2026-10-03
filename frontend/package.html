@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<!-- ================================================================
+     PACKAGES PAGE (package.html)
+     ================================================================
+     WHERE TO FIND THINGS ON THIS PAGE:
+
+       Banner heading/subtitle
+         → edit directly below, in the "DISCOVER BANNER" section
+
+       Package cards (all of them)
+         → content/packages.js
+
+       Header, footer, and language switcher (same on every page)
+         → assets/js/navbar.js
+     ================================================================ -->
+<html lang="en">
+<head>
+<script>
+(function(){var l="te";try{l=localStorage.getItem("ss_lang")||"te";}catch(e){}document.documentElement.lang=/^(en|te|hi)$/.test(l)?l:"te";document.documentElement.classList.add("ss-booting");})();
+</script>
+<style>.ss-booting body,.ss-booting body *{visibility:hidden!important}</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Anek+Telugu:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Anek+Telugu:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+<link rel="stylesheet" href="assets/css/global.css?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/navbar.css?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/puja-listing.css?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/home.css?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/animations.css?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/responsive.css?v=20261003-navigation-v3">  <!-- always last -->
+<title>Shubha Sankalpam | Puja Packages — Monthly Subscriptions</title>
+<meta name="description" content="Subscribe to monthly puja packages and receive continuous blessings performed on your behalf at sacred temples, hassle-free.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/images/favicon-optimized.webp?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/content-layout.css?v=20261003-layout">
+</head>
+<body>
+<div id="site-header"></div>
+
+<div class="discover">
+  <!-- ============ DISCOVER BANNER — edit heading/subtitle here ============ -->
+  <svg class="wm wm-l" viewBox="0 0 100 160" fill="none" aria-hidden="true"><path d="M50 6 34 30h32L50 6Zm-22 30v18h44V36M22 60h56v14H22Zm-6 20h68v16H16Zm-6 22h80v18H10Zm-4 24h88v18H6Z" stroke="currentColor" stroke-width="3"/></svg>
+  <svg class="wm wm-r" viewBox="0 0 100 160" fill="none" aria-hidden="true"><path d="M50 6 34 30h32L50 6Zm-22 30v18h44V36M22 60h56v14H22Zm-6 20h68v16H16Zm-6 22h80v18H10Zm-4 24h88v18H6Z" stroke="currentColor" stroke-width="3"/></svg>
+  <h1 data-i18n-list="hero_h1">Discover Sacred Pujas & Divine Blessings</h1>
+  <p data-i18n-list="hero_p">Find authentic temple rituals performed by qualified priests and receive personalized sankalpam, puja videos, and divine blessings.</p>
+  <div class="search-bar">
+    <input type="search" id="searchPackages" placeholder="What package are you looking for?" data-i18n-list-placeholder="search_pkg">
+    <span class="si">🔍</span>
+  </div>
+</div>
+
+<div class="container listing">
+  <h2 class="listing-heading" data-i18n-list="pkg_title">Upcoming Puja Packages</h2>
+  <div class="tabs tabs-sticky" id="tabsPage" style="justify-content:flex-start">
+      <button class="tab active" data-cat="All" data-i18n-list="filter_all">All</button>
+      <button class="tab" data-cat="Health" data-i18n-list="filter_health">Health</button>
+      <button class="tab" data-cat="Education" data-i18n-list="filter_edu">Education</button>
+      <button class="tab" data-cat="Special Puja" data-i18n-list="filter_special">Special</button>
+  </div>
+  <!-- ============ PACKAGE CARDS — generated automatically from
+       content/packages.js, nothing to edit below this line ============ -->
+  <div class="cards" id="packageCards"></div>
+</div>
+
+<div id="site-footer"></div>
+<!-- ============ CONTENT (edit these files to change text/prices/images) ============ -->
+<script defer src="content/site-settings.js?v=20261003-navigation-v3"></script>
+<script defer src="content/pujas.js?v=20261003-navigation-v3"></script>
+<script defer src="content/packages.js?v=20261003-navigation-v3"></script>
+<script defer src="content/puja-detail-defaults.js?v=20261003-navigation-v3"></script>
+<script defer src="content/trust-highlights.js?v=20261003-navigation-v3"></script>
+<script defer src="content/faq.js?v=20261003-navigation-v3"></script>
+
+<!-- ============ SITE CODE (do not need to edit for content changes) ============ -->
+<script defer src="assets/js/main.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/navbar.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/animations.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/cards.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/language.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/pages/package.js?v=20261003-navigation-v3"></script>  <script defer src="assets/js/cms-renderer.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/analytics-tracker.js?v=20261003-admin-v3"></script>
+</body>
+</html>

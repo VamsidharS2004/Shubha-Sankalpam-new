@@ -1,0 +1,169 @@
+<!DOCTYPE html><!-- ================================================================
+     LOGIN PAGE (login.html)
+     ================================================================
+     The login card text below can be edited directly in this file.
+     The OTP send/verify logic lives in assets/js/auth.js.
+     ================================================================ --><html lang="en"><head>
+<script>
+(function(){var l="te";try{l=localStorage.getItem("ss_lang")||"te";}catch(e){}document.documentElement.lang=/^(en|te|hi)$/.test(l)?l:"te";})();
+</script>
+<style>.ss-booting body,.ss-booting body *{visibility:hidden!important}</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Anek+Telugu:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Anek+Telugu:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+<link rel="stylesheet" href="assets/css/global.css?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/navbar.css?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/forms.css?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/animations.css?v=20261003-navigation-v3">
+<link rel="stylesheet" href="assets/css/responsive.css?v=20261003-navigation-v3">  <!-- always last -->
+<title data-cms-key="login.title.main">Shubha Sankalpam | Login</title>
+<meta name="description" content="Login with OTP to book pujas, track your bookings, and receive your puja video.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/images/favicon-optimized.webp?v=20261003-navigation-v3">
+
+  <style>
+    /* Premium Login Theme to match new logo */
+    body {
+      background: linear-gradient(135deg, #fdfcfb 0%, #f4eee6 100%) !important;
+    }
+    .login-card {
+      border: 1px solid rgba(216, 157, 42, 0.3) !important;
+      box-shadow: 0 20px 50px rgba(138, 21, 27, 0.08) !important;
+      background: #ffffff !important;
+      border-radius: 20px !important;
+    }
+    #loginStepTitle {
+      color: #8a151b !important;
+    }
+    .login-big-btn {
+      background: linear-gradient(90deg, #8a151b 0%, #a71d24 100%) !important;
+      color: #ffffff !important;
+      box-shadow: 0 8px 24px rgba(138, 21, 27, 0.25) !important;
+      border: none !important;
+    }
+    .login-big-btn:hover:not(:disabled) {
+      background: linear-gradient(90deg, #a71d24 0%, #8a151b 100%) !important;
+      box-shadow: 0 12px 28px rgba(138, 21, 27, 0.35) !important;
+    }
+    .login-big-btn:disabled {
+      opacity: 0.45 !important;
+      cursor: not-allowed !important;
+      box-shadow: none !important;
+    }
+    .login-phone-wrapper:focus-within, .login-fields input:focus {
+      border-color: #d89d2a !important;
+      box-shadow: 0 0 0 4px rgba(216, 157, 42, 0.2) !important;
+    }
+    /* Terms & Conditions checkbox row */
+    .terms-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 16px;
+      text-align: left;
+    }
+    .terms-row input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      accent-color: #8a151b;
+      margin-top: 2px;
+      cursor: pointer;
+    }
+    .terms-row label {
+      font-size: 0.85rem;
+      color: #4a4f5c;
+      line-height: 1.5;
+      cursor: pointer;
+    }
+    .terms-row label a {
+      color: #8a151b;
+      font-weight: 600;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .terms-row label a:hover {
+      color: #a71d24;
+    }
+  </style>
+<link rel="stylesheet" href="assets/css/content-layout.css?v=20261003-layout">
+</head>
+<body>
+<div id="site-header"></div>
+
+<div class="container">
+  <div class="login-card" id="loginCard">
+    <div class="login-avatar" id="loginAvatar" style="background:transparent; border-radius:0; width:100%; aspect-ratio:2.5/1; max-width:280px; margin: 0 auto 24px; display:block;"><img loading="lazy" src="assets/images/logo_transparent.webp" alt="Shubha Sankalpam Logo" style="width:100%; height:100%; object-fit:cover; object-position:center; display:block;" /></div>
+    <h2 id="loginStepTitle">Login or Sign Up</h2>
+    <p id="loginStepHint">We'll text you a one-time password (OTP) to verify it's you.</p>
+    
+    <!-- Step 1: Email + Phone -->
+    <div class="login-fields" id="phoneStep">
+      <div class="login-phone-wrapper">
+        <select id="loginCountryCode" aria-label="Country Code">
+          <option value="+91" selected="">🇮🇳 +91</option>
+          <option value="+1">🇺🇸 +1</option>
+          <option value="+44">🇬🇧 +44</option>
+          <option value="+971">🇦🇪 +971</option>
+          <option value="+65">🇸🇬 +65</option>
+          <option value="+61">🇦🇺 +61</option>
+        </select>
+        <input type="tel" id="loginPhone" placeholder="Mobile Number" autocomplete="tel" required="" data-cms-key="login.placeholder.phone" data-cms-attr="placeholder">
+      </div>
+      <!-- Terms & Conditions acceptance -->
+      <div class="terms-row">
+        <input type="checkbox" id="termsCheckbox" aria-required="true">
+        <label for="termsCheckbox">
+          I accept the <a href="terms.html" target="_blank" rel="noopener">Terms and Conditions</a>
+          and <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.
+        </label>
+      </div>
+      <button class="login-big-btn" id="sendOtpBtn" disabled><span data-cms-key="login.button.send_otp">Send OTP</span> <span class="login-arrow">&#8594;</span></button>
+    </div>
+    
+    <!-- Step 2: Enter OTP -->
+    <div class="login-fields hidden" id="otpStep">
+      <input type="text" id="loginOtp" placeholder="Enter 4-digit OTP" maxlength="4" inputmode="numeric" autocomplete="one-time-code" data-cms-key="login.placeholder.otp" data-cms-attr="placeholder">
+      <p class="demo-otp" id="demoOtp"></p>
+      <button class="login-big-btn" id="verifyOtpBtn"><span data-cms-key="login.button.verify_otp">Verify OTP</span> <span class="login-arrow">&#8594;</span></button>
+      <div id="resendWrap" style="text-align: center; margin-top: 12px; font-size: 0.9rem;">
+        <span id="timerText" style="color: var(--muted); font-weight: 600;">Resend OTP in <span id="otpTimer">60</span>s</span>
+        <button id="resendOtpBtn" class="hidden" style="color: var(--red); font-weight: 700; border: none; background: none; cursor: pointer; text-decoration: underline; text-underline-offset: 4px;" data-cms-key="login.button.resend_otp">Resend OTP</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Complete Profile -->
+    <div class="login-fields hidden" id="profileStep">
+      <input type="text" id="loginName" placeholder="Full Name" autocomplete="name" required="">
+      <input type="text" id="loginGotram" placeholder="Gotram (optional)" autocomplete="off">
+      <button class="login-big-btn" id="saveProfileBtn" data-cms-key="login.button.complete_profile">Complete Profile <span class="login-arrow">→</span></button>
+    </div>
+  </div>
+</div>
+
+<div id="site-footer"></div>
+<!-- ============ CONTENT (edit these files to change text/prices/images) ============ -->
+<script defer src="content/site-settings.js?v=20261003-navigation-v3"></script>
+<script defer src="content/pujas.js?v=20261003-navigation-v3"></script>
+<script defer src="content/packages.js?v=20261003-navigation-v3"></script>
+<script defer src="content/puja-detail-defaults.js?v=20261003-navigation-v3"></script>
+<script defer src="content/trust-highlights.js?v=20261003-navigation-v3"></script>
+<script defer src="content/faq.js?v=20261003-navigation-v3"></script>
+
+<!-- ============ SITE CODE (do not need to edit for content changes) ============ -->
+<script defer src="assets/js/cms-renderer.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/main.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/navbar.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/animations.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/cards.js?v=20261003-navigation-v3"></script>
+<script defer src="assets/js/auth.js?v=20261003-navigation-v3"></script>
+
+<script defer src="assets/js/analytics-tracker.js?v=20261003-admin-v3"></script>
+</body></html>
+
+
+

@@ -1,0 +1,38 @@
+.analytics-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.analytics-toolbar label{display:flex;align-items:center;gap:8px}
+.analytics-toolbar select{padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-panel);color:inherit}
+.analytics-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:16px;margin:20px 0}
+.analytics-metric,.analytics-panel{background:var(--bg-panel);border:1px solid var(--border);border-radius:12px;padding:20px;min-width:0}
+.analytics-metric span{display:block;font-size:.85rem;color:var(--text-muted);line-height:1.5}
+.analytics-metric strong{display:block;font-size:1.8rem;line-height:1.5;overflow-wrap:anywhere}
+.analytics-panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:20px;margin-top:20px}
+.analytics-panel h2{font-size:1.15rem;margin:0 0 16px}
+.analytics-panel table{width:100%;border-collapse:collapse}
+.analytics-panel td,.analytics-panel th{padding:10px 8px;text-align:left;border-bottom:1px solid var(--border);overflow-wrap:anywhere}
+.analytics-panel th:last-child,.analytics-panel td:last-child{text-align:right}
+.analytics-panel .scroll-table{overflow:auto;max-height:420px}
+.analytics-bars{display:flex;gap:7px;align-items:flex-end;min-height:220px;overflow-x:auto;padding:12px 0}
+.analytics-day{flex:1 0 25px;display:flex;flex-direction:column;justify-content:flex-end;min-height:180px;text-align:center}
+.analytics-day .bar{background:var(--accent,#9b1c1c);border-radius:4px 4px 0 0;min-height:2px}
+.analytics-day small{font-size:.65rem;white-space:nowrap;margin-top:6px}
+.analytics-note{color:var(--text-muted);font-size:.85rem;line-height:1.6;margin:12px 0}
+#reportStatus{margin:16px 0;line-height:1.6}
+@media(max-width:600px){.analytics-metric,.analytics-panel{padding:16px}.analytics-toolbar .btn{flex:1}.analytics-metric strong{font-size:1.5rem}}
+.bf-editor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.bf-editor-block{padding:20px;border:1px solid var(--border);border-radius:12px;background:var(--bg-panel);min-width:0}
+.bf-editor-block h3,.bf-editor-block h4{margin:12px 0;font-size:1rem}
+.bf-editor-label{display:block;margin:12px 0;overflow-wrap:anywhere}
+.bf-editor-label .form-control{display:block;width:100%;margin-top:6px;padding:10px;border:1px solid var(--border);border-radius:6px}
+.bf-editor-label input[type=checkbox]{display:inline-block;width:auto;margin-left:12px}
+.booking-extra-field{margin:18px 0;min-width:0}
+.booking-extra-field label{display:block;margin-bottom:8px;overflow-wrap:anywhere}
+.booking-extra-field input:not([type=checkbox]),.booking-extra-field select,.booking-extra-field textarea{width:100%;padding:12px;border:1px solid #d9c9bb;border-radius:8px;font:inherit;background:#fff;color:#333}
+
+#view-analytics,#view-booking-form{color:var(--text-main)}
+.analytics-panel td,.analytics-panel th{color:var(--text-main)}
+.bf-editor-label .form-control,.analytics-toolbar select,#bfPreview input:not([type=checkbox]),#bfPreview select,#bfPreview textarea{background:var(--bg-input);color:var(--text-main);border-color:var(--border-light);font:inherit}
+.bf-editor-label .form-control:focus{outline:2px solid var(--accent);outline-offset:2px}
+#bfPreview .booking-extra-field label{color:var(--text-main)}
+#view-booking-form h2{font-size:1.15rem;margin:24px 0 12px}
+#view-booking-form .bf-editor-block{line-height:1.6}
+.bf-guide{padding:16px 20px;background:var(--accent-dim);border:1px solid var(--border-light);border-radius:12px;line-height:1.8;margin:16px 0}

@@ -1,0 +1,1853 @@
+/* ================================================================
+   RESPONSIVE.CSS — structured by architectural breakpoints
+   ================================================================
+   Every media query rule is a small, targeted override.
+   Organized strictly by breakpoint in a mobile-first override
+   direction (using max-width from largest to smallest).
+   ================================================================ */
+
+/* --- 1023px --- */
+@media (max-width: 1023px) {
+  /* Container padding scales down */
+  .container { padding: 0 28px; }
+
+  /* Footer link grid: 2fr 1fr 1fr 1.4fr desktop -> 1fr 1fr */
+  .foot-grid { grid-template-columns:minmax(0, 1fr) minmax(0, 1fr); gap: 28px; }
+
+  /* Image gallery: 4 cols -> 2 cols */
+  .gallery { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+
+  /* Two-column detail/dashboard layouts -> single column */
+  .pd-top { grid-template-columns:minmax(0, 1fr); gap: 30px; }
+  .pd-grid { grid-template-columns:minmax(0, 1fr); gap: 28px; }
+  .account-grid { grid-template-columns:minmax(0, 1fr); gap: 26px; }
+
+  /* Sticky sidebars must switch to position: static since there's no room to stick */
+  .pd-side { position: static; }
+  .side-card { position: static; }
+  .pd-booking-card { position: static; }
+  .temple-card { grid-template-columns:minmax(0, 1fr); }
+}
+
+/* --- 960px --- */
+@media (max-width: 960px) {
+  .pd-hero-section { grid-template-columns:minmax(0, 1fr); gap: 24px; }
+  .pd-content-grid { grid-template-columns:minmax(0, 1fr); }
+  .pd-main-content { background: transparent; border: none; padding: 0; }
+  .pd-sidebar {
+    position: sticky; top: 70px; z-index: 50; padding: 0; border: none;
+    border-bottom: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px); margin-bottom: 24px; width: 100%; min-width: 0; overflow: hidden; box-sizing: border-box;
+  }
+  .pd-tabs {
+    display: flex; flex-wrap: nowrap; flex-direction: row; overflow-x: auto; gap: 16px; padding: 12px 20px;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; scroll-snap-type: x mandatory; width: 100%; box-sizing: border-box;
+  }
+  .pd-tabs::-webkit-scrollbar { display: none; }
+  .pd-tabs a { flex-shrink: 0; white-space: nowrap; padding: 8px 16px; background: var(--bg-soft); border-left: none !important; border-bottom: 2px solid transparent; scroll-snap-align: start; }
+  .pd-tabs a.active { border-bottom: 2px solid var(--gold); }
+}
+
+/* --- 920px --- */
+@media (max-width: 920px) {
+  .shortcuts { grid-template-columns:minmax(0, 1fr); }
+  .profile-card { flex-direction: row; flex-wrap: wrap; text-align: center; }
+  .profile-line { justify-content: center; }
+  .slide { grid-template-columns:minmax(0, 1fr); }
+  .slide-media { min-height: 300px; }
+  .step-arrow { display: none; }
+  .step { width: calc(50% - 10px); }
+  .ornament { display: none; }
+  .slider-arrow.prev { left: -6px; }
+  .slider-arrow.next { right: -6px; }
+}
+
+/* --- 901px+ (Toggle bounds for navigation) --- */
+@media (min-width: 901px) {
+  .bottom-nav { display: none; }
+  body { padding-bottom: 0; }
+}
+
+/* --- 900px --- */
+@media (max-width: 900px) {
+  /* Toggle body's bottom padding so page content never sits under the bottom bar */
+  body { padding-bottom: calc(70px + env(safe-area-inset-bottom)); }
+  .bottom-nav { display: flex; width: 100vw; max-width: 100%; box-sizing: border-box; overflow-x: hidden; justify-content: space-evenly; }
+  .bottom-nav a { flex: 1; text-align: center; }
+  .floating-wa { bottom: 85px; right: 16px; width: 54px; height: 54px; }
+  .floating-wa svg { width: 24px; height: 24px; }
+  
+  /* hide .nav-links entirely */
+  .nav-links { display: none; }
+
+  /* Suppress abandoned cart FAB when booking/detail sticky bars are present to avoid multi-widget overlap */
+  body:has(.pd-sticky-bottom) .abandoned-fab,
+  body:has(.booking-layout) .abandoned-fab,
+  .pd-sticky-bottom ~ .abandoned-fab,
+  .booking-layout ~ .abandoned-fab {
+    display: none !important;
+  }
+
+  /* Generic 3-up card grid: 3 columns -> 2 columns */
+  .why-grid, .temple-grid, .testimonial-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+
+  /* Booking-form layout: 1fr 400px -> 1fr (stacked) */
+  .booking-layout { grid-template-columns:minmax(0, 1fr); }
+  .names-grid { grid-template-columns:minmax(0, 1fr); }
+
+  .trust-box .ornament { display: none; }
+  .hero-grid { grid-template-columns:minmax(0, 1fr); }
+  .benefit-grid, .receive-grid { grid-template-columns:minmax(0, 1fr); }
+  .steps-row { gap: 14px; }
+  .pd-stats { flex-wrap: wrap; row-gap: 12px; }
+  .detail-grid { grid-template-columns:minmax(0, 1fr); }
+}
+
+/* --- 767px --- */
+@media (max-width: 767px) {
+  /* Container padding scales to 16px */
+  .container { padding: 0 16px; }
+  
+  /* Booking card responsive bounds */
+  .pd-booking-card { width: 100% !important; max-width: 100% !important; box-sizing: border-box; }
+
+  /* Footer link grid: 1fr 1fr -> single column */
+  .foot-grid { grid-template-columns:minmax(0, 1fr); gap: 24px; }
+
+  /* Space optimizations */
+  .section { padding: 32px 0; }
+  .discover { padding: 32px 16px; }
+
+  .info-table { grid-template-columns:minmax(0, 1fr); }
+  .pd-alt-row { grid-template-columns:minmax(0, 1fr); }
+  .muhurat-row { flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 14px; }
+  .countdown { gap: 5px; }
+  .cd-box { min-width: 44px; padding: 7px 6px; }
+  .cd-box b { font-size: 1rem; }
+  .stats { gap: 28px; }
+  .pd-tabs { gap: 20px; }
+  
+  .account-banner { flex-direction: row; flex-wrap: wrap; align-items: flex-start; padding: 24px 20px; gap: 20px; }
+  .account-grid { display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; gap: 16px !important; }
+  .account-grid > .side-card {
+    position: static !important;
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    padding: 8px !important;
+    background: #fff !important;
+    border-radius: 14px !important;
+  }
+  .account-grid > .side-card::-webkit-scrollbar { display: none !important; }
+  .account-grid > .side-card .side-item {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    white-space: nowrap !important;
+    padding: 8px 14px !important;
+    font-size: 0.85rem !important;
+    border-radius: 20px !important;
+    margin: 0 !important;
+    background: #f8f6f2 !important;
+    border: 1px solid #ebdccb !important;
+  }
+  .account-grid > .side-card .side-item.active {
+    background: var(--red) !important;
+    color: #fff !important;
+    border-color: var(--red) !important;
+  }
+  .account-grid > div { width: 100% !important; min-width: 0 !important; }
+  .ab-left { gap: 14px; }
+  .ab-avatar { width: 56px; height: 56px; font-size: 1.6rem; }
+  .ab-name-row { flex-wrap: wrap; gap: 10px; }
+  .ab-name-row h2 { font-size: 1.4rem; }
+  .ab-phone-row { flex-wrap: wrap; gap: 8px; line-height: 1.4; }
+  .ab-right { flex-wrap: wrap; width: 100%; justify-content: flex-start; }
+  .login-card { padding: 34px 24px; margin: 36px auto; }
+  .modal { padding: 24px; }
+  .form-card { padding: 26px 22px; }
+}
+
+/* --- 700px --- */
+@media (max-width: 700px) {
+  .trust-box-inner { justify-content: flex-start; overflow-x: auto; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; padding-bottom: 8px; }
+  .trust-box-inner > * { scroll-snap-align: start; flex-shrink: 0; }
+  .discover .wm { width: 80px; }
+}
+
+/* --- 640px --- */
+@media (max-width: 640px) {
+  /* min(100%, 310px) in home.css now natively handles shrinking below 310px without needing media query */
+  
+  /* Generic 3-up card grid -> 1 col */
+  .why-grid, .temple-grid, .testimonial-grid { grid-template-columns:minmax(0, 1fr); }
+  
+  .dash-grid { grid-template-columns:minmax(0, 1fr); }
+  .dash-stats { grid-template-columns:minmax(0, 1fr); }
+  
+  /* Lightbox overrides extracted from global.css */
+  .lightbox-frame { width: 92vw; }
+  .lightbox-nav { width: 40px; height: 40px; font-size: 1.4rem; }
+  .lightbox-nav.prev { left: 8px; }
+  .lightbox-nav.next { right: 8px; }
+  .lightbox-close { top: 12px; right: 12px; }
+}
+
+/* --- 600px --- */
+@media (max-width: 600px) {
+  .pd-procedure-list { grid-template-columns:minmax(0, 1fr); gap: 8px; }
+  .pd-benefits-grid { grid-template-columns:minmax(0, 1fr); }
+  
+  /* Make procedure steps horizontal on mobile for extreme compactness */
+  .proc-step { flex-direction: row; text-align: left; align-items: flex-start; gap: 10px; }
+  .proc-num { width: 24px; height: 24px; min-width: 24px; font-size: 0.8rem; margin-bottom: 0; margin-top: 1px; }
+  .proc-card h3 { margin: 0 0 2px; font-size: 0.85rem; }
+  .proc-card p { font-size: 0.75rem; line-height: 1.25; }
+  
+  .proc-step:not(:last-child)::after {
+    display: block;
+    top: 26px;
+    left: 11px;
+    width: 0;
+    height: calc(100% - 10px);
+    border-left: 2px dashed var(--gold);
+    background: transparent;
+    transform: none;
+  }
+  .pd-hero-title { font-size: 1.5rem; }
+  
+  /* Mobile booking card structural fix */
+  .pd-booking-card { padding: 16px; width: 100% !important; max-width: 100% !important; box-sizing: border-box; }
+  
+  /* Countdown grid logic to fit 320px screens perfectly without wrap breaking */
+  .pd-cd-timer { display: grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap: 4px; width: 100%; box-sizing: border-box; }
+  .pd-cd-box { padding: 6px 2px; min-width: 0; width: 100%; box-sizing: border-box; }
+  .pd-cd-val { font-size: 1.1rem; }
+  .pd-cd-lbl { font-size: 0.6rem; }
+  
+  .pd-btn-primary { font-size: 1rem; padding: 14px; }
+  .pd-help-btns { flex-direction: row; flex-wrap: wrap; gap: 8px; }
+  .pd-hl-list { gap: 10px; }
+  
+  /* Mobile highlights text wrapping fix */
+  .pd-hl-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 0.82rem; line-height: 1.4; white-space: normal; word-break: break-word; }
+  .pd-hl-list .ic { flex-shrink: 0; margin-top: 2px; }
+  
+  .pd-btn-primary, .pd-btn-wa, .pd-btn-call { width: 100%; box-sizing: border-box; }
+  .review-grid { grid-template-columns:minmax(0, 1fr); }
+}
+
+/* --- 560px --- */
+@media (max-width: 560px) {
+  /* Image gallery -> 1 column */
+  .gallery { grid-template-columns:minmax(0, 1fr); gap: 14px; }
+  .step { width: 100%; }
+}
+
+/* --- 480px --- */
+@media (max-width: 480px) {
+  /* Nav/header shrinking -> height drops to 64px */
+  .nav { height: 64px; }
+  
+  /* shrink logo image/text */
+  .logo-text b { font-size: 1.15rem; }
+  .logo-text small { font-size: .56rem; }
+  /* .logo img { width: 45px !important; height: 45px !important; } removed to preserve aspect ratio of text-integrated logo */
+  .logo { gap: 6px; }
+
+  /* make the WhatsApp pill icon-only */
+  .whatsapp-pill span { display: none; }
+  
+  /* hide the "English" label text next to the language switcher */
+  #langLabel { display: none; }
+  .lang { padding: 6px 10px; gap: 4px; font-size: 0.75rem; }
+
+  /* reduce button/price font sizes slightly */
+  .btn { padding: 12px 20px; font-size: .9rem; }
+  .pd-book { font-size: 1rem; padding: 14px 18px; }
+  .price { font-size: 1.15rem; }
+
+  /* stack card footers vertically instead of side-by-side */
+  .card-foot { flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 12px; }
+
+  /* make step-indicator badges full-width */
+  .step-indicator { width: 100%; }
+
+  /* shrink QR code images to max 180px */
+  .qr-box img { max-width: 180px; }
+
+  /* hide any decorative/ornamental background SVGs entirely */
+  .bg-ornament, .decorative-svg, .ornament-bg { display: none; }
+}
+
+/* --- 420px --- */
+@media (max-width: 420px) {
+  .hero-content h1 { font-size: 2rem; }
+}
+
+/* --- 400px --- */
+@media (max-width: 400px) {
+  /* Container padding scales to 14px */
+  .container { padding: 0 14px; }
+}
+
+/* --- Short Landscape Phones --- */
+@media (max-height: 480px) and (orientation: landscape) {
+  /* shrink the fixed header to 56px */
+  .nav { height: 56px; }
+  
+  /* reduce bottom-nav vertical padding */
+  .bottom-nav { padding: 4px 0 env(safe-area-inset-bottom); }
+  
+  /* reduce hero section top/bottom padding */
+  .hero-section, .pd-hero-section { padding: 16px 0; }
+}
+
+/* Prevent intrinsic content (images, carousels) from blowing out grid
+   tracks. Placed last so no later stylesheet can override it. */
+.pd-hero-section > *, .pd-content-grid > *, .pd-top > *, .pd-grid > *,
+.account-grid > *, .temple-card > *, .shortcuts > *, .slide > *,
+.booking-layout > *, .names-grid > *, .hero-grid > *, .benefit-grid > *,
+.receive-grid > *, .detail-grid > *, .foot-grid > *, .info-table > *,
+.pd-alt-row > *, .dash-grid > *, .dash-stats > *, .pd-procedure-list > *,
+.pd-benefits-grid > *, .review-grid > *, .gallery > *, .why-grid > *,
+.testimonial-grid > *, .cards > * {
+  min-width: 0;
+}
+
+/* Home hero: one uploaded thumbnail, shown in its own native 16:9 frame.
+   These rules are deliberately scoped to the home hero; navbar styles stay
+   in navbar.css and are not overridden here. */
+.hero-landing {
+  position: relative;
+  min-width: 0;
+  padding: clamp(12px, 2vw, 28px) clamp(12px, 2.5vw, 36px) 0;
+  overflow: visible;
+  background: var(--bg-soft, #fffaf2);
+}
+.hero-slider {
+  display: grid;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+  contain: none;
+}
+.hero-slide,
+.hero-slide.active {
+  height: auto !important;
+  min-height: 0;
+  align-self: start;
+}
+.hero-image-wrap {
+  display: block;
+  width: 100%;
+  height: auto !important;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 18px;
+  background: transparent;
+  box-shadow: 0 10px 30px rgba(55, 28, 13, .08);
+}
+.hero-image-wrap picture {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+  line-height: 0;
+}
+.hero-image-wrap .hero-img {
+  display: block;
+  position: static;
+  inset: auto;
+  width: 100%;
+  height: auto !important;
+  min-height: 0;
+  max-height: none;
+  aspect-ratio: auto 16 / 9;
+  object-fit: contain;
+  object-position: center;
+  border-radius: inherit;
+}
+.hero-overlay-gradient { display: none !important; }
+.hero-copy {
+  flex-direction: row !important; flex-wrap: wrap !important;
+  align-items: stretch !important;
+  position: relative;
+  inset: auto;
+  width: min(100%, 1180px);
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(22px, 3vw, 38px) 12px 22px;
+  display: flex;
+  flex-direction: row; flex-wrap: wrap;
+  align-items: stretch;
+  color: var(--ink, #351c16);
+  text-align: left;
+  z-index: 1;
+}
+.hero-tagline { display: none; }
+.hero-copy h1 {
+  order: 1;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+  display: block;
+  color: #7f1818;
+  font-size: clamp(1.8rem, 3.5vw, 3rem);
+  line-height: 1.16;
+  margin: 0 0 8px;
+}
+.hero-headline-accent { color: #7f1818 !important; }
+.hero-copy .hero-desc {
+  order: 2;
+  height: auto;
+  max-width: 900px;
+  overflow: visible;
+  color: #625852;
+  font-size: clamp(.98rem, 1.35vw, 1.15rem);
+  line-height: 1.5;
+  margin: 0 0 16px;
+}
+.hero-copy .hero-meta {
+  order: 3;
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 9px 24px;
+  color: #433833;
+  font-size: 1rem;
+  margin: 0 0 18px;
+  padding: 0;
+}
+.hero-copy .hero-meta .hm-item { color: inherit; min-width: 0; }
+.hero-copy .hero-meta .hm-item svg { color: #8c1c13; flex: 0 0 18px; }
+.hero-copy .hero-buttons {
+  order: 4;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 20px;
+}
+.hero-copy .hero-buttons > a {
+  width: auto;
+  min-width: 0;
+  min-height: 50px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 16px;
+  text-align: center;
+}
+.hero-copy .hero-btn-primary { background: #8c1c13; color: #fff; border: 1px solid #8c1c13; }
+.hero-copy .hero-btn-secondary { background: #fffdf8; color: #8c1c13; border: 1px solid #8c1c13; }
+.hero-copy .hero-feature-row {
+  order: 5;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  overflow: visible;
+}
+.hero-copy .hero-feature {
+  width: auto;
+  max-width: none;
+  min-width: 0;
+  padding: 14px 10px;
+  gap: 8px;
+  border: 1px solid rgba(201, 162, 39, .3);
+  border-radius: 14px;
+  background: linear-gradient(145deg, #fffdf8, #fff8e9);
+}
+.hero-copy .hf-badge {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  color: #8c1c13;
+  border: 1px solid #ead39b;
+  background: #fff;
+}
+.hero-copy .hf-label { color: #4c2922; font-size: .83rem; line-height: 1.3; }
+.hero-slider-dots {
+  position: relative;
+  inset: auto;
+  z-index: 5;
+  justify-content: center;
+  padding: 0 0 14px;
+}
+.hero-dot { background: rgba(140, 28, 19, .2); border-color: rgba(140, 28, 19, .35); }
+.hero-dot.active { background: #8c1c13; border-color: #8c1c13; }
+.hero-skeleton-ph {
+  width: 100%;
+  min-height: 0 !important;
+  aspect-ratio: 16 / 9;
+  border-radius: 18px;
+}
+.hero-arrow { top: clamp(240px, 29vw, 560px); }
+
+/* Responsive home hero: show the complete uploaded artwork at its own
+   aspect ratio. No blurred background, letterbox fill, or image crop. */
+.hero-image-wrap {
+  position: relative;
+  width: 100%;
+  height: auto !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+  isolation: isolate;
+  background: transparent !important;
+}
+.hero-image-wrap picture {
+  position: relative !important;
+  inset: auto !important;
+  display: block;
+  width: 100%;
+  height: auto !important;
+  aspect-ratio: auto !important;
+  overflow: hidden;
+  border-radius: inherit;
+  line-height: 0;
+}
+.hero-image-wrap .hero-img {
+  position: static !important;
+  inset: auto !important;
+  display: block;
+  width: 100%;
+  height: auto !important;
+  max-height: none;
+  aspect-ratio: auto !important;
+  object-fit: contain !important;
+  object-position: center;
+}
+.hero-overlay-gradient { display: none !important; }
+
+@media (min-width: 1025px) {
+  .hero-copy {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 42%);
+    grid-template-rows: auto auto auto auto;
+    align-items: center;
+    column-gap: clamp(22px, 4vw, 64px);
+    row-gap: 4px;
+    width: min(100%, 1440px);
+    max-width: 1440px;
+    padding: 26px 16px 28px;
+  }
+  .hero-copy h1 {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    font-size: clamp(1.8rem, 3vw, 2.7rem);
+  }
+  .hero-copy .hero-desc { grid-column: 1 / -1; grid-row: 2; }
+  .hero-copy .hero-meta { grid-column: 1; grid-row: 3; }
+  .hero-copy .hero-buttons {
+    grid-column: 2;
+    grid-row: 3;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-self: center;
+    margin: 0;
+  }
+  .hero-copy .hero-feature-row {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: 14px;
+  }
+}
+
+@media (min-width: 521px) and (max-width: 1024px) {
+  .hero-copy .hero-feature-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 520px) {
+  .hero-landing { padding: 10px 12px 0; }
+  .hero-image-wrap, .hero-image-wrap picture, .hero-image-wrap .hero-img { border-radius: 12px; }
+  .hero-copy { padding: 17px 4px 14px; }
+  .hero-copy .hero-feature-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Final responsive overrides: keep the mobile hero banner image-only,
+   remove its blur/fill frame, and make the copy and CTA reliably visible. */
+@media (max-width: 767px) {
+  .hero-landing { overflow: visible !important; padding: 8px 10px 0 !important; }
+  .hero-slider { display: block !important; min-height: 0 !important; height: auto !important; overflow: visible !important; contain: none !important; }
+  .hero-slide { display: none !important; height: auto !important; min-height: 0 !important; opacity: 1 !important; visibility: visible !important; }
+  .hero-slide.active { display: block !important; }
+  .hero-image-wrap { display: flex !important; flex-direction: row; flex-wrap: wrap; min-height: 0 !important; height: auto !important; overflow: visible !important; background: transparent !important; box-shadow: none !important; }
+  .hero-image-wrap picture { position: relative !important; inset: auto !important; display: block !important; height: auto !important; overflow: hidden !important; background: transparent !important; }
+  .hero-image-wrap .hero-img { position: static !important; display: block !important; width: 100% !important; height: auto !important; min-height: 0 !important; max-height: none !important; aspect-ratio: auto !important; object-fit: contain !important; filter: none !important; }
+  .hero-overlay-gradient, .hero-image-wrap::before, .hero-image-wrap::after { display: none !important; }
+  .hero-copy { position: relative !important; inset: auto !important; display: flex !important; width: 100% !important; max-width: none !important; height: auto !important; max-height: none !important; overflow: visible !important; padding: 10px 4px 8px !important; margin: 0 !important; color: var(--ink, #351c16) !important; }
+  .hero-copy h1 { display: block !important; font-size: clamp(1.2rem, 5vw, 1.55rem) !important; line-height: 1.18 !important; margin: 0 0 4px !important; }
+  .hero-copy .hero-desc { display: block !important; font-size: .8rem !important; line-height: 1.3 !important; margin: 0 0 5px !important; }
+  .hero-copy .hero-meta { display: flex !important; font-size: .76rem !important; gap: 4px 10px !important; margin: 0 0 7px !important; }
+  .hero-copy .hero-buttons { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 7px !important; margin: 0 0 7px !important; }
+  .hero-copy .hero-buttons > a { display: inline-flex !important; min-height: 40px !important; padding: 5px 6px !important; font-size: .76rem !important; line-height: 1.15 !important; white-space: normal !important; }
+  .hero-copy .hero-feature-row { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 5px !important; }
+  .hero-copy .hero-feature:nth-child(n + 4) { display: none !important; }
+  .hero-copy .hero-feature { padding: 5px 3px !important; }
+  .hero-copy .hf-badge { flex-basis: 28px !important; width: 28px !important; height: 28px !important; }
+  .hero-copy .hf-label { font-size: .6rem !important; line-height: 1.12 !important; }
+  .hero-swipe { display: none !important; }
+  .hero-slider-dots { position: relative !important; inset: auto !important; padding: 0 0 7px !important; }
+}
+
+/* Laptop: remove the extra top gap and compact the information row so the
+   booking actions are visible in the initial viewport below the banner. */
+@media (min-width: 1025px) {
+  .hero-landing { padding: 0 clamp(12px, 2vw, 28px) 0 !important; }
+  .hero-copy { padding: 10px 16px 12px !important; row-gap: 0 !important; }
+  .hero-copy h1 { margin-bottom: 3px !important; line-height: 1.12 !important; }
+  .hero-copy .hero-desc { margin-bottom: 5px !important; line-height: 1.32 !important; }
+  .hero-copy .hero-meta { margin: 0 !important; gap: 8px 16px !important; }
+  .hero-copy .hero-buttons { gap: 8px !important; }
+  .hero-copy .hero-buttons > a { min-height: 44px !important; padding: 8px 10px !important; }
+  .hero-copy .hero-feature-row { margin-top: 8px !important; }
+}
+
+/* Puja listing artwork keeps its full native frame on phones and cannot
+   extend outside its card/carousel track. */
+@media (max-width: 767px) {
+  .cards:not(.puja-carousel) .card-media { display: block; height: auto !important; aspect-ratio: 16 / 9; }
+  .cards:not(.puja-carousel) .card-media .media-img { display: block; width: 100% !important; height: 100% !important; object-fit: contain !important; object-position: center; }
+  .puja-carousel { width: 100% !important; max-width: 100% !important; overflow-x: auto; padding-inline: 0 !important; }
+  .puja-carousel .card { flex: 0 0 100% !important; width: 100%; max-width: 100%; }
+}
+
+/* Detail page: enlarge the artwork area on phones without a blurred backdrop;
+   on desktop use the available column height to reduce the empty area below. */
+@media (min-width: 1024px) {
+  .pd-hero-section { grid-template-columns: minmax(0, 1fr) 400px; gap: 24px; padding-top: 16px; }
+  .pd-carousel { width: 100%; aspect-ratio: 16 / 9; height: auto; background: #f7ead2; }
+  .pd-slides, .pd-slide.active { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .pd-slide.active img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+}
+@media (max-width: 1023px) {
+  .pd-hero-section { width: 100%; max-width: 100%; box-sizing: border-box; padding: 12px 12px 20px; gap: 16px; }
+  .pd-hero-left, .pd-hero-right { min-width: 0; width: 100%; }
+  .pd-carousel { width: calc(100% + 24px); max-width: none; margin: 0 -12px 14px; background: #f7ead2 !important; box-shadow: none; }
+  .pd-slides { position: relative !important; width: 100%; height: auto !important; }
+  .pd-slide.active { position: relative !important; width: 100%; height: auto !important; }
+  .pd-slide.active img { display: block; width: 100% !important; height: auto !important; max-height: none !important; object-fit: contain !important; filter: none !important; }
+  .pd-slide::before { display: none !important; }
+}
+
+/* Latest screenshot fixes: preserve the complete banner artwork in detail
+   and puja cards, compact hero actions, and keep the detail booking bar fixed. */
+@media (min-width: 1024px) {
+  .pd-carousel { height: auto !important; min-height: 0 !important; aspect-ratio: auto !important; background: transparent !important; }
+  .pd-slides { position: relative !important; inset: auto !important; display: flex; width: 100%; height: auto !important; }
+  .pd-slide.active { position: relative !important; inset: auto !important; display: block; width: 100%; height: auto !important; }
+  .pd-slide.active img { display: block; width: 100% !important; height: auto !important; max-height: none !important; object-fit: contain !important; object-position: center; }
+  .pd-hero-section { align-items: start; }
+  .hero-copy { padding: 3px 14px 8px !important; row-gap: 0 !important; }
+  .hero-copy h1 { font-size: clamp(1.5rem, 2.1vw, 2rem) !important; line-height: 1.08 !important; margin: 0 0 2px !important; }
+  .hero-copy .hero-desc { font-size: .9rem !important; line-height: 1.25 !important; margin: 0 0 3px !important; }
+  .hero-copy .hero-meta { gap: 6px 14px !important; }
+  .hero-copy .hero-buttons { gap: 7px !important; }
+  .hero-copy .hero-buttons > a { min-height: 40px !important; padding: 6px 8px !important; font-size: .84rem !important; }
+  .hero-copy .hero-feature-row { margin-top: 6px !important; }
+}
+
+@media (max-width: 1023px) {
+  .pd-carousel { height: auto !important; aspect-ratio: auto !important; overflow: hidden; background: transparent !important; }
+  .pd-slides { position: relative !important; inset: auto !important; width: 100% !important; height: auto !important; }
+  .pd-slide.active { position: relative !important; inset: auto !important; width: 100% !important; height: auto !important; }
+  .pd-slide.active img { display: block; width: 100% !important; height: auto !important; max-height: none !important; object-fit: contain !important; object-position: center; }
+  .pd-carousel { width: calc(100% + 24px) !important; margin-left: -12px !important; margin-right: -12px !important; }
+}
+
+/* In every puja card, show the full uploaded thumbnail rather than cropping
+   its sides to a fixed 16:9 cover frame. */
+.card-media { height: auto !important; min-height: 0; aspect-ratio: auto !important; overflow: hidden; }
+.card-media .media-img { display: block; width: 100% !important; height: auto !important; max-height: none !important; object-fit: contain !important; object-position: center; }
+.puja-carousel .card { min-width: 0; }
+
+@media (max-width: 767px) {
+  .hero-copy .hero-buttons > a { box-sizing: border-box !important; min-height: 36px !important; height: auto !important; padding: 5px 6px !important; font-size: .7rem !important; line-height: 1.12 !important; }
+  .hero-copy .hero-buttons { gap: 6px !important; margin-bottom: 5px !important; }
+}
+
+/* Persistent Book Now bar on puja details. Keep it clear of the site's
+   existing mobile bottom navigation and provide room for it in the page. */
+.pd-sticky-bottom {
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: 14px !important;
+  width: min(1000px, calc(100vw - 32px)) !important;
+  max-width: 1000px !important;
+  margin: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translate(-50%, 0) !important;
+  pointer-events: auto !important;
+  z-index: 950 !important;
+}
+#pd-content, .pd-content { padding-bottom: 92px; }
+@media (max-width: 900px) {
+  .pd-sticky-bottom {
+    left: 10px !important;
+    right: 10px !important;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+    width: auto !important;
+    max-width: none !important;
+    transform: none !important;
+  }
+  #pd-content, .pd-content { padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* CTA sizing and responsive image frames from the latest desktop/mobile QA. */
+.hero-book-icon { display: inline-block; width: 20px; height: 20px; max-width: 20px; flex: 0 0 20px; }
+.hero-copy .hero-buttons > a { box-sizing: border-box; min-height: 44px; height: 44px; padding: 8px 12px; gap: 8px; }
+.card-media:has(> picture) { display: block; width: 100%; height: auto !important; aspect-ratio: 16 / 9 !important; overflow: hidden; line-height: 0; }
+.card-media > picture { display: block; width: 100%; height: 100%; line-height: 0; }
+.card-media .media-img { display: block; width: 100% !important; height: 100% !important; object-fit: cover !important; aspect-ratio: 16 / 9; }
+@media (max-width: 767px) {
+  .hero-copy .hero-buttons > a { min-height: 40px !important; height: 40px !important; padding: 6px 7px !important; font-size: .76rem !important; }
+}
+
+/* Mobile home composition to match the supplied reference: a prominent
+   16:9 banner followed by title, description, temple/date, paired actions,
+   and three compact trust cards. Navbar rules remain outside this scope. */
+@media (max-width: 767px) {
+  .hero-landing { padding: 8px 10px 0 !important; }
+  .hero-image-wrap { border-radius: 13px !important; overflow: hidden !important; }
+  .hero-image-wrap picture { aspect-ratio: 16 / 9 !important; height: auto !important; }
+  .hero-image-wrap .hero-img {
+    width: 100% !important;
+    height: 100% !important;
+    aspect-ratio: 16 / 9 !important;
+    object-fit: cover !important;
+    object-position: 40% center !important;
+  }
+  .hero-copy { padding: 10px 4px 8px !important; }
+  .hero-copy h1 { font-size: clamp(1.35rem, 6.2vw, 1.8rem) !important; line-height: 1.1 !important; margin-bottom: 4px !important; }
+  .hero-copy .hero-desc { font-size: .9rem !important; line-height: 1.35 !important; margin-bottom: 8px !important; }
+  .hero-copy .hero-meta { display: flex !important; flex-direction: row; flex-wrap: wrap; gap: 5px !important; font-size: .86rem !important; margin-bottom: 10px !important; }
+  .hero-copy .hero-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; margin-bottom: 10px !important; }
+  .hero-copy .hero-buttons > a {
+    min-height: 42px !important;
+    height: auto !important;
+    box-sizing: border-box !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    padding: 7px 8px !important;
+    border-radius: 9px !important;
+    font-size: .82rem !important;
+    line-height: 1.15 !important;
+    white-space: normal !important;
+  }
+  .hero-book-icon { width: 18px; height: 18px; flex: 0 0 18px; }
+  .hero-copy .hero-feature-row { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 6px !important; }
+  .hero-copy .hero-feature:nth-child(n + 4) { display: none !important; }
+  .hero-copy .hero-feature {
+    min-height: 92px;
+    padding: 8px 5px !important;
+    gap: 5px !important;
+    justify-content: flex-start;
+    border: 1px solid rgba(201, 162, 39, .32);
+    border-radius: 11px;
+    background: linear-gradient(145deg, #fffdf8, #fff8e9);
+  }
+  .hero-copy .hf-badge { width: 38px !important; height: 38px !important; flex-basis: 38px !important; }
+  .hero-copy .hf-label { font-size: .68rem !important; line-height: 1.2 !important; }
+  .hero-slider-dots { display: none !important; }
+}
+
+@media (max-width: 380px) {
+  .hero-copy { padding-inline: 2px !important; }
+  .hero-copy .hero-buttons > a { font-size: .74rem !important; padding-inline: 5px !important; }
+  .hero-copy .hero-feature { min-height: 88px; padding-inline: 3px !important; }
+  .hero-copy .hf-label { font-size: .62rem !important; }
+}
+
+/* Mobile hero: remove the fixed-height blurred/letterboxed frame. Show the
+   entire uploaded banner at its natural ratio, then place all copy directly
+   beneath it so the title and booking actions cannot disappear. */
+@media (max-width: 767px) {
+  .hero-landing { overflow: visible; padding: 8px 10px 0; }
+  .hero-slider {
+    display: block;
+    width: 100%;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible;
+    contain: none;
+  }
+  .hero-slide,
+  .hero-slide.active {
+    display: none;
+    width: 100%;
+    height: auto !important;
+    min-height: 0 !important;
+    opacity: 1;
+    visibility: visible;
+    overflow: visible;
+  }
+  .hero-slide.active { display: block; }
+  .hero-image-wrap {
+    display: flex;
+    flex-direction: row; flex-wrap: wrap;
+    width: 100%;
+    min-height: 0 !important;
+    height: auto !important;
+    aspect-ratio: auto !important;
+    overflow: visible;
+    border-radius: 12px;
+    background: transparent !important;
+    box-shadow: none;
+  }
+  .hero-image-wrap picture {
+    position: relative !important;
+    inset: auto !important;
+    display: block !important;
+    width: 100%;
+    height: auto !important;
+    aspect-ratio: auto !important;
+    overflow: hidden;
+    border-radius: 12px;
+    background: transparent !important;
+  }
+  .hero-image-wrap .hero-img {
+    position: static !important;
+    display: block;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    aspect-ratio: auto !important;
+    object-fit: contain !important;
+    filter: none !important;
+    border-radius: inherit;
+  }
+  .hero-overlay-gradient,
+  .hero-image-wrap::before,
+  .hero-image-wrap::after { display: none !important; content: none !important; }
+  .hero-copy {
+    position: relative !important;
+    inset: auto !important;
+    display: flex !important;
+    width: 100%;
+    max-width: none;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 12px 4px 8px;
+    margin: 0;
+    color: var(--ink, #351c16);
+    background: transparent;
+  }
+  .hero-copy h1 { display: block !important; font-size: clamp(1.2rem, 5vw, 1.55rem); line-height: 1.2; margin: 0 0 4px; }
+  .hero-copy .hero-desc { display: block !important; margin: 0 0 6px; font-size: .82rem; line-height: 1.35; }
+  .hero-copy .hero-meta { display: flex !important; gap: 4px 12px; margin: 0 0 8px; font-size: .78rem; line-height: 1.3; }
+  .hero-copy .hero-buttons {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0 0 8px;
+  }
+  .hero-copy .hero-buttons > a { display: inline-flex !important; min-height: 40px; padding: 6px 8px; font-size: .78rem; line-height: 1.2; white-space: normal; }
+  .hero-copy .hero-feature-row { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+  .hero-copy .hero-feature:nth-child(n + 4) { display: none !important; }
+  .hero-copy .hero-feature { min-height: 0; padding: 6px 4px; gap: 4px; }
+  .hero-copy .hf-badge { flex-basis: 30px; width: 30px; height: 30px; font-size: .9rem; }
+  .hero-copy .hf-label { font-size: .62rem; line-height: 1.15; }
+  .hero-swipe { display: none !important; }
+  .hero-slider-dots { position: relative; inset: auto; padding: 0 0 8px; }
+}
+
+@media (max-width: 360px) {
+  .hero-copy .hero-buttons > a { font-size: .7rem; padding-inline: 4px; }
+  .hero-copy .hero-feature-row { gap: 3px; }
+  .hero-copy .hf-label { font-size: .57rem; }
+}
+
+/* Listing cards keep a complete, consistent image box and equal gutters on
+   narrow screens. This avoids the partial-card edge seen in the recording. */
+@media (max-width: 767px) {
+  .cards:not(.puja-carousel) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+  .cards:not(.puja-carousel) > .card { min-width: 0; width: 100%; }
+  .card-media { height: auto; aspect-ratio: 16 / 9; overflow: hidden; }
+  .card-media img { width: 100%; height: 100%; object-fit: cover; }
+}
+
+/* Use the full available desktop detail column for the image and pull the
+   details content up beneath it. This removes the oversized blank area. */
+@media (min-width: 1024px) {
+  .pd-top { grid-template-columns: minmax(0, 1.2fr) minmax(360px, .8fr); gap: 28px; padding: 22px 20px 22px; }
+  .pd-carousel { width: 100%; min-width: 0; aspect-ratio: 16 / 9; height: auto; overflow: hidden; }
+  .pd-slides { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .pd-slide.active { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .pd-slide img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+}
+
+@media (max-width: 1023px) {
+  .pd-carousel { width: 100%; }
+  .pd-slide.active img { width: 100%; height: auto; max-height: none; object-fit: contain; }
+}
+
+@media (max-width: 767px) {
+  .pd-top { gap: 16px; padding: 14px 12px 20px; }
+  .pd-carousel { margin-bottom: 10px; }
+  .pd-slide.active img { width: 100%; height: auto; }
+}
+
+@media (max-width: 767px) {
+  .puja-carousel { padding-inline: 0; scroll-padding-inline: 0; }
+  .puja-carousel .card { flex-basis: 100%; min-width: 0; }
+  .puja-section .card-body { padding: 16px; }
+  .puja-section .card-foot { gap: 8px; }
+  .puja-section .book-link { min-height: 44px; }
+}
+
+/* Keep the homepage content compact and prevent the first/last puja card
+   from being clipped at phone widths. */
+.hero-copy h1 {
+  font-size: clamp(1.55rem, 3vw, 2.35rem);
+  margin-bottom: 5px;
+}
+.hero-copy .hero-desc { margin-bottom: 10px; }
+.hero-copy .hero-meta { margin-bottom: 12px; }
+.hero-copy .hero-feature-row { gap: 9px; }
+.hero-copy .hero-feature { padding: 10px 8px; gap: 6px; }
+.hero-copy .hf-badge { flex-basis: 42px; width: 42px; height: 42px; }
+.hero-copy .hf-label { font-size: .78rem; }
+
+@media (max-width: 767px) {
+  .hero-copy h1 { font-size: clamp(1.35rem, 5vw, 1.7rem); }
+  .hero-copy .hero-buttons { gap: 8px; margin-bottom: 12px; }
+  .hero-copy .hero-buttons > a {
+    min-height: 44px;
+    padding: 7px 5px;
+    font-size: .78rem;
+    line-height: 1.2;
+    border-radius: 10px;
+  }
+  .hero-copy .hero-feature-row { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .hero-copy .hero-feature:nth-child(n + 4) { display: none; }
+  .hero-copy .hero-feature { padding: 8px 6px; gap: 5px; }
+  .hero-copy .hf-badge { flex-basis: 36px; width: 36px; height: 36px; font-size: 1rem; }
+  .hero-copy .hf-label { font-size: .67rem; line-height: 1.2; }
+
+  .puja-carousel {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    gap: 12px;
+    padding: 10px 0 14px;
+    scroll-padding-inline: 0;
+  }
+  .puja-carousel .card {
+    flex: 0 0 100%;
+    min-width: 0;
+    scroll-snap-align: start;
+  }
+}
+
+/* Puja details image also follows its original aspect ratio on tablets
+   and phones, avoiding the old blurred fixed-height frame. */
+@media (max-width: 900px) {
+  .pd-carousel {
+    position: relative;
+    width: 100%;
+    height: auto !important;
+    aspect-ratio: auto !important;
+    margin-bottom: 18px;
+    background: transparent !important;
+  }
+  .pd-slides {
+    position: relative !important;
+    inset: auto !important;
+    display: flex;
+    width: 100%;
+    height: auto !important;
+    aspect-ratio: auto !important;
+    overflow: hidden;
+  }
+  .pd-slide.active {
+    position: relative !important;
+    inset: auto !important;
+    display: block;
+    width: 100%;
+    height: auto !important;
+  }
+  .pd-slide::before { display: none !important; }
+  .pd-slide img {
+    position: static !important;
+    inset: auto !important;
+    display: block;
+    width: 100%;
+    height: auto !important;
+    object-fit: contain !important;
+  }
+  .pd-caption { font-size: 1rem; padding: 24px 12px 10px; }
+}
+
+@media (max-width: 767px) {
+  .hero-copy { padding: 12px 4px 10px; }
+  .hero-copy h1 { margin: 0 0 4px; }
+  .hero-copy .hero-desc { margin: 0 0 7px; }
+  .hero-copy .hero-meta { margin: 0 0 9px; gap: 6px 12px; }
+  .hero-copy .hero-buttons { margin: 0 0 9px; }
+  .hero-copy .hero-buttons > a {
+    min-height: 44px;
+    padding: 6px 4px;
+    font-size: .76rem;
+    white-space: nowrap;
+  }
+  .hero-copy .hero-feature-row { gap: 6px; }
+  .hero-copy .hero-feature { padding: 7px 5px; }
+}
+
+/* Details image also follows its intrinsic ratio instead of a blurred
+   fixed-height frame. */
+@media (max-width: 900px) {
+  .pd-carousel {
+    height: auto !important;
+    aspect-ratio: auto !important;
+    background: transparent !important;
+  }
+  .pd-slides {
+    position: relative !important;
+    inset: auto !important;
+    display: flex;
+    width: 100%;
+    height: auto !important;
+    aspect-ratio: auto !important;
+    overflow: hidden;
+  }
+  .pd-slide.active {
+    position: relative !important;
+    inset: auto !important;
+    width: 100%;
+    height: auto !important;
+  }
+  .pd-slide::before { display: none !important; }
+  .pd-slide img {
+    position: static !important;
+    inset: auto !important;
+    display: block;
+    width: 100%;
+    height: auto !important;
+    object-fit: contain !important;
+  }
+  .pd-caption { font-size: 1rem; padding: 24px 12px 10px; }
+}
+
+@media (max-width: 900px) {
+  .hero-landing { padding: 12px 14px 0; }
+  .hero-image-wrap, .hero-image-wrap picture, .hero-image-wrap .hero-img,
+  .hero-skeleton-ph { border-radius: 14px; }
+  .hero-copy { width: 100%; padding: 20px 8px 18px; }
+  .hero-copy h1 { font-size: clamp(1.55rem, 4vw, 2.25rem); }
+  .hero-copy .hero-meta { font-size: .96rem; }
+  .hero-arrow { display: none; }
+}
+@media (max-width: 520px) {
+  .hero-landing { padding: 10px 12px 0; }
+  .hero-image-wrap, .hero-image-wrap picture, .hero-image-wrap .hero-img,
+  .hero-skeleton-ph { border-radius: 12px; }
+  .hero-copy { padding: 17px 4px 14px; }
+  .hero-copy h1 { font-size: clamp(1.35rem, 5.8vw, 1.75rem); line-height: 1.22; }
+  .hero-copy .hero-desc { font-size: .94rem; margin-bottom: 13px; }
+  .hero-copy .hero-meta { gap: 8px 14px; font-size: .86rem; margin-bottom: 15px; }
+  .hero-copy .hero-buttons { gap: 8px; margin-bottom: 15px; }
+  .hero-copy .hero-buttons > a { min-height: 46px; padding: 9px 6px; font-size: .88rem; }
+  .hero-copy .hero-feature-row { gap: 7px; }
+  .hero-copy .hero-feature { padding: 10px 4px; border-radius: 11px; }
+  .hero-copy .hf-badge { flex-basis: 40px; width: 40px; height: 40px; font-size: 1.1rem; }
+  .hero-copy .hf-label { font-size: .68rem; line-height: 1.25; }
+}
+
+/* Final cascade overrides for the screenshots just reviewed. */
+.pd-sticky-bottom {
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: 14px !important;
+  width: min(900px, calc(100vw - 32px)) !important;
+  max-width: 900px !important;
+  margin: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translate(-50%, 0) !important;
+  pointer-events: auto !important;
+  z-index: 950 !important;
+}
+#pd-content { padding-bottom: 92px; }
+@media (max-width: 900px) {
+  .pd-sticky-bottom {
+    position: fixed !important;
+    left: 10px !important;
+    right: 10px !important;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+    width: auto !important;
+    max-width: none !important;
+    transform: none !important;
+  }
+  body:has(.pd-sticky-bottom) .floating-wa { bottom: calc(150px + env(safe-area-inset-bottom, 0px)) !important; }
+  #pd-content { padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Last-in-file CTA and card sizing overrides. */
+.hero-book-icon { display: inline-block !important; width: 20px !important; height: 20px !important; max-width: 20px !important; flex: 0 0 20px !important; }
+.hero-copy .hero-buttons > a { box-sizing: border-box !important; height: 44px !important; min-height: 44px !important; padding: 7px 10px !important; gap: 8px !important; }
+.card-media:has(> picture) { display: block !important; width: 100% !important; height: auto !important; aspect-ratio: 16 / 9 !important; overflow: hidden !important; line-height: 0 !important; }
+.card-media > picture { display: block !important; width: 100% !important; height: 100% !important; line-height: 0 !important; }
+.card-media .media-img { display: block !important; width: 100% !important; height: 100% !important; object-fit: cover !important; aspect-ratio: 16 / 9; }
+@media (max-width: 767px) {
+  .hero-copy .hero-buttons > a { height: 40px !important; min-height: 40px !important; padding: 6px 7px !important; font-size: .76rem !important; }
+}
+
+/* Consistent single-image hero layout: image first, all puja information
+   below it. Keep the original 16:9 artwork intact on every screen. */
+.hero-slider {
+  display: grid !important;
+  height: auto !important;
+  min-height: 0 !important;
+  contain: none !important;
+}
+.hero-slide { display: none !important; width: 100%; min-height: 0 !important; height: auto !important; }
+.hero-slide.active { display: block !important; }
+.hero-image-wrap {
+  display: flex !important;
+  flex-direction: row !important; flex-wrap: wrap !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: visible !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+.hero-image-wrap picture {
+  position: relative !important;
+  inset: auto !important;
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 16 / 9 !important;
+  overflow: hidden !important;
+  border-radius: 16px !important;
+  background: #fffaf2 !important;
+}
+.hero-image-wrap .hero-img {
+  position: static !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  aspect-ratio: 16 / 9 !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  filter: none !important;
+}
+.hero-overlay-gradient { display: none !important; }
+.hero-copy {
+  position: relative !important;
+  inset: auto !important;
+  display: flex !important;
+  flex-direction: row !important; flex-wrap: wrap !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  max-width: none !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  padding: 14px 4px 10px !important;
+  margin: 0 !important;
+  color: var(--ink, #351c16) !important;
+  background: transparent !important;
+}
+.hero-copy h1 { color: #74131c !important; margin: 0 0 4px !important; line-height: 1.12 !important; }
+.hero-copy .hero-desc { color: #66514a !important; margin: 0 0 8px !important; }
+.hero-copy .hero-meta { color: #451f1b !important; margin: 0 0 10px !important; }
+.hero-copy .hero-feature-row {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  margin: 10px 0 0 !important;
+}
+.hero-copy .hero-feature {
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  box-sizing: border-box !important;
+  padding: 9px 7px !important;
+  border: 1px solid #f0dfbc !important;
+  border-radius: 11px !important;
+  background: #fffaf0 !important;
+  color: #572b20 !important;
+}
+.hero-copy .hf-label {
+  display: block !important;
+  max-height: none !important;
+  overflow: visible !important;
+  color: #572b20 !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+}
+.hero-slider-dots { position: relative !important; inset: auto !important; padding: 8px 0 0 !important; }
+.stats-bar { margin: 16px auto 0 !important; }
+
+/* Every newly uploaded puja image uses the same reliable 16:9 card frame. */
+.card-media {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 16 / 9 !important;
+  overflow: hidden !important;
+  background: #fffaf2 !important;
+}
+.card-media > picture,
+.card-media > img,
+.card-media .responsive-media {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+.card-media .media-img { width: 100% !important; height: 100% !important; object-fit: cover !important; object-position: center !important; }
+
+@media (min-width: 768px) {
+  .hero-landing { padding-top: 12px !important; }
+  /* Laptop hero uses the file's own ratio, so it fills its width without
+     letterbox bands caused by forcing every source into a 16:9 box. */
+  .hero-image-wrap picture {
+    height: auto !important;
+    aspect-ratio: auto !important;
+    line-height: 0 !important;
+  }
+  .hero-image-wrap .hero-img {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: auto !important;
+    object-fit: cover !important;
+  }
+  .hero-copy { padding: 14px 18px 10px !important; }
+  .hero-copy h1 { font-size: clamp(1.6rem, 2.6vw, 2.25rem) !important; }
+  .hero-copy .hero-buttons { margin: 0 !important; gap: 10px !important; }
+  .hero-copy .hero-buttons > a { height: 42px !important; min-height: 42px !important; }
+  .hero-copy .hero-feature:nth-child(n + 4) { display: flex !important; }
+  .hero-copy .hero-feature-row { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+}
+
+@media (max-width: 767px) {
+  .hero-landing { overflow: visible !important; padding: 8px 10px 0 !important; }
+  .hero-image-wrap, .hero-image-wrap picture { border-radius: 12px !important; }
+  .hero-copy { padding: 10px 2px 6px !important; }
+  .hero-copy h1 { font-size: clamp(1.25rem, 5.7vw, 1.55rem) !important; }
+  .hero-copy .hero-desc { font-size: .8rem !important; line-height: 1.3 !important; margin-bottom: 6px !important; }
+  .hero-copy .hero-meta { flex-direction: row !important; flex-wrap: wrap !important; gap: 4px !important; font-size: .74rem !important; margin-bottom: 7px !important; }
+  .hero-copy .hero-buttons { gap: 7px !important; margin: 0 !important; }
+  .hero-copy .hero-buttons > a { height: 38px !important; min-height: 38px !important; padding: 5px 6px !important; font-size: .72rem !important; }
+  .hero-copy .hero-feature-row { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 5px !important; margin-top: 8px !important; }
+  .hero-copy .hero-feature:nth-child(n + 4) { display: none !important; }
+  .hero-copy .hero-feature { display: flex !important; padding: 6px 4px !important; gap: 4px !important; }
+  .hero-copy .hf-badge { flex: 0 0 28px !important; width: 28px !important; height: 28px !important; font-size: .85rem !important; }
+  .hero-copy .hf-label { font-size: clamp(.56rem, 2.45vw, .66rem) !important; line-height: 1.18 !important; }
+  .stats-bar { margin: 14px 10px 0 !important; padding: 12px 0 !important; width: auto !important; border-radius: 13px !important; }
+  .stats-container { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 12px 8px !important; padding: 0 12px !important; }
+  .stat-item { min-width: 0 !important; gap: 8px !important; }
+  .stat-icon { width: 34px !important; height: 34px !important; flex: 0 0 34px !important; }
+  .stat-icon svg { width: 18px !important; height: 18px !important; }
+  .stat-text strong { font-size: 1rem !important; }
+  .stat-text span { font-size: .66rem !important; line-height: 1.2 !important; }
+}
+
+/* Keep detail content close to the puja title and booking panel on laptops. */
+@media (min-width: 1024px) {
+  .pd-hero-section { align-items: start !important; gap: 22px !important; }
+  .pd-booking-card { padding: 18px !important; }
+  .pd-help-box { padding: 12px !important; margin-top: 12px !important; }
+  .pd-highlights { margin-top: 12px !important; }
+  .pd-hl-list { gap: 7px !important; }
+}
+
+/* Desktop/laptop home hero and card image fixes.
+   Navbar is intentionally untouched. The mobile rules above remain in force. */
+@media (min-width: 768px) {
+  .hero-landing {
+    padding-top: 6px !important;
+  }
+
+  .hero-image-wrap {
+    overflow: visible !important;
+    gap: 0 !important;
+  }
+
+  .hero-image-wrap picture {
+    width: 100% !important;
+    height: clamp(280px, 42vh, 410px) !important;
+    max-height: calc(100svh - 350px) !important;
+    min-height: 260px !important;
+    aspect-ratio: auto !important;
+    overflow: hidden !important;
+    border-radius: 14px !important;
+    background: transparent !important;
+  }
+
+  .hero-image-wrap .hero-img {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    aspect-ratio: auto !important;
+    object-fit: cover !important;
+    object-position: center 48% !important;
+  }
+
+  .hero-copy {
+    display: flex !important;
+    flex-direction: row !important; flex-wrap: wrap !important;
+    gap: 0 !important;
+    width: min(100%, 1440px) !important;
+    max-width: 1440px !important;
+    padding: 8px 16px 6px !important;
+  }
+
+  .hero-copy .hero-tagline { display: inline-flex !important; order: 0 !important; margin: 0 0 3px !important; font-size: .75rem !important; }
+  .hero-copy h1 { order: 1 !important; margin: 0 0 3px !important; font-size: clamp(1.45rem, 2.2vw, 2rem) !important; line-height: 1.12 !important; }
+  .hero-copy .hero-desc { order: 2 !important; margin: 0 0 5px !important; font-size: .9rem !important; line-height: 1.3 !important; }
+  .hero-copy .hero-meta { order: 3 !important; gap: 6px 18px !important; margin: 0 0 7px !important; font-size: .84rem !important; }
+  .hero-copy .hero-buttons { order: 4 !important; display: flex !important; width: auto !important; gap: 8px !important; margin: 0 !important; }
+  .hero-copy .hero-buttons > a { flex: 0 1 230px !important; height: 40px !important; min-height: 40px !important; padding: 6px 12px !important; font-size: .86rem !important; }
+  .hero-copy .hero-feature-row { order: 5 !important; grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 7px !important; margin: 7px 0 0 !important; }
+  .hero-copy .hero-feature { display: flex !important; align-items: center !important; min-height: 0 !important; padding: 6px 8px !important; }
+  .hero-copy .hf-badge { width: 30px !important; height: 30px !important; flex-basis: 30px !important; }
+  .hero-copy .hf-label { font-size: .72rem !important; line-height: 1.18 !important; }
+
+  /* Preserve each uploaded puja thumbnail's natural ratio on desktop.
+     This prevents 16:9 cover cropping when admins upload wide banners. */
+  .card-media:has(.media-img) {
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: auto !important;
+    overflow: hidden !important;
+  }
+  .card-media:has(.media-img) > picture,
+  .card-media:has(.media-img) > img,
+  .card-media:has(.media-img) .responsive-media {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: auto !important;
+  }
+  .card-media:has(.media-img) .media-img {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: auto !important;
+    object-fit: contain !important;
+    object-position: center !important;
+  }
+}
+
+/* Laptop/desktop: keep the 1920x1080 artwork intact. The 920x700 values
+   are maximum display bounds, not a crop box; copy sits beside the image. */
+@media (min-width: 1024px) {
+  .hero-landing {
+    padding: 8px clamp(12px, 2vw, 28px) 0 !important;
+  }
+
+  .hero-slider {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .hero-slide.active .hero-image-wrap {
+    display: grid !important;
+    grid-template-columns: minmax(0, 2.2fr) minmax(320px, 1fr) !important;
+    align-items: center !important;
+    gap: clamp(16px, 2vw, 28px) !important;
+    width: min(100%, 1440px) !important;
+    max-width: 1440px !important;
+    margin-inline: auto !important;
+    overflow: visible !important;
+  }
+
+  .hero-image-wrap picture {
+    justify-self: end !important;
+    width: 100% !important;
+    max-width: 920px !important;
+    height: auto !important;
+    max-height: 700px !important;
+    min-height: 0 !important;
+    aspect-ratio: auto !important;
+    overflow: visible !important;
+    border-radius: 14px !important;
+    background: transparent !important;
+  }
+
+  .hero-image-wrap .hero-img {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 700px !important;
+    aspect-ratio: auto !important;
+    object-fit: contain !important;
+    object-position: center !important;
+  }
+
+  .hero-copy {
+    justify-self: stretch !important;
+    width: 100% !important;
+    max-width: none !important;
+    padding: 10px 8px !important;
+  }
+
+  .hero-copy .hero-tagline { display: inline-flex !important; order: 0 !important; margin: 0 0 5px !important; }
+  .hero-copy h1 { order: 1 !important; margin: 0 0 6px !important; font-size: clamp(1.5rem, 2vw, 2.15rem) !important; line-height: 1.14 !important; }
+  .hero-copy .hero-desc { order: 2 !important; margin: 0 0 10px !important; font-size: .9rem !important; line-height: 1.4 !important; }
+  .hero-copy .hero-meta { order: 3 !important; flex-direction: row !important; flex-wrap: wrap !important; gap: 7px !important; margin: 0 0 12px !important; font-size: .86rem !important; }
+  .hero-copy .hero-buttons { order: 4 !important; display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; margin: 0 !important; }
+  .hero-copy .hero-buttons > a { width: 100% !important; min-width: 0 !important; height: 42px !important; min-height: 42px !important; padding: 7px 8px !important; font-size: .82rem !important; }
+  .hero-copy .hero-feature-row { order: 5 !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 6px !important; margin: 12px 0 0 !important; }
+  .hero-copy .hero-feature { min-width: 0 !important; padding: 6px !important; }
+  .hero-copy .hf-badge { width: 28px !important; height: 28px !important; flex-basis: 28px !important; }
+  .hero-copy .hf-label { font-size: .66rem !important; line-height: 1.18 !important; }
+}
+
+/* Final desktop direction: full image first, all hero copy underneath. */
+@media (min-width: 1024px) {
+  .hero-slide.active .hero-image-wrap {
+    display: flex !important;
+    flex-direction: row !important; flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 auto !important;
+  }
+
+  .hero-image-wrap picture {
+    justify-self: auto !important;
+    width: min(100%, 920px) !important;
+    max-width: 920px !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    aspect-ratio: auto !important;
+    overflow: hidden !important;
+  }
+
+  .hero-image-wrap .hero-img {
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    aspect-ratio: auto !important;
+    object-fit: contain !important;
+    object-position: center !important;
+  }
+
+  .hero-copy {
+    display: flex !important;
+    flex-direction: row !important; flex-wrap: wrap !important;
+    align-items: stretch !important;
+    width: min(100%, 920px) !important;
+    max-width: 920px !important;
+    padding: 8px 4px 6px !important;
+  }
+
+  .hero-copy .hero-tagline { order: 0 !important; margin: 0 0 3px !important; }
+  .hero-copy h1 { order: 1 !important; margin: 0 0 3px !important; }
+  .hero-copy .hero-desc { order: 2 !important; margin: 0 0 5px !important; }
+  .hero-copy .hero-meta { order: 3 !important; flex-direction: row !important; gap: 6px 18px !important; margin: 0 0 7px !important; }
+  .hero-copy .hero-buttons { order: 4 !important; display: flex !important; width: min(100%, 480px) !important; gap: 8px !important; margin: 0 !important; }
+  .hero-copy .hero-buttons > a { flex: 1 1 0 !important; height: 42px !important; min-height: 42px !important; }
+  .hero-copy .hero-feature-row { order: 5 !important; grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 7px !important; margin: 8px 0 0 !important; }
+  .hero-copy .hero-feature { padding: 7px !important; }
+}
+
+/* Single 1920x1080 upload experiment: always show the whole original image.
+   Its natural ratio determines its height; no per-device source or crop. */
+.card-media:has(.media-img) {
+  height: auto !important;
+  min-height: 0 !important;
+  aspect-ratio: auto !important;
+}
+.card-media:has(.media-img) > picture,
+.card-media:has(.media-img) > img,
+.card-media:has(.media-img) .responsive-media {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: auto !important;
+}
+.card-media:has(.media-img) .media-img {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: auto !important;
+  object-fit: contain !important;
+}
+
+@media (min-width: 1024px) {
+  .hero-slide.active .hero-image-wrap {
+    display: flex !important;
+    flex-direction: row !important; flex-wrap: wrap !important;
+    align-items: center !important;
+    width: 100% !important;
+    max-width: none !important;
+    gap: 0 !important;
+  }
+  .hero-image-wrap picture {
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    aspect-ratio: auto !important;
+    overflow: visible !important;
+  }
+  .hero-image-wrap .hero-img {
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    aspect-ratio: auto !important;
+    object-fit: contain !important;
+    object-position: center !important;
+  }
+  .hero-copy {
+    width: min(100%, 1440px) !important;
+    max-width: 1440px !important;
+    padding: 6px 16px 8px !important;
+  }
+  .hero-copy .hero-tagline { margin-bottom: 2px !important; }
+  .hero-copy h1 { margin-bottom: 2px !important; }
+  .hero-copy .hero-desc { margin-bottom: 4px !important; }
+  .hero-copy .hero-meta { margin-bottom: 6px !important; }
+}
+
+
+
+/* Home hero: desktop banner first, then copy and CTAs arranged like the
+   supplied reference. Phone/tablet and cards/details keep the main image. */
+@media (min-width: 1024px) {
+  .hero-landing { padding: 0 clamp(12px, 2vw, 28px) !important; }
+  .hero-slide.active .hero-image-wrap {
+    display: flex !important;
+    flex-direction: row !important; flex-wrap: wrap !important;
+    align-items: center !important;
+    width: 100% !important;
+    max-width: none !important;
+    gap: 0 !important;
+    overflow: visible !important;
+  }
+  .hero-image-wrap picture {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: none !important;
+    aspect-ratio: auto !important;
+    overflow: visible !important;
+  }
+  .hero-image-wrap .hero-img {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    aspect-ratio: auto !important;
+    object-fit: contain !important;
+    object-position: center !important;
+  }
+  .hero-copy {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 500px) !important;
+    grid-template-rows: auto auto auto auto auto !important;
+    align-items: center !important;
+    column-gap: clamp(20px, 4vw, 58px) !important;
+    row-gap: 2px !important;
+    width: min(100%, 1440px) !important;
+    max-width: 1440px !important;
+    padding: 8px 16px 10px !important;
+  }
+  .hero-copy .hero-tagline { display: inline-flex !important; grid-column: 1 !important; grid-row: 1 !important; order: 0 !important; margin: 0 0 2px !important; }
+  .hero-copy h1 { grid-column: 1 !important; grid-row: 2 !important; order: 1 !important; margin: 0 0 2px !important; }
+  .hero-copy .hero-desc { grid-column: 1 !important; grid-row: 3 !important; order: 2 !important; margin: 0 0 4px !important; }
+  .hero-copy .hero-meta { grid-column: 1 !important; grid-row: 4 !important; order: 3 !important; flex-direction: row !important; gap: 6px 18px !important; margin: 0 !important; }
+  .hero-copy .hero-buttons { grid-column: 2 !important; grid-row: 2 !important; order: 4 !important; display: flex !important; width: 100% !important; gap: 8px !important; margin: 0 !important; align-self: center !important; }
+  .hero-copy .hero-buttons > a { flex: 1 1 0 !important; height: 42px !important; min-height: 42px !important; }
+  .hero-copy .hero-feature-row { grid-column: 1 / -1 !important; grid-row: 5 !important; order: 5 !important; grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 8px !important; margin: 10px 0 0 !important; }
+}
+
+@media (max-width: 767px) {
+  .hero-image-wrap picture { width: 100% !important; height: auto !important; aspect-ratio: auto !important; }
+  .hero-image-wrap .hero-img { width: 100% !important; height: auto !important; aspect-ratio: auto !important; object-fit: contain !important; }
+  .hero-copy { padding-bottom: 4px !important; }
+  .hero-copy .hero-buttons { margin: 0 !important; }
+  .hero-copy .hero-feature-row { margin: 3px 0 0 !important; }
+  .hero-copy .hero-desc { margin-bottom: 5px !important; }
+  .hero-copy .hero-meta { margin-bottom: 6px !important; }
+  .hero-slider-dots { padding-top: 2px !important; }
+}
+
+
+/* Puja details cleanup: show the CMS summary below its title and fit the
+   existing main thumbnail without cropping. */
+.pd-description { margin: 0 0 14px !important; }
+.summary-puja-header { align-items: center !important; gap: 12px !important; }
+.summary-img {
+  width: 104px !important;
+  height: 59px !important;
+  flex: 0 0 104px !important;
+  aspect-ratio: 16 / 9 !important;
+  background-color: #fffaf2 !important;
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+@media (max-width: 480px) {
+  .summary-img { width: 88px !important; height: 50px !important; flex-basis: 88px !important; }
+}
+
+/* At laptop width, keep all puja procedure steps on one row and compact. */
+@media (min-width: 1200px) {
+  .pd-main-content { padding: 20px !important; }
+  .pd-procedure-list {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+  .pd-procedure-list .proc-num {
+    width: 32px !important; height: 32px !important; flex: 0 0 32px !important;
+    font-size: .9rem !important; margin-bottom: 8px !important;
+  }
+  .pd-procedure-list .proc-step:not(:last-child)::after {
+    top: 16px !important; left: calc(50% + 16px) !important;
+    width: calc(100% - 32px) !important;
+  }
+  .pd-procedure-list .proc-card { padding: 12px 10px !important; min-width: 0 !important; }
+  .pd-procedure-list .proc-card h3 { font-size: .82rem !important; line-height: 1.22 !important; margin-bottom: 5px !important; overflow-wrap: anywhere; }
+  .pd-procedure-list .proc-card p { font-size: .7rem !important; line-height: 1.3 !important; overflow-wrap: anywhere; }
+  .pd-procedure-list .core-tag { padding: 3px 8px !important; margin-bottom: 6px !important; font-size: .58rem !important; }
+}
+
+@media (max-width: 767px) {
+  .pd-hero-left > .pd-description { margin: -4px 0 12px !important; }
+}
+
+/* Client screenshot fixes (final overrides; shared navbar links/layout stay intact). */
+.nav .logo {
+  align-self: center !important;
+  transform: translateY(2px);
+}
+/* .nav .logo img override removed so inline object-fit: cover can naturally size the image */
+@media (max-width: 900px) {
+  header.flow-header .logo {
+    display: block !important;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: clamp(118px, 38vw, 150px) !important;
+    margin: 0 !important;
+    transform: translate(-50%, -50%) translateY(2px);
+  }
+  header.flow-header .nav { position: relative; }
+}
+
+/* Reduce the empty mobile gap between the hero actions and trust tiles. */
+@media (max-width: 767px) {
+  .hero-copy .hero-buttons {
+    height: auto !important;
+    min-height: 0 !important;
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  .hero-copy .hero-feature-row {
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 8px 0 0 !important;
+    padding: 0 !important;
+    gap: 5px !important;
+  }
+  .hero-copy .hero-feature { gap: 3px !important; max-width: none !important; }
+  .hero-copy .hf-badge { width: 34px !important; height: 34px !important; font-size: 1rem !important; }
+  .hero-copy .hf-label { font-size: .68rem !important; line-height: 1.2 !important; }
+  .hero-copy .hero-desc { margin-bottom: 7px !important; }
+  .hero-copy .hero-meta { margin-bottom: 8px !important; }
+  .hero-copy .hero-meta .hm-item { min-width: 0; }
+}
+
+/* Compact value props/testimonials to fit more useful content per phone screen. */
+@media (max-width: 640px) {
+  #why-us .why-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 9px !important;
+    margin-top: 16px !important;
+  }
+  #why-us .why-card {
+    min-width: 0;
+    padding: 12px 9px !important;
+    border-radius: 12px !important;
+  }
+  #why-us .why-icon { width: 36px !important; height: 36px !important; margin-bottom: 7px !important; font-size: 1.05rem !important; }
+  #why-us .why-card h3 { font-size: .82rem !important; line-height: 1.22 !important; margin: 0 0 4px !important; }
+  #why-us .why-card p { font-size: .7rem !important; line-height: 1.3 !important; margin: 0 !important; }
+  #testimonials .testimonial-grid { grid-template-columns: 1fr !important; gap: 10px !important; margin-top: 16px !important; }
+  #testimonials .testimonial-card { padding: 15px 16px !important; border-radius: 12px !important; }
+  #testimonials .testimonial-quote { font-size: 2rem !important; }
+  #testimonials .testimonial-text { min-height: 0 !important; margin-bottom: 8px !important; font-size: .84rem !important; line-height: 1.45 !important; }
+  #testimonials .testimonial-rating { margin-bottom: 5px !important; }
+}
+@media (max-width: 360px) {
+  #why-us .why-grid { grid-template-columns: 1fr !important; }
+}
+
+/* Center the Upcoming Pujas heading as in the client's reference. */
+.listing:has(#pujaCardsPage) .listing-heading { text-align: center !important; }
+
+/* Do not flash artificial grey skeleton bars while the puja details JS runs. */
+.pd-hero-title:empty,
+.pd-card-price:empty,
+#pdDate:empty,
+#pdTemple:empty {
+  display: none !important;
+  background: transparent !important;
+  animation: none !important;
+}
+.pd-carousel:not(:has(.pd-slide)) {
+  background: transparent !important;
+  animation: none !important;
+}
+.pd-procedure-list:empty { display: none !important; }
+
+/* Profile order is devotee details first, followed by four small summary metrics. */
+#panel-profile .dash-card { margin-bottom: 14px !important; }
+#panel-profile .dash-card h3 { margin-bottom: 14px !important; }
+#panel-profile .dash-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 9px !important;
+  margin: 0 0 18px !important;
+}
+#panel-profile .dash-stat { min-width: 0; padding: 11px 8px !important; border-radius: 11px !important; box-shadow: none !important; }
+#panel-profile .dash-stat span { font-size: .65rem !important; line-height: 1.25 !important; margin: 0 0 5px !important; }
+#panel-profile .dash-stat b { border: 0 !important; padding: 0 !important; box-shadow: none !important; font-size: 1.35rem !important; line-height: 1.2 !important; }
+@media (max-width: 640px) {
+  #panel-profile .dash-stats { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  #panel-profile .dash-card { padding: 15px !important; }
+}
+
+/* Follow-up to the five client screenshots, Oct 2. */
+@media (max-width: 767px) {
+  .hero-copy { gap: 0 !important; row-gap: 0 !important; }
+  .hero-copy .hero-buttons { margin: 0 !important; padding: 0 !important; }
+  .hero-copy .hero-buttons + .hero-feature-row { margin-top: 4px !important; }
+  .hero-copy .hero-feature-row { padding-top: 0 !important; padding-bottom: 0 !important; }
+
+  /* Four shallow rectangle tiles instead of tall two-column cards. */
+  #why-us .why-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    margin-top: 12px !important;
+  }
+  #why-us .why-card {
+    display: grid !important;
+    grid-template-columns: 38px minmax(0, 1fr) !important;
+    grid-template-rows: auto auto !important;
+    column-gap: 10px !important;
+    align-items: center !important;
+    min-height: 0 !important;
+    padding: 9px 11px !important;
+    text-align: left !important;
+  }
+  #why-us .why-icon {
+    grid-column: 1 !important;
+    grid-row: 1 / span 2 !important;
+    width: 34px !important;
+    height: 34px !important;
+    margin: 0 !important;
+    font-size: 1rem !important;
+  }
+  #why-us .why-card h3 {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    margin: 0 0 2px !important;
+    font-size: .78rem !important;
+    line-height: 1.2 !important;
+  }
+  #why-us .why-card p {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    margin: 0 !important;
+    font-size: .68rem !important;
+    line-height: 1.23 !important;
+  }
+
+  /* Shorten testimonial blocks while keeping their text readable. */
+  #testimonials .testimonial-grid { gap: 8px !important; margin-top: 12px !important; }
+  #testimonials .testimonial-card { padding: 11px 13px !important; }
+  #testimonials .testimonial-quote { display: none !important; }
+  #testimonials .testimonial-text {
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 3 !important;
+    overflow: hidden !important;
+    min-height: 0 !important;
+    margin: 0 0 6px !important;
+    font-size: .76rem !important;
+    line-height: 1.32 !important;
+  }
+  #testimonials .testimonial-rating { margin: 0 0 3px !important; font-size: .75rem !important; }
+  #testimonials .testimonial-who b { font-size: .8rem !important; }
+  #testimonials .testimonial-who span { font-size: .68rem !important; }
+}
+
+/* Upcoming Pujas stays left aligned; the hairline extends across its row and
+   balances visually with the category tabs below it. */
+.listing:has(#pujaCardsPage) .listing-heading {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin-bottom: 14px !important;
+  text-align: left !important;
+}
+.listing:has(#pujaCardsPage) .listing-heading::after {
+  content: "";
+  display: block;
+  flex: 1 1 auto;
+  height: 1px;
+  background: rgba(201, 162, 39, .38);
+}
+
+/* Align puja detail facts into consistent mobile columns. */
+@media (max-width: 767px) {
+  .pd-hero-left > .pd-hero-meta {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: start !important;
+    gap: 10px 12px !important;
+    margin-top: 8px !important;
+    font-size: .82rem !important;
+    line-height: 1.32 !important;
+  }
+  .pd-hero-left > .pd-temple-meta .pd-meta-item:first-child {
+    grid-column: 1 / -1 !important;
+  }
+  .pd-hero-left > .pd-hero-meta .pd-meta-item {
+    min-width: 0 !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+    overflow-wrap: anywhere !important;
+  }
+  .pd-hero-left > .pd-hero-meta .pd-meta-item .ic { flex: 0 0 18px !important; }
+  #pdDurationVal, #pdTemple { line-height: 1.32 !important; }
+  .pd-hero-left > .pd-hero-meta [data-i18n="language_label"],
+  .pd-hero-left > .pd-hero-meta [data-i18n="col_duration"] { white-space: nowrap !important; }
+}

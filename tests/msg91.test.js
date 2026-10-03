@@ -1,0 +1,6 @@
+const test=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
+const code=fs.readFileSync(require('node:path').join(__dirname,'../backend/controllers/authController.js'),'utf8');
+const delivery=code.slice(code.indexOf('async function sendViaMsg91'),code.indexOf('/* ---------------------------------------------------------------\n   POST /api/login/request'));
+function setup(response,key='key'){let url;const c={MSG91_AUTHKEY:key,MSG91_OTP_TEMPLATE_ID:'template',DEMO_MODE:true,console:{log(){},error(){}},fetch:async u=>{url=u;return{ok:true,status:200,text:async()=>JSON.stringify(response)}}};vm.createContext(c);vm.runInContext(delivery,c);return{c,get url(){return url}};}
+test('MSG91 remains SMS-only even when DEMO_MODE is true and normalizes Indian phone',async()=>{const s=setup({type:'success'});const result=await s.c.deliverOtp('09876543210','email@example.com','1234');assert.equal(result.sent,true);assert.equal(result.channel,'sms');assert.match(s.url,/mobile=919876543210/);});
+test('MSG91 HTTP success with provider error and missing credentials fail closed',async()=>{for(const s of [setup({type:'error'}),setup({type:'success'},'')]){const result=await s.c.deliverOtp('9876543210','','1234');assert.equal(result.sent,false);assert.equal(result.channel,'sms_failed');}});
