@@ -89,8 +89,6 @@ function cardHTML(p, i, type) {
   const href = `puja-details.html?id=${encodeURIComponent(ref)}`;
   const description = typeof localDesc === "function" ? localDesc(p) : (p.desc || "");
   const badge = p.badge ? `<span class="pkg-badge">${p.badge}</span>` : "";
-  const mantra = typeof localMantra === "function" ? localMantra(p) : ((p.detail && p.detail.mantra) || "");
-  const tagline = mantra ? `<div class="card-tagline">${mantra}</div>` : "";
   return `
     <a class="card-media" href="${href}">${mediaHTML(p, localName(p))}
       <button class="card-act card-heart" type="button" data-like="${ref}" aria-label="Add to wishlist">♡</button>
@@ -98,7 +96,6 @@ function cardHTML(p, i, type) {
     </a>
     <div class="card-body">
       ${badge}
-      ${tagline}
       <h3><a href="${href}">${localName(p)}</a></h3>
       ${description ? `<p class="card-desc">${description}</p>` : ""}
       <div class="card-meta">

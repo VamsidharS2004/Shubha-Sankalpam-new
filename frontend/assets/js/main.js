@@ -88,11 +88,6 @@ function localField(p, field, alternatives = []) {
 }
 const localName = p => localField(p, "title", ["name"]) || (currentLang === "en" ? (p?.title_en || p?.name_en || "") : "");
 const localDesc = p => localField(p, "desc", ["description"]);
-const localMantra = p => {
-  const d = p && p.detail;
-  if (!d) return "";
-  return (d["mantra_" + currentLang] || ((!p.language || p.language === currentLang) ? d.mantra : "") || "");
-};
 const localAbout = p => {
   const d = p && p.detail;
   if (!d) return "";

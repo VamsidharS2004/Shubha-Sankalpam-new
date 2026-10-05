@@ -1,0 +1,163 @@
+
+/* =========================================================================
+   VEDAMANDIR-STYLE STRICT MOBILE RESPONSIVE
+   =========================================================================
+   This stylesheet acts only on mobile screens (max-width: 960px) and enforces
+   a strict app-like layout. It ensures 100% vertical scrolling only, no horizontal
+   shifting, properly stacked columns, and a fixed bottom CTA.
+*/
+
+@media (max-width: 960px) {
+  /* 1. STRICT VIEWPORT CONTAINMENT (NO HORIZONTAL SCROLL) */
+  html, body {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    margin: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  
+  .pd-content, .container {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+  
+  *, *::before, *::after {
+    box-sizing: border-box !important;
+  }
+
+  /* 2. FORCE SINGLE COLUMN STACK */
+  .pd-hero-section, .pd-content-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 20px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    margin: 0 !important;
+  }
+
+  .pd-hero-left, .pd-hero-right, .pd-sidebar, .pd-main-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important; /* Allow shrinking */
+  }
+
+  /* 3. RESPONSIVE TEXT WRAPPING */
+  .pd-hero-title {
+    font-size: 1.6rem !important;
+    line-height: 1.3 !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+  }
+  
+  h1, h2, h3, h4, h5, h6, p, span, li, a {
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+  }
+  
+  .pd-meta-item, .pd-hl-list li {
+    white-space: normal !important;
+    font-size: 0.9rem !important;
+  }
+
+  /* 4. IMAGES AND CAROUSEL */
+  .pd-carousel, .pd-carousel img {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+  }
+  
+  .pd-booking-card {
+    position: static !important; /* Remove sticky from hero right */
+    width: 100% !important;
+    padding: 20px !important;
+    margin: 0 !important;
+  }
+
+  /* 5. APP-LIKE SIDEBAR / TABS (INTERNAL SCROLL) */
+  .pd-sidebar {
+    position: relative !important;
+    top: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    margin-bottom: 0 !important;
+  }
+  
+  .pd-tabs {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 12px !important;
+    padding: 4px !important;
+    width: 100% !important;
+  }
+  
+  .pd-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+  
+  .pd-tabs a {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+    background: #f0f0f0 !important;
+    padding: 8px 16px !important;
+    border-radius: 20px !important;
+    font-size: 0.85rem !important;
+    border: none !important;
+  }
+  
+  .pd-tabs a.active {
+    background: var(--maroon) !important;
+    color: #fff !important;
+  }
+
+  /* 6. GRIDS RE-FLOW */
+  .pd-photos, .pd-benefits-grid, .pd-procedure-list, .pd-cd-timer {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+  
+  .pd-cd-timer {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  /* 7. APP-LIKE FIXED CTA & FLOATING ELEMENTS */
+  .pd-sticky-bottom {
+    position: fixed !important;
+    bottom: calc(75px + env(safe-area-inset-bottom)) !important; /* Above bottom nav */
+    left: 16px !important;
+    right: 16px !important;
+    width: auto !important;
+    margin: 0 !important;
+    max-width: none !important;
+    z-index: 1000 !important;
+    padding: 10px 14px !important;
+  }
+  
+  .floating-wa {
+    bottom: calc(150px + env(safe-area-inset-bottom)) !important; /* Above CTA */
+    z-index: 1001 !important;
+  }
+  
+  /* Shrink CTA internals for small screens */
+  .pd-sb-text h4 { max-width: 110px !important; font-size: 0.65rem !important; }
+  .pd-sb-price { font-size: 1.15rem !important; }
+  .pd-sb-icon { width: 36px !important; height: 36px !important; }
+  .pd-sb-right .pd-btn-white { padding: 8px 12px !important; font-size: 0.9rem !important; }
+}
+
+@media (max-width: 400px) {
+  .pd-sb-text h4 { max-width: 80px !important; }
+  .pd-sb-right .pd-btn-white { padding: 6px 10px !important; font-size: 0.8rem !important; }
+}

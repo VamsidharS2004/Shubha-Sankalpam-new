@@ -98,10 +98,10 @@ h1,h2,h3{line-height:1.22;font-weight:700;letter-spacing:-.01em}
    consistent, deliberate "finishing touch" instead of headings just
    stopping bare */
 .section-title::after{
-  content:"";display:block;width:64px;height:2px;margin:18px auto 0;
+  content:"";display:block;width:64px;height:2px;margin:8px auto 0;
   background:linear-gradient(90deg,transparent,var(--gold),transparent);
 }
-.section .section-title{margin-bottom:44px}
+.section .section-title{margin-bottom:18px}
 
 .arrow{display:inline-block;transform:translateY(1px)}
 
@@ -307,10 +307,6 @@ body { max-width: 100%; }
 /* ---------- LANDSCAPE PHONES (short viewport height) ---------- */
 
 /* ============ REVIEWS / TESTIMONIALS (matched to reference) ============ */
-
-/* ============ HOME HERO — mantra tagline + swipe hint (matched to reference) ============ */
-
-/* ============ CARD TAGLINE (mantra line on every puja/package card) ============ */
 
 /* On very narrow phones, shrink the language button to icon+chevron
    only (matching how the WhatsApp pill already collapses) so the

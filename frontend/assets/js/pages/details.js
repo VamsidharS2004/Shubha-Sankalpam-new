@@ -30,7 +30,6 @@ let D = item.detail || {};
 function renderDetails() {
   document.title = localName(item) + " — Puja Details";
   $id("pdCaption").textContent = localName(item).toUpperCase();
-  $id("pdMantra").textContent = D["mantra_" + currentLang] || ((!item.language || item.language === currentLang) ? (D.mantra || "") : "");
   $id("pdTitle").textContent = localName(item);
   $id("pdBreadcrumbName").textContent = localName(item);
   const durationValue = D["duration_" + currentLang] || D.duration || "";

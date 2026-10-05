@@ -1,0 +1,398 @@
+/* ============================================================
+   ⚠️ SITE CODE — not content. To edit puja/package text, prices,
+   images, or site info, go to the /content folder instead.
+
+   NAVBAR.JS — builds the shared header, footer, and language dropdown.
+   Every page has <div id="site-header"></div> and
+   <div id="site-footer"></div>; this file fills them in, so you
+   edit the header/footer ONCE here for all pages.
+   ============================================================ */
+const LANGS = [
+  { code: "en", native: "English",  en: "English",   icon: "A",  ready: true },
+  { code: "hi", native: "हिन्दी",    en: "Hindi",     icon: "हि", ready: true },
+  { code: "te", native: "తెలుగు",    en: "Telugu",    icon: "తె", ready: true }
+];
+
+// Follow the booking steps instead of sending the devotee back into login or checkout.
+function flowBackTarget(page, search, referrer, origin) {
+  const ref = new URLSearchParams(search).get("id") || "puja:0";
+  if (page === "payment.html") return "booking.html?id=" + encodeURIComponent(ref);
+  if (page === "booking.html") return "puja-details.html?id=" + encodeURIComponent(ref);
+  if (page === "puja-details.html") {
+    try {
+      const previous = new URL(referrer);
+      if (previous.origin === origin && ["/", "/home.html", "/puja.html", "/package.html"].includes(previous.pathname)) {
+        return previous.pathname + previous.search;
+      }
+    } catch (_) {}
+    return ref.startsWith("pkg:") ? "package.html" : "puja.html";
+  }
+  return "home.html";
+}
+
+function renderHeader() {
+  const page = location.pathname.split("/").pop() || "home.html";
+  const isBookingFlow = (page === "booking.html" || page === "payment.html");
+  const hasFlowBack = isBookingFlow || page === "puja-details.html";
+  const act = p => (page === p ? ' class="active"' : "");
+  
+  if ($id("site-header").children.length > 0) {
+    if (hasFlowBack && $id("flowBack")) {
+      $id("flowBack").href = flowBackTarget(page, location.search, document.referrer, location.origin);
+    }
+    if (!$id("langBtn").dataset.enhanced) {
+      initLanguageMenu();
+      $id("langBtn").dataset.enhanced = "1";
+    }
+    return;
+  }
+  
+  $id("site-header").innerHTML = `
+  <header class="${hasFlowBack ? 'flow-header' : ''}">
+    <div class="container nav">
+      ${hasFlowBack ? '<a class="flow-back" id="flowBack" href="puja.html" aria-label="Go back to previous step"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m7-7-7 7 7 7"/></svg><span>GO BACK</span></a>' : ''}
+      <a class="logo" href="home.html" aria-label="Home" style="width:clamp(160px, 20vw, 220px); aspect-ratio:3.2/1; display:block; text-decoration:none;">
+        <img src="${SITE.LOGO || 'assets/images/logo_main-optimized.webp'}" alt="${SITE.BRAND} Logo" style="width:100%; height:100%; object-fit:cover; object-position:left center; display:block;">
+      </a>
+      <nav class="nav-links" aria-label="Main">
+        ${hasFlowBack ? '' : `
+        <a href="home.html"${act("home.html")}>
+          <span class="nl-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></span>
+          <span>HOME</span>
+        </a>
+        <a href="puja.html"${act("puja.html")}>
+          <span class="nl-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/></svg></span>
+          <span>PUJA</span>
+        </a>
+        <a href="package.html"${act("package.html")}>
+          <span class="nl-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg></span>
+          <span>PACKAGES</span>
+        </a>
+        <a href="account.html"${act("account.html")}>
+          <span class="nl-icon"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></span>
+          <span>ACCOUNT</span>
+        </a>
+        `}
+      </nav>
+      <div class="nav-right">
+        <div class="lang-wrap">
+          <button class="lang" id="langBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg> <span id="langLabel">Eng</span> <span class="lang-arr">▾</span></button>
+          <div class="lang-menu hidden" id="langMenu">
+            <div class="lang-head">CHOOSE LANGUAGE</div>
+            <div id="langItems"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+  
+  <a class="floating-wa" href="https://wa.me/${SITE.WHATSAPP}?text=I%20need%20help%20with%20puja%20booking" target="_blank" rel="noopener" aria-label="WhatsApp Help">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><path d="M12.031 2C6.495 2 2 6.496 2 12.032c0 1.838.48 3.633 1.391 5.215L2 22l4.896-1.285A9.972 9.972 0 0 0 12.031 22c5.535 0 10.031-4.496 10.031-10.032S17.566 2 12.031 2zm5.568 14.542c-.237.669-1.381 1.283-1.921 1.348-.541.066-1.236.195-3.523-.75-2.756-1.139-4.512-3.957-4.654-4.146-.141-.189-1.111-1.478-1.111-2.822 0-1.344.697-2.008.946-2.26.248-.252.54-.315.719-.315.18 0 .359 0 .506.006.155.006.35-.052.532.385.188.452.64 1.564.697 1.678.058.114.095.247.024.385-.072.138-.109.225-.216.351-.109.126-.229.273-.326.37-.109.108-.225.228-.103.438.122.209.544.898 1.168 1.455.808.72 1.488.941 1.7 1.05.212.109.335.089.461-.052.126-.143.541-.63.687-.847.146-.217.291-.182.485-.109.194.073 1.225.578 1.436.684.212.106.352.158.403.247.052.089.052.52-.185 1.189z"/></svg>
+  </a>
+  <nav class="bottom-nav" aria-label="Mobile">
+    <a href="home.html"${act("home.html")}><span class="bn-icon"><svg aria-hidden="true" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10H3z"/><path d="M9 20v-7h6v7"/></svg></span>Home</a>
+    <a href="puja.html"${act("puja.html")}><span class="bn-icon"><svg aria-hidden="true" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h16a8 8 0 0 1-16 0Z"/><path d="M12 11c-5-3 0-8 0-8s5 5 0 8Z"/></svg></span>Puja</a>
+    <a href="package.html"${act("package.html")}><span class="bn-icon"><svg aria-hidden="true" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7 9-4 9 4v10l-9 4-9-4Z"/><path d="m3 7 9 4 9-4M12 11v10M7 5l10 4"/></svg></span>Packages</a>
+    <a href="account.html"${act("account.html")}><span class="bn-icon"><svg aria-hidden="true" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span>Account</a>
+  </nav>`;
+  if (hasFlowBack) {
+    $id("flowBack").href = flowBackTarget(page, location.search, document.referrer, location.origin);
+  }
+  initLanguageMenu();
+}
+
+function renderFooter() {
+  $id("site-footer").innerHTML = `
+  <div class="footer-wrap">
+    <div class="cta-band">
+      <h2>Divine Rituals For A Brighter Tomorrow</h2>
+      <a href="puja.html" class="btn" style="background:var(--gold);color:#1A0B0E;box-shadow:0 8px 24px rgba(201,162,39,0.25)">Begin Your Sankalpam <span class="arrow">→</span></a>
+      <div class="cta-note">
+        <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg> 100% Secure</span>
+        <span class="sep">|</span>
+        <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg> Video Recording Proof</span>
+      </div>
+    </div>
+
+    <div class="footer-divider">
+      <div class="line"></div>
+      <img class="lotus-icon" src="assets/images/footer_flower.png" alt="Decorative Flower" style="height:32px; width:auto; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));">
+      <div class="line"></div>
+    </div>
+
+    <footer class="container">
+      <div class="foot-grid">
+        <div class="foot-col-brand">
+          <div class="foot-logo-box">
+              <img src="${SITE.FOOTER_LOGO || 'assets/images/s_logo-optimized.webp'}" alt="${SITE.BRAND} Logo" style="width:auto;height:clamp(50px, 10vw, 75px);object-fit:contain;">
+              <div class="foot-logo-text">
+                <b style="display:block;font-size:1.6rem;color:#fff;font-weight:600;line-height:1.2;">${SITE.BRAND}</b>
+                <small style="color:var(--gold);font-size:0.7rem;letter-spacing:0.05em;font-weight:600;display:block;margin-top:4px;">DIVINE RITUALS FOR A BRIGHTER TOMORROW</small>
+              </div>
+            </div>
+          <p>${SITE.FOOTER_DESCRIPTION || 'Making authentic temple rituals accessible<br>to devotees, wherever they are.'}</p>
+          
+          <div class="foot-socials">
+            <span class="follow-label">Follow us on</span>
+            <div class="follow-row">
+                <a class="soc fb" href="${SITE.SOCIAL.facebook}" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7h2.4l.4-3h-2.8V9.1c0-.9.3-1.5 1.6-1.5h1.3V4.9c-.3 0-1.1-.1-2-.1-2 0-3.4 1.2-3.4 3.5V11H8.5v3H11v7h2.5Z"/></svg></a>
+                <a class="soc ig" href="${SITE.SOCIAL.instagram}" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg></a>
+                <a class="soc x" href="${SITE.SOCIAL.x}" target="_blank" rel="noopener" aria-label="X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3h4.6l4.1 5.8L17.6 3H21l-6.6 7.7L21.5 21h-4.6l-4.5-6.3L7 21H3.5l7-8.1L4 3Z"/></svg></a>
+                <a class="soc th" href="${SITE.SOCIAL.threads}" target="_blank" rel="noopener" aria-label="Threads"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.2 2C7 2 3.7 5.1 3.7 10v4c0 4.9 3.3 8 8.5 8 4.2 0 7.1-2 7.9-5.3.4-1.7.1-3.3-1-4.4-.7-.8-1.8-1.3-3-1.5.1-1.6-.4-2.9-1.5-3.7-1-.8-2.4-1-3.7-.6-1.2.4-2 1.3-2.3 2.5l1.7.4c.2-.7.6-1.1 1.1-1.3.6-.2 1.3 0 1.8.4.5.4.8 1.1.7 2-.7-.1-1.5-.1-2.3.1-2 .4-3.2 1.7-3 3.4.2 1.7 1.8 2.7 3.7 2.5 1.5-.2 2.6-1 3.1-2.4.2.2.4.4.5.6.6.7.8 1.6.5 2.7-.5 2.1-2.4 3.3-5.3 3.3-3.6 0-5.7-2.1-5.7-6.1v-4c0-4 2.1-6.1 5.7-6.1 2.5 0 4.3.9 5.2 2.6l1.6-.9C15.9 3 13.7 2 12.2 2Zm.5 9.9c.6-.1 1.2-.1 1.8 0-.2.9-.8 1.5-1.7 1.6-1 .1-1.7-.3-1.8-1-.1-.6.5-1.3 1.7-1.6Z"/></svg></a>
+                <a class="soc yt" href="${SITE.SOCIAL.youtube}" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="foot-col">
+          <h4>Quick Links</h4>
+          <a href="puja.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg> Puja <span>›</span></a>
+          <a href="account.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> Contact Us <span>›</span></a>
+          <a href="about.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> About Us <span>›</span></a>
+        </div>
+
+        <div class="foot-col">
+          <h4>Legal</h4>
+          <a href="privacy.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Privacy Policy <span>›</span></a>
+          <a href="terms.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Terms of Service <span>›</span></a>
+          <a href="refund.html"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Refund Policy <span>›</span></a>
+        </div>
+
+        <div class="foot-col foot-contact-col">
+          ${SITE.ADDRESS ? `<div class="foot-contact-item"><span>${SITE.ADDRESS}</span></div>` : ""}
+          <h4>Contact</h4>
+          <div class="foot-contact-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            <span>${SITE.SUPPORT_EMAIL || 'support@' + SITE.DOMAIN}</span>
+          </div>
+          <div class="foot-contact-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+            <span>+${SITE.WHATSAPP}</span>
+          </div>
+          <div class="foot-contact-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>${SITE.BUSINESS_HOURS || 'Mon - Sat | 9:00 AM - 7:00 PM (IST)'}</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+    
+    <div class="footer-divider-bottom">
+      <div class="line"></div>
+      <img class="lotus-icon" src="assets/images/footer_flower.png" alt="Decorative Flower" style="height:32px; width:auto; object-fit:contain; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));">
+      <div class="line"></div>
+    </div>
+    
+    <div class="copyright-row">
+      © 2026 ${SITE.BRAND}. All rights reserved. &nbsp;&nbsp;|&nbsp;&nbsp; Operated by Gowthrix Innovations Private Limited
+    </div>
+  </div>`;
+}
+
+function initLanguageMenu() {
+  const langMenu = $id("langMenu");
+  const itemsEl = $id("langItems");
+
+  // Build a set of language codes that have at least one puja available.
+  // A puja with no `language` field is considered universal (counts for all).
+  // This prevents the switcher from offering a language where no pujas exist.
+  const langsWithPujas = new Set();
+  if (typeof pujas !== "undefined" && Array.isArray(pujas)) {
+    const hasUniversal = pujas.some(p => !p.language);
+    pujas.forEach(p => { if (p.language) langsWithPujas.add(p.language); });
+    if (hasUniversal) LANGS.forEach(l => langsWithPujas.add(l.code));
+  } else {
+    // pujas not loaded yet — allow all ready languages
+    LANGS.forEach(l => { if (l.ready) langsWithPujas.add(l.code); });
+  }
+
+  LANGS.forEach(l => {
+    const hasPujas = langsWithPujas.has(l.code);
+    const isReady = l.ready && hasPujas;
+    const b = document.createElement("button");
+    b.className = "lang-item" + (isReady ? "" : " lang-soon") + (l.code === currentLang ? " active" : "");
+    b.dataset.lang = l.code;
+    b.innerHTML = `
+      <span class="lang-circle">${l.icon}</span>
+      <span class="lang-names"><b>${l.native}</b><span>${l.en}</span></span>
+      ${isReady ? `<span class="lang-check">${l.code === currentLang ? "✔" : ""}</span>` : '<span class="lang-soon-tag">Soon</span>'}`;
+    if (isReady) b.addEventListener("click", () => {
+      currentLang = l.code;
+      window.currentLang = currentLang;
+      document.documentElement.lang = currentLang;
+      try { localStorage.setItem("ss_lang", l.code); } catch (e) {}
+      
+      // Update UI of the language menu itself
+      document.querySelectorAll(".lang-item").forEach(item => {
+        item.classList.toggle("active", item.dataset.lang === currentLang);
+        const check = item.querySelector(".lang-check");
+        if (check) check.textContent = item.dataset.lang === currentLang ? "✔" : "";
+      });
+      const meta = LANGS.find(x => x.code === currentLang);
+      if (meta) $id("langLabel").textContent = meta.native;
+      langMenu.classList.add("hidden");
+      
+      window.dispatchEvent(new Event("languageChanged"));
+    });
+    itemsEl.appendChild(b);
+  });
+  const meta = LANGS.find(l => l.code === currentLang);
+  $id("langLabel").textContent = meta ? meta.native : "English";
+  $id("langBtn").addEventListener("click", e => { e.stopPropagation(); langMenu.classList.toggle("hidden"); });
+  document.addEventListener("click", e => { if (!e.target.closest(".lang-wrap")) langMenu.classList.add("hidden"); });
+}
+
+function initLayout() {
+  renderHeader();
+  renderFooter();
+  /* make the header's real height available to CSS (e.g. pd-tabs-wrap's
+     sticky "top"), so sticky positioning never drifts if the header
+     wraps to two lines on a smaller screen or the logo size changes */
+  const setHeaderHeight = () => {
+    const h = document.querySelector("header");
+    if (h) document.documentElement.style.setProperty("--header-h", h.offsetHeight + "px");
+  };
+  setHeaderHeight();
+  window.addEventListener("resize", setHeaderHeight);
+  checkAbandonedBooking();
+}
+
+async function checkAbandonedBooking() {
+  if (typeof authToken === 'undefined' || !authToken) return;
+  // Don't show the banner if we are already in the checkout, booking flow, or account page
+  const page = location.pathname.split("/").pop() || "";
+  if (page === "payment.html" || page === "booking.html" || page === "account.html") return;
+
+  try {
+    const me = await api("/api/me", "GET", undefined, true);
+    const pendings = (me.bookings || []).filter(b => b.status === "Pending" || b.status === "payment-pending" || b.status === "failed");
+    if (pendings.length > 0) {
+      // Get language for translation
+      const lang = (typeof currentLang !== 'undefined' ? currentLang : null) || localStorage.getItem("ss_lang") || "en";
+      const isTe = lang === "te";
+      const isHi = lang === "hi";
+      
+      let btnMsg = isTe ? "బుకింగ్ కొనసాగించండి:" : (isHi ? "बुकिंग जारी रखें:" : "Continue Booking:");
+      let displayName = "";
+      let targetUrl = "";
+
+      if (pendings.length === 1) {
+        const pending = pendings[0];
+        let refId = "puja:0";
+        let matchedItem = null;
+  
+        if (typeof pujas !== 'undefined') {
+          let idx = pujas.findIndex(p => p.name === pending.puja);
+          if (idx === -1 && pending.puja.includes("razorpay_order:")) idx = pujas.findIndex(p => p.price === pending.price);
+          if (idx !== -1) { 
+             matchedItem = pujas[idx];
+             if (matchedItem.id) {
+               const baseId = matchedItem.id.split("-")[0];
+               const localIdx = pujas.findIndex(p => p.id === baseId + "-" + lang);
+               if (localIdx !== -1) {
+                 matchedItem = pujas[localIdx];
+                 refId = "puja:" + localIdx;
+               } else refId = "puja:" + idx;
+             } else refId = "puja:" + idx;
+          }
+        }
+  
+        if (typeof packages !== 'undefined' && !matchedItem) {
+          let idx = packages.findIndex(p => p.name === pending.puja);
+          if (idx === -1 && pending.puja.includes("razorpay_order:")) idx = packages.findIndex(p => p.price === pending.price);
+          if (idx !== -1) { 
+             matchedItem = packages[idx];
+             if (matchedItem.id) {
+               const baseId = matchedItem.id.split("-")[0];
+               const localIdx = packages.findIndex(p => p.id === baseId + "-" + lang);
+               if (localIdx !== -1) {
+                 matchedItem = packages[localIdx];
+                 refId = "pkg:" + localIdx;
+               } else refId = "pkg:" + idx;
+             } else refId = "pkg:" + idx;
+          }
+        }
+  
+        displayName = matchedItem ? (matchedItem["title_" + lang] || matchedItem.title_en || matchedItem.name) : (pending.puja.includes("razorpay_order:") ? "Puja" : pending.puja);
+        targetUrl = `payment.html?bookingId=${pending.id}&id=${refId}`;
+      } else {
+        // Multiple pendings
+        displayName = isTe ? `${pendings.length} అసంపూర్ణ బుకింగ్‌లు` : (isHi ? `${pendings.length} अधूरी बुकिंग` : `${pendings.length} unfinished bookings`);
+        btnMsg = isTe ? "బుకింగ్‌లను చూడండి:" : (isHi ? "बुकिंग देखें:" : "View Bookings:");
+        targetUrl = `account.html?panel=bookings&tab=pending`;
+      }
+
+      const currentPath = window.location.pathname.toLowerCase();
+      if (currentPath.includes("puja-details") || currentPath.includes("booking") || currentPath.includes("payment")) {
+        return;
+      }
+
+      // Floating container
+      const widget = document.createElement("a");
+      widget.className = "abandoned-fab";
+      widget.href = targetUrl;
+      
+      // Inject responsive styles for the widget
+      if (!document.getElementById("abandoned-style")) {
+        const style = document.createElement("style");
+        style.id = "abandoned-style";
+        style.innerHTML = `
+          .abandoned-fab { 
+            position: fixed; bottom: 120px; right: 24px; z-index: 9999;
+            width: 60px; height: 60px; border-radius: 50%;
+            background: #d32f2f; color: white; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 6px 20px rgba(211,47,47,0.4); text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
+          }
+          .abandoned-fab:hover {
+            transform: translateY(-2px); box-shadow: 0 8px 24px rgba(211,47,47,0.5);
+          }
+          .abandoned-tooltip {
+            position: absolute; bottom: 75px; right: 0;
+            background: white; color: #1a1a1a; padding: 12px 18px; border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15); border: 1px solid #f0f0f0;
+            white-space: nowrap; max-width: 85vw; overflow: hidden; text-overflow: ellipsis;
+            opacity: 0; visibility: hidden; transform: translateY(10px);
+            transition: all 0.2s ease-out; font-size: 15px; font-weight: 600;
+            pointer-events: none;
+          }
+          .abandoned-fab:hover .abandoned-tooltip {
+            opacity: 1; visibility: visible; transform: translateY(0);
+          }
+          @media (max-width: 900px) { 
+            .abandoned-fab { bottom: calc(146px + env(safe-area-inset-bottom, 0px)); right: 16px; width: 52px; height: 52px; }
+            .abandoned-tooltip { bottom: 65px; font-size: 14px; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      widget.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="28" height="28" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <span style="position: absolute; top: 14px; right: 16px; width: 10px; height: 10px; background: #fff; border-radius: 50%; border: 2px solid #d32f2f;"></span>
+        <div class="abandoned-tooltip">
+          ${btnMsg} <strong style="color: #d32f2f;">${displayName}</strong>
+        </div>
+      `;
+      
+      document.body.appendChild(widget);
+    }
+  } catch (e) {
+    console.error("Failed to check abandoned bookings:", e);
+  }
+}
+
+/* Intercept Account clicks for instant redirect if logged out */
+document.addEventListener("click", function(e) {
+  const link = e.target.closest('a');
+  if (link && link.getAttribute("href") === "account.html") {
+     const token = localStorage.getItem("token");
+     if (!token) {
+       e.preventDefault();
+       window.location.href = "login.html?next=account.html";
+     }
+  }
+});

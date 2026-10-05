@@ -1748,7 +1748,7 @@
 @media (max-width: 767px) {
   .hero-copy { gap: 0 !important; row-gap: 0 !important; }
   .hero-copy .hero-buttons { margin: 0 !important; padding: 0 !important; }
-  .hero-copy .hero-buttons + .hero-feature-row { margin-top: 4px !important; }
+  .hero-copy .hero-buttons + .hero-feature-row { margin-top: 10px !important; }
   .hero-copy .hero-feature-row { padding-top: 0 !important; padding-bottom: 0 !important; }
 
   /* Four shallow rectangle tiles instead of tall two-column cards. */
@@ -1809,21 +1809,28 @@
   #testimonials .testimonial-who span { font-size: .68rem !important; }
 }
 
-/* Upcoming Pujas stays left aligned; the hairline extends across its row and
-   balances visually with the category tabs below it. */
+/* Tighten section-heading rhythm and preserve a clear gap below hero actions. */
+.section .section-title { margin-bottom: 18px !important; }
+@media (max-width: 767px) {
+  .section .section-title { margin-bottom: 14px !important; }
+  .section-title::after { margin-top: 6px !important; }
+  .hero-copy .hero-buttons + .hero-feature-row { margin-top: 10px !important; }
+}
+
+/* Hero imagery must never show an editor/demo caption over the photo. */
+.hero-image-wrap :is(.hero-image-label, .hero-image-caption, .hero-image-tag, [data-hero-image-label]) {
+  display: none !important;
+}
+
+/* Upcoming Pujas heading: preserve the title alignment without a trailing rule. */
 .listing:has(#pujaCardsPage) .listing-heading {
-  display: flex !important;
-  align-items: center !important;
-  gap: 12px !important;
+  display: block !important;
   margin-bottom: 14px !important;
   text-align: left !important;
 }
 .listing:has(#pujaCardsPage) .listing-heading::after {
-  content: "";
-  display: block;
-  flex: 1 1 auto;
-  height: 1px;
-  background: rgba(201, 162, 39, .38);
+  content: none !important;
+  display: none !important;
 }
 
 /* Align puja detail facts into consistent mobile columns. */
@@ -1850,4 +1857,12 @@
   #pdDurationVal, #pdTemple { line-height: 1.32 !important; }
   .pd-hero-left > .pd-hero-meta [data-i18n="language_label"],
   .pd-hero-left > .pd-hero-meta [data-i18n="col_duration"] { white-space: nowrap !important; }
+}
+
+/* Drop listing titles slightly while keeping the category filters in place. */
+@media (max-width: 767px) {
+  .listing:has(#pujaCardsPage),
+  .listing:has(#packageCards) { padding-top: 30px !important; }
+  .listing:has(#pujaCardsPage) .listing-heading { margin-bottom: 18px !important; }
+  .listing:has(#packageCards) .listing-heading { margin-bottom: 26px !important; }
 }

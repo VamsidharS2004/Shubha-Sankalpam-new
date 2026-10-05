@@ -1,0 +1,176 @@
+/* ================= NEW DESKTOP REDESIGN (Reference Image Match) ================= */
+@media (min-width: 768px) {
+  /* 1. Reset container heights, make the image dictate the aspect ratio */
+  .hero-slider, .hero-image-wrap {
+    min-height: auto;
+    height: auto;
+  }
+  
+  .hero-img {
+    aspect-ratio: 1280 / 780;
+    width: 100%;
+    height: auto;
+    object-fit: contain; /* Prevents any cropping */
+    position: relative; /* Since we want it to push the height */
+  }
+
+  /* 2. Position the hero copy over the left side of the image */
+  .hero-copy {
+    position: absolute;
+    inset: 0; /* Cover the whole area */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Vertically center */
+    padding: 0 8%; /* Percentage padding so it scales with width */
+    max-width: 65%; /* Restrict to left half */
+    color: var(--ink); /* Override white text */
+  }
+
+  /* Disable the dark gradient overlay since the image itself is light on the left */
+  .hero-overlay-gradient {
+    display: none;
+  }
+
+  /* 3. Typography and Colors to match reference */
+  .hero-tagline {
+    color: #c98a2c; /* Gold */
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  
+  .hero-tagline .ht-icon {
+    font-size: 1.4rem;
+  }
+
+  .hero-copy h1 {
+    color: #8c1c13; /* Maroon title */
+    font-size: clamp(2rem, 3.5vw, 3.5rem);
+    line-height: 1.15;
+    margin-bottom: 16px;
+  }
+
+  .hero-headline-accent {
+    color: #8c1c13 !important; 
+  }
+
+  .hero-desc {
+    color: #4a4a4a;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin-bottom: 32px;
+    max-width: 80%;
+  }
+
+  /* 4. Trust Highlight Cards */
+  .hero-feature-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 32px;
+    justify-content: flex-start;
+  }
+
+  .hero-feature {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    max-width: 100px;
+  }
+
+  .hf-badge {
+    width: 48px;
+    height: 48px;
+    background: #fff; /* White circle */
+    border: 1px solid #e8e8e8;
+    color: #8c1c13;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  }
+
+  .hf-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink);
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  /* 5. Buttons */
+  .hero-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .hero-buttons .btn {
+    padding: 16px 24px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    width: 240px;
+    justify-content: center;
+  }
+
+  .hero-btn-primary {
+    background: #8c1c13;
+    color: #fff;
+    border: none;
+  }
+
+  .hero-btn-secondary {
+    background: #fff;
+    color: #e85a1c;
+    border: 1px solid #e85a1c;
+  }
+
+  /* 6. Location & Date */
+  .hero-meta {
+    display: flex;
+    gap: 32px;
+    position: static;
+    margin: 0;
+  }
+
+  .hero-meta .hm-item {
+    color: #4a4a4a;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .hero-meta .hm-item svg {
+    color: var(--ink);
+    opacity: 0.7;
+    margin-right: 8px;
+  }
+
+  /* 7. Stats Bar Overlap */
+  .stats-bar {
+    position: relative;
+    z-index: 20;
+    margin: -50px auto 40px; /* Pull it up into the hero section */
+    width: 90%;
+    max-width: 1200px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    padding: 24px 32px;
+  }
+
+  .stats-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* Ensure empty desc doesn't mess up spacing */
+.hero-desc:empty { display: none; margin: 0; height: 0; }

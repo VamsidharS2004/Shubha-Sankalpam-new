@@ -685,10 +685,6 @@
                 </div>
                 <h5 style="margin:16px 0 8px; color:var(--text-muted); font-size:0.9rem;">Details Page Data <span style="font-size:12px;font-weight:400;margin-left:8px;text-transform:none;">(Information shown only on the Puja Details page)</span></h5>
                 <div class="form-group">
-                    <label>Mantra <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;text-transform:none;">(Shows in Info Grid on Puja Details page)</span></label>
-                    <input type="text" id="editPujaMantraEn">
-                </div>
-                <div class="form-group">
                     <label>Tradition <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;text-transform:none;">(Shows in Info Grid on Puja Details page)</span></label>
                     <input type="text" id="editPujaTraditionEn">
                 </div>
@@ -820,10 +816,6 @@ function togglePackageLangs(lang) {
                 <textarea id="editPackageDescEn" rows="2"></textarea>
             </div>
             <div class="form-group">
-                <label>Mantra (English)</label>
-                <input type="text" id="editPackageMantraEn" placeholder="OM NAMAH SHIVAYA">
-            </div>
-            <div class="form-group">
                 <label>About this Package (English)</label>
                 <textarea id="editPackageAboutEn" rows="3"></textarea>
             </div>
@@ -838,10 +830,6 @@ function togglePackageLangs(lang) {
                 <textarea id="editPackageDescTe" rows="2"></textarea>
             </div>
             <div class="form-group">
-                <label>Mantra (Telugu)</label>
-                <input type="text" id="editPackageMantraTe">
-            </div>
-            <div class="form-group">
                 <label>About this Package (Telugu)</label>
                 <textarea id="editPackageAboutTe" rows="3"></textarea>
             </div>
@@ -854,10 +842,6 @@ function togglePackageLangs(lang) {
             <div class="form-group">
                 <label>Short Description (Hindi)</label>
                 <textarea id="editPackageDescHi" rows="2"></textarea>
-            </div>
-            <div class="form-group">
-                <label>Mantra (Hindi)</label>
-                <input type="text" id="editPackageMantraHi">
             </div>
             <div class="form-group">
                 <label>About this Package (Hindi)</label>
@@ -936,7 +920,7 @@ function togglePackageLangs(lang) {
         </div>
     </aside>
 
-    <script src="/content/pujas.js"></script><script src="/content/packages.js"></script><script defer src="/assets/js/admin.js?v=20261003-admin-v3"></script>
+    <script src="/content/pujas.js"></script><script src="/content/packages.js"></script><script defer src="/assets/js/admin.js?v=20261005-no-mantra-fields"></script>
 <script defer src="/assets/js/admin-analytics.js?v=20261003-admin-v3"></script>
 <script defer src="/assets/js/booking-form-ui.js?v=20261003-form-v2"></script>
 <script defer src="/assets/js/admin-booking-form.js?v=20261003-form-v2"></script>

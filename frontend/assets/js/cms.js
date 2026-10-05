@@ -65,7 +65,6 @@ try {
                         cat: p.cat,
                         image: p.image,
                         detail: Object.assign({}, p.detail || {}, {
-                            mantra: p[`mantra_${lang}`] || p.mantra_en || (p.detail && p.detail.mantra),
                             about: p[`about_${lang}`] || p.about_en || (p.detail && p.detail.about),
                             tradition: p[`tradition_${lang}`] || p.tradition_en || (p.detail && p.detail.tradition),
                             duration: p[`duration_${lang}`] || p.duration_en || (p.detail && p.detail.duration),
@@ -90,7 +89,6 @@ try {
                 media: p.media,
                 badge: p.badge,
                 detail: {
-                    mantra: p.mantra_en,
                     about: p.about_en
                 }
             }));

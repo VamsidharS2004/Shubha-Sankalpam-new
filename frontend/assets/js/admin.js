@@ -899,7 +899,6 @@ function openEditPuja(index) {
     document.getElementById("editPujaNameEn").value = p.name || "";
     document.getElementById("editPujaDescEn").value = p[`desc_${p.language || "en"}`] || p.desc || "";
     
-    document.getElementById("editPujaMantraEn").value = det.mantra || "";
     document.getElementById("editPujaTraditionEn").value = det.tradition || "";
     document.getElementById("editPujaDurationEn").value = det.duration || "";
     document.getElementById("editPujaForWhomEn").value = det.forWhom || "";
@@ -923,11 +922,6 @@ function openEditPuja(index) {
     if (fTe) fTe.value = det.forWhom_te || "";
     const fHi = document.getElementById("editPujaForWhomHi");
     if (fHi) fHi.value = det.forWhom_hi || "";
-    
-    const mTe = document.getElementById("editPujaMantraTe");
-    if (mTe) mTe.value = det.mantra_te || "";
-    const mHi = document.getElementById("editPujaMantraHi");
-    if (mHi) mHi.value = det.mantra_hi || "";
     
     // Dynamic Arrays
     document.getElementById("editor-benefits").innerHTML = "";
@@ -1045,7 +1039,9 @@ async function savePuja() {
     
     
     if (!p.detail) p.detail = {};
-    p.detail.mantra = document.getElementById("editPujaMantraEn").value.trim();
+    delete p.detail.mantra;
+    delete p.detail.mantra_te;
+    delete p.detail.mantra_hi;
     p.detail.tradition = document.getElementById("editPujaTraditionEn").value.trim();
     p.detail.duration = document.getElementById("editPujaDurationEn").value.trim();
     p.detail.forWhom = document.getElementById("editPujaForWhomEn").value.trim();
@@ -1069,11 +1065,6 @@ async function savePuja() {
     if (forWhomTe) p.detail.forWhom_te = forWhomTe.value.trim();
     const forWhomHi = document.getElementById("editPujaForWhomHi");
     if (forWhomHi) p.detail.forWhom_hi = forWhomHi.value.trim();
-    
-    const mantraTe = document.getElementById("editPujaMantraTe");
-    if (mantraTe) p.detail.mantra_te = mantraTe.value.trim();
-    const mantraHi = document.getElementById("editPujaMantraHi");
-    if (mantraHi) p.detail.mantra_hi = mantraHi.value.trim();
     
     
 
@@ -1367,19 +1358,16 @@ function openEditPackage(index) {
     document.getElementById("editPackageNameEn").value = p.name || "";
     document.getElementById("editPackageDescEn").value = p.desc || "";
     const det = p.detail || {};
-    document.getElementById("editPackageMantraEn").value = det.mantra || "";
     document.getElementById("editPackageAboutEn").value = det.about || "";
     
     // Telugu
     document.getElementById("editPackageNameTe").value = p.name_te || "";
     document.getElementById("editPackageDescTe").value = p.desc_te || "";
-    document.getElementById("editPackageMantraTe").value = det.mantra_te || "";
     document.getElementById("editPackageAboutTe").value = det.about_te || "";
     
     // Hindi
     document.getElementById("editPackageNameHi").value = p.name_hi || "";
     document.getElementById("editPackageDescHi").value = p.desc_hi || "";
-    document.getElementById("editPackageMantraHi").value = det.mantra_hi || "";
     document.getElementById("editPackageAboutHi").value = det.about_hi || "";
     
     document.getElementById('editPackageLangToggle').value = p.name_te && !p.name ? 'te' : 'en';
@@ -1425,11 +1413,11 @@ async function savePackage() {
     p.desc_hi = document.getElementById("editPackageDescHi").value.trim();
     
     if (!p.detail) p.detail = {};
-    p.detail.mantra = document.getElementById("editPackageMantraEn").value.trim();
+    delete p.detail.mantra;
+    delete p.detail.mantra_te;
+    delete p.detail.mantra_hi;
     p.detail.about = document.getElementById("editPackageAboutEn").value.trim();
-    p.detail.mantra_te = document.getElementById("editPackageMantraTe").value.trim();
     p.detail.about_te = document.getElementById("editPackageAboutTe").value.trim();
-    p.detail.mantra_hi = document.getElementById("editPackageMantraHi").value.trim();
     p.detail.about_hi = document.getElementById("editPackageAboutHi").value.trim();
     
     if(![p.name,p.name_te,p.name_hi].some(Boolean))return alert('Enter a package name in at least one language.');

@@ -41,9 +41,6 @@ function renderSlider() {
         <div class="hero-overlay-gradient"></div>
 
         <div class="hero-copy">
-          <div class="hero-tagline">
-            <span class="ht-icon" aria-hidden="true">ॐ</span> ${typeof localMantra === 'function' ? localMantra(p) : (p.detail && p.detail.mantra) || 'OM NAMA SHIVAYA'}
-          </div>
           <h1>${twoToneHeadline(localName(p))}</h1>
           <p class="hero-desc">${localDesc(p)}</p>
 
@@ -73,7 +70,6 @@ function renderSlider() {
           </div>
         </div>
 
-        <div class="hero-swipe">${typeof lt === 'function' ? lt('hero_swipe') : 'Swipe »'}</div>
       </div>
     </div>
   `}).join(''));

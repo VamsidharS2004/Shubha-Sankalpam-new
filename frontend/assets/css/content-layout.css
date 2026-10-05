@@ -47,14 +47,3 @@ input,select,textarea{max-width:100%;min-width:0;font:inherit}
  .hero-slide.hero-slide-overlay{height:auto!important}
  .hero-copy h1{min-height:0!important;display:block!important}
 }
-
-/* Compact mobile metadata: a wrapped duration cannot stretch the date row. */
-@media(max-width:600px){
- .pd-hero-meta:not(.pd-temple-meta){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 12px;align-items:start}
- .pd-hero-meta:not(.pd-temple-meta)>.pd-meta-item:nth-child(1){grid-column:1;grid-row:1}
- .pd-hero-meta:not(.pd-temple-meta)>.pd-meta-item:nth-child(2){grid-column:1;grid-row:3}
- .pd-hero-meta:not(.pd-temple-meta)>.pd-meta-item:nth-child(3){grid-column:2;grid-row:1 / span 2}
- .pd-hero-meta:not(.pd-temple-meta)>.pd-meta-item:nth-child(4){grid-column:1;grid-row:2}
- .pd-hero-meta .pd-meta-item{gap:5px;line-height:1.45}
- .pd-temple-meta{margin-top:6px!important}
-}

@@ -1,0 +1,1 @@
+All earlier fixes, Analytics and Booking Form editor are included. Read DEPLOYMENT-AND-DATA-SAFETY.md. Run Supabase-Setup-All.sql in your existing Supabase project before deploying. Preserve production environment variables, uploads and local records.
