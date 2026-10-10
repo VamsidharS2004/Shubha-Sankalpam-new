@@ -161,17 +161,21 @@ function goToSlide(idx, animate) {
 
   const dir = raw > previous ? 1 : -1;                   // 1 = next (slides move left), -1 = previous
   const leaving = slides[previous], entering = slides[idx];
-  const oldHeight = leaving.offsetHeight;
-  heroSlider.style.minHeight = oldHeight + "px";         // no height jump while both slides are on screen
+  const wrapH = el => el.offsetHeight;
+  const oldHeight = wrapH(leaving), newHeight = wrapH(entering);
+  heroSlider.style.minHeight = Math.min(oldHeight, newHeight) + "px";   // no height jump while both slides are on screen
   heroSlider.classList.add("hero-animating");
   leaving.classList.add("hero-leaving");
-  const opts = { duration: 520, easing: "cubic-bezier(.4,0,.2,1)", fill: "both" };
+  const opts = { duration: 700, easing: "cubic-bezier(.45,.05,.2,1)", fill: "both" };
+  // glide the banner height too when the two slides differ, so nothing snaps at the end
+  const grow = oldHeight !== newHeight && typeof heroSlider.animate === "function"
+    ? heroSlider.animate([{ height: oldHeight + "px" }, { height: newHeight + "px" }], opts) : null;
   const out = leaving.animate([{ transform: "translate3d(0,0,0)" }, { transform: `translate3d(${-dir * 100}%,0,0)` }], opts);
   const into = entering.animate([{ transform: `translate3d(${dir * 100}%,0,0)` }, { transform: "translate3d(0,0,0)" }], opts);
   let done = false;
   const finish = () => {
     if (done) return; done = true;
-    out.cancel(); into.cancel();
+    out.cancel(); into.cancel(); if (grow) grow.cancel();
     leaving.classList.remove("hero-leaving");
     heroSlider.classList.remove("hero-animating");
     heroSlider.style.minHeight = "";

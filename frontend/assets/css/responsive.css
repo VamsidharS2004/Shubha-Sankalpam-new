@@ -1867,3 +1867,9 @@
   .listing:has(#pujaCardsPage) .listing-heading { margin-bottom: 18px !important; }
   .listing:has(#packageCards) .listing-heading { margin-bottom: 26px !important; }
 }
+
+/* PageSpeed CLS fix (phones only): reserve the phone hero image's space before it
+   downloads so the text and trust bar below never jump down. */
+@media (max-width: 767px) {
+  .hero-image-wrap picture { aspect-ratio: 16 / 9 !important; }
+}

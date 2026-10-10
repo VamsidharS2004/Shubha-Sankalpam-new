@@ -144,3 +144,15 @@ Round 9 — no blank areas while loading
   * big photos now sit on a soft warm background while they download.
   * (earlier rounds) puja details placeholder, hero text visible straight away, header baked into every page.
 - Shared placeholder styles: .ss-skel in assets/css/global.css.
+
+ROUND 10 - POST-DEPLOY PAGESPEED (mobile, 11 Oct 2026): 72 / FCP 0.9s / LCP 3.3s / TBT 30ms / CLS 0.273 / SI 7.1s
+- CLS 0.273 came from the phone hero: the image box had no height until the photo downloaded, so the
+  hero text, buttons and trust bar jumped down ~220px. Reproduced locally (throttled image) and fixed:
+  responsive.css now reserves a 16:9 box for the phone hero picture. CLS after fix: 0.
+- Remaining (not code bugs): Supabase image cache lifetime (set by Supabase), desktop hero image size.
+- Desktop: a 16:9 reservation made the wide banner look wrong, so it was REVERTED. The 16:9 reservation is phone-only.
+
+ROUND 11 - HERO SLIDE SMOOTHNESS (desktop)
+- On laptop/desktop the outgoing slide was still in normal page flow while it slid, so the slider doubled in
+  height and the new slide started below it. The outgoing slide is now positioned on top at every width
+  (hero.css), the banner height glides between slides of different heights, and the slide takes 0.7 s.
