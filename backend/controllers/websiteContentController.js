@@ -5,6 +5,9 @@ const fs = require("fs");
 const path = require("path");
 
 const PUBLIC_CONTENT_CACHE_MS = 30_000;
+// Public website text: let Vercel's CDN answer for 60 s (and serve stale while
+// refreshing) instead of starting the server function + Supabase on every visit.
+const PUBLIC_CDN_HEADERS = { "Cache-Control": "public, max-age=0, must-revalidate", "Vercel-CDN-Cache-Control": "max-age=60, stale-while-revalidate=86400" };
 let publicContentCache = null;
 let publicContentCacheAt = 0;
 let publicContentLoad = null;
@@ -53,7 +56,20 @@ async function getWebsiteContent(req, res) {
 
   try {
     if (publicContentCache && Date.now() - publicContentCacheAt < PUBLIC_CONTENT_CACHE_MS) {
-      return send(res, 200, { ok: true, content: publicContentCache });
+      return send(res, 200, { ok: true, content: publicContentCache }, undefined, PUBLIC_CDN_HEADERS);
+    }
+    // Stale-while-revalidate: answer instantly with the last good copy and
+    // refresh from Supabase in the background, so visitors never wait on
+    // the database round trip once the content has been loaded once.
+    // (Admin saves clear the cache, so edits still show up immediately.)
+    if (publicContentCache) {
+      if (!publicContentLoad) {
+        publicContentLoad = loadPublicContent()
+          .then(content => { publicContentCache = content; publicContentCacheAt = Date.now(); return content; })
+          .catch(err => console.warn("[CMS] Background content refresh failed:", err.message))
+          .finally(() => { publicContentLoad = null; });
+      }
+      return send(res, 200, { ok: true, content: publicContentCache }, undefined, PUBLIC_CDN_HEADERS);
     }
     if (!publicContentLoad) {
       publicContentLoad = loadPublicContent()
@@ -65,7 +81,8 @@ async function getWebsiteContent(req, res) {
         .finally(() => { publicContentLoad = null; });
     }
     const contentTree = await publicContentLoad;
-    send(res, 200, { ok: true, content: contentTree });
+    if (!contentTree) throw new Error("Website content is not available yet.");
+    send(res, 200, { ok: true, content: contentTree }, undefined, PUBLIC_CDN_HEADERS);
   } catch (err) {
     console.error("Error fetching website content:", err);
     send(res, 500, { error: "Failed to load website content." });

@@ -57,6 +57,24 @@ function responsiveDesktopImage(item) {
 
 /* true if the image field looks like a real file path rather than a
    short theme-key name (real photos always contain a "/" or ".") */
+/* Supabase-hosted photos (uploaded in admin) are full-size (up to 1920 px,
+   ~200 KB). Supabase can resize them on the fly, so we request a copy that
+   fits where the photo is shown: ~35-70 KB instead of ~200 KB on phones.
+   If resizing ever fails, the <img> onerror below falls back to the original. */
+const SUPABASE_OBJECT_PATH = "/storage/v1/object/public/";
+function supabaseResized(url, width) {
+  if (typeof url !== "string" || !/^https:\/\/[a-z0-9]+\.supabase\.co\//.test(url) || !url.includes(SUPABASE_OBJECT_PATH)) return "";
+  const [base, query] = url.split("?");
+  return base.replace(SUPABASE_OBJECT_PATH, "/storage/v1/render/image/public/") +
+    "?width=" + width + "&resize=contain&quality=70" + (query ? "&" + query : "");
+}
+function supabaseSrcset(url, widths) {
+  if (!supabaseResized(url, 1)) return "";
+  return (widths || [480, 800, 1200, 1600]).map(w => supabaseResized(url, w) + " " + w + "w").join(", ");
+}
+/* falls back to the original upload, then to the logo */
+const IMG_FALLBACK_ATTR = `onerror="var p=this.parentNode;if(p&&p.tagName==='PICTURE'){p.querySelectorAll('source').forEach(function(s){if(s.srcset.indexOf('/render/image/')>-1)s.remove()})}if(this.dataset.orig&&this.src!==this.dataset.orig){this.removeAttribute('srcset');this.src=this.dataset.orig}else{this.onerror=null;this.removeAttribute('srcset');this.src='assets/images/logo-header.webp'}"`;
+
 function isRealImagePath(value) {
   return typeof value === "string" && /[\/.]/.test(value);
 }
@@ -71,7 +89,11 @@ function mediaHTML(item, itemName, options = {}) {
       ? key.replace(/\.jpe?g$/i, ".webp")
       : key;
     const loadAttrs = options.eager ? `loading="eager" fetchpriority="high"` : `loading="lazy"`;
-    const image = `<img ${loadAttrs} decoding="async" src="${optimizedKey}" alt="${itemName}" class="media-img" style="width:100%;height:100%;object-fit:var(--media-fit, cover)" onerror="this.onerror=null;this.src='assets/images/logo.png'">`;
+    const srcset = supabaseSrcset(key);
+    const responsive = srcset
+      ? `src="${supabaseResized(key, 800)}" srcset="${srcset}" sizes="${options.sizes || "(max-width: 767px) 92vw, 420px"}" data-orig="${key}"`
+      : `src="${optimizedKey}"`;
+    const image = `<img ${loadAttrs} decoding="async" ${responsive} alt="${itemName}" width="800" height="450" class="media-img" style="width:100%;height:100%;object-fit:var(--media-fit, cover)" ${IMG_FALLBACK_ATTR}>`;
     // Use the single image uploaded for this puja at every breakpoint.
     return image;
   }

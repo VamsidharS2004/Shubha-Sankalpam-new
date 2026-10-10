@@ -47,14 +47,15 @@ async function api(path, method = "GET", body = undefined, silent = false) {
 function getItem(ref) {
   const value = String(ref || "");
   // Prefer stable database/content IDs. Older links used puja:0 / pkg:0.
-  const puja = pujas.find(p => String(p.id) === value);
+  const puja = typeof pujas !== 'undefined' ? pujas.find(p => String(p.id) === value) : null;
   if (puja) return { item: puja, type: "puja", ref };
   const pkg = typeof packages !== 'undefined' ? packages.find(p => String(p.id) === value) : null;
   if (pkg) return { item: pkg, type: "pkg", ref };
   const legacy = value.match(/^(puja|pkg):(\d+)$/);
   if (legacy) {
     const type = legacy[1] === "pkg" ? "pkg" : "puja";
-    const item = (type === "pkg" ? packages : pujas)[Number(legacy[2])];
+    const list = type === "pkg" ? (typeof packages !== 'undefined' ? packages : []) : (typeof pujas !== 'undefined' ? pujas : []);
+    const item = list[Number(legacy[2])];
     return { item: item || null, type, ref };
   }
   return { item: null, type: null, ref };
@@ -62,7 +63,8 @@ function getItem(ref) {
 
 let currentLang = "te";
 try { currentLang = localStorage.getItem("ss_lang") || SITE.DEFAULT_LANGUAGE || "te"; } catch (e) {}
-const availableLanguages = [...new Set(pujas.map(p => p.language || "en"))];
+// Pages like About/Privacy don't load the puja list; don't crash there.
+const availableLanguages = typeof pujas !== "undefined" ? [...new Set(pujas.map(p => p.language || "en"))] : ["en", "te", "hi"];
 if (!availableLanguages.includes(currentLang)) currentLang = availableLanguages.includes("te") ? "te" : (availableLanguages[0] || "te");
 const requestedItem = getItem(getParam("id")).item;
 if (location.pathname.includes("puja-details") && requestedItem && requestedItem.language) currentLang = requestedItem.language;

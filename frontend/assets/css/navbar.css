@@ -146,7 +146,7 @@ header.flow-header .logo {margin:auto}
    FOOTER - the premium dark CTA band + footer links
    ================================================================ */
 .footer-wrap {
-    background: url("../images/bg-pattern.jpg") center/cover, radial-gradient(ellipse at center top, #7A0A15 0%, #460309 50%, #200103 100%);
+    background: url("../images/bg-pattern.webp") center/cover, radial-gradient(ellipse at center top, #7A0A15 0%, #460309 50%, #200103 100%);
     background-blend-mode: multiply;
     color: #E8D2B8;
     margin-top: 70px;

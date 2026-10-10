@@ -1,0 +1,146 @@
+Nav bar / language flash / speed fixes — 2026-10-11
+
+PROBLEMS FOUND
+1. English text showed first, then switched to Telugu. Page text is written
+   in English in the HTML and only translated after ~14 JavaScript files load,
+   and the browser painted the English version in between.
+2. Nav bar blinked on every page change. Only home.html had the header in its
+   HTML; every other page started with an empty header that JavaScript filled
+   in later. The language pill also showed "Eng" before switching, and the
+   Google Fonts file loaded after first paint, so nav text re-flowed.
+3. Extra loading cost: Google Fonts (2 extra connections), a 1024px logo shown
+   at 220px, a 760px footer logo shown at 75px, a JPG background where a smaller
+   WebP existed, a hidden splash image still downloading, and CMS text fetched
+   from Supabase on every new tab (5-minute session-only cache).
+4. Already-visible sections were hidden and faded back in on load ("blank first").
+5. about/privacy/terms/refund threw "pujas is not defined" (main.js).
+
+WHAT CHANGED
+- scripts/prerender-header.js (NEW) — bakes the nav bar from navbar.js into every
+  public page and adds a shared <head> block. RE-RUN IT after editing the header
+  template in frontend/assets/js/navbar.js:   node scripts/prerender-header.js
+  The <head> block: hides translatable text until translated (released by
+  language.js, with a 2.5 s safety fallback), self-hosted fonts, smooth page
+  transitions that keep the nav bar fixed (Chrome/Edge/Safari), and
+  prefetching of pages on hover.
+- assets/js/navbar.js — header markup in headerHTML(); pre-rendered header is
+  only wired up, never rebuilt. New small logos.
+- assets/js/language.js — reveals text after translation (waits max 400 ms for
+  first-ever CMS load).
+- assets/js/cms-renderer.js — CMS text cached in localStorage, applied instantly,
+  refreshed in the background only when older than 5 minutes.
+- assets/js/animations.js — on-screen sections are no longer hidden/faded in.
+- assets/js/main.js — no crash on pages without the puja list.
+- assets/css/fonts.css + assets/fonts/ (NEW) — Poppins + Anek Telugu self-hosted.
+  Note: Hindi text now uses the device's Devanagari font (Poppins Devanagari is
+  not available for self-hosting in this package).
+- images: logo-header.webp (20 KB, same visible crop), s_logo-footer.webp (10 KB),
+  CSS background now bg-pattern.webp.
+- backend/controllers/websiteContentController.js — serves last good CMS content
+  instantly and refreshes from Supabase in the background (admin saves still
+  clear it immediately).
+- backend/utils/http.js — font MIME types.
+- tests/menu-language.test.js — updated for the new release logic. 26/26 pass.
+
+MEASURED (headless Chrome, Telugu, throttled ~5 Mbps / 100 ms, cache working)
+- Clicking nav links: header blank frames per click 3–6 -> 0; frames showing
+  English 8–13 -> 0; logo-missing frames up to 18 -> 0; "Eng" label flash -> gone.
+- First visit, slow 1.6 Mbps: English frames 31–40 -> 0; header-missing frames
+  on puja.html 29 -> 0. First paint ~0.1 s later on that very slow line because
+  it now includes the header and final fonts instead of an English, header-less
+  page.
+
+----------------------------------------------------------------
+ROUND 2 — live site (www.shubhasankalpam.com) measured in Chrome
+----------------------------------------------------------------
+FOUND ON THE LIVE SITE
+- /content/*.js (9 files) were never cached by Vercel's CDN (x-vercel-cache: MISS,
+  max-age=0): every page view started the server function for each one,
+  ~300 ms each, arriving in waves of three -> about 1 s before scripts could run.
+- /api/content/global (CMS text) took 1.3-1.5 s on every visit (function + Supabase).
+- Home hero: the HTML shipped a placeholder hero image that JavaScript swapped for
+  the admin's Supabase image -> two hero downloads and a visible image swap.
+- Puja/temple photos were 800 px / 67-131 KB each but shown at ~300 px.
+- NOTE: the live site is built from GitHub commit b9de1e4, whose build script
+  bundles CSS. The uploaded zip's build script did not; that bundling is kept below.
+
+CHANGED
+- scripts/build-static.js
+  * keeps the live site's hashed CSS bundles (one CSS file per page)
+  * publishes the 5 content files the admin never edits (faq, why-us,
+    testimonials, trust-highlights, puja-detail-defaults) as static CDN files
+  * pujas/packages/temples/site-settings stay dynamic server routes
+  * bakes the current hero puja's images into home.html + preloads it
+- backend/server.js — dynamic catalogs send Vercel-CDN-Cache-Control:
+  max-age=60, stale-while-revalidate=86400 (served from the CDN; admin edits
+  appear within ~1 minute; cache is cleared on every deploy).
+- backend/controllers/websiteContentController.js — same CDN caching for
+  /api/content/global.
+- prerender-header.js head block — preconnect to the Supabase image host.
+- assets/images/pujas/*.webp, temples/*.webp — 640 px wide: 1172 KB -> 773 KB.
+- tests/static-performance.test.js — updated for the new build rules. 26/26 pass.
+
+MEASURED (built site served like Vercel, 1.6 Mbps, first visit)
+- Home: 973 KB -> 728 KB, fully loaded 5.45 s -> 4.2 s.
+- Puja: 441 KB -> 380 KB, fully loaded 2.75 s -> 2.4 s.
+- The CDN-caching fix (the biggest live problem) can only be measured after
+  deploying: check that /content/pujas.js and /api/content/global show
+  x-vercel-cache: HIT (or STALE) on the second request.
+
+AFTER DEPLOYING
+- Push to GitHub (Vercel builds automatically).
+- In Chrome DevTools > Network, reload twice and confirm x-vercel-cache: HIT on
+  /content/pujas.js and /api/content/global.
+
+----------------------------------------------------------------
+ROUND 3 — PageSpeed items
+----------------------------------------------------------------
+- Images: puja/temple cards and hero now request Supabase resized versions
+  (/render/image/...?width=N), with automatic fallback to the original file if the
+  resize endpoint is unavailable; width/height set to stop layout shift.
+- Home hero image + preloads baked at build time (desktop / tablet / phone).
+- scripts/build-static.js minifies the per-page CSS bundles (comments/whitespace
+  only). Set SS_NO_MINIFY=1 to get readable bundles. Checked: computed styles of
+  6,152 elements on 10 pages x 2 screen sizes match the unminified build (one
+  auto-margin value on booking.html varies run to run even without minifying).
+- fonts.css is now inlined in the shared <head> block (prerender-header.js), so
+  fonts no longer wait for an extra render-blocking CSS request.
+- navbar.js: header height measured in requestAnimationFrame (removes a forced reflow).
+- vercel.json: cache rules for fonts/bundles/images are explicit and cannot be
+  overridden by the generic /assets rule.
+- Merged from your live zip: backend/utils/http.js and the "npm test" script.
+- npm test: 26/26 pass.
+Round 4 (2026-10-11 night)
+- Home hero text no longer waits for scripts when the saved language is Telugu (was a blank gap under the banner).
+- Home hero banner: frontend/home.html now contains the real hero image (baked by node scripts/prerender-header.js and again by npm run build), so JavaScript no longer swaps a placeholder for the real image (that swap looked like a blurry / double logo).
+  scripts/hero-bake.js is the shared code.
+- Mobile trust cards: responsive.css shows all 4 cards (2 x 2). The live-site copy of this file hides the 4th card and uses 3 columns - replace it with this one.
+Round 5
+- Removed the separate "ss-logo" page-transition layer (it kept the old logo under the new one and showed a doubled logo when the logo was clicked to go home). The header still stays fixed during page changes; the logo image is now preloaded instead.
+
+Round 6
+- Puja details page: while the puja loads, a clean grey placeholder (same layout as the page) is shown instead of an empty page with the Book Now bar. It is removed as soon as the content and first photo are ready (never later than 4 s).
+- All pages: the header height is measured before the first paint, so content no longer sits 21 px too low and jumps up after loading.
+- npm run build now also runs scripts/prerender-header.js, so the header/head can never be out of date on the live site.
+- New tests/performance-budget.test.js (part of npm test) fails if a future change adds: Google Fonts / external CSS, images over 250 KB, <img> without width/height, mixed ?v= versions, oversized CSS/JS, or unused asset files.
+- Cleanup: scripts/remove-unused-files.js deletes 52 unused files (old logo/image variants, old audio, backup JS, one-off patch scripts). Run:  node scripts/remove-unused-files.js   (preview)   then   node scripts/remove-unused-files.js --yes
+  Kept on purpose: images/packages, temples, pujas (may be used by admin content), cms.js (used by an e2e test), database helper scripts at the project root.
+- The GitHub repo also contains a nested duplicate folder "Shubha-Sankalpam-main/" (~310 files). It is not used by the site; delete it from git when convenient.
+
+Round 7 — tab logo (favicon)
+- Every page (incl. admin, which showed a grey globe) now has the same logo icons: /favicon.ico (16/32/48), favicon-32.png, favicon-192.png, apple-touch-icon.png. The icon links live in the shared head block (scripts/prerender-header.js); admin pages have them added directly.
+- The old 233 KB favicon.png is removed (admin used it as a 28 px header image; it now uses favicon-48.png).
+- If the tab still shows the old icon: browsers cache tab icons hard - close the tab, reopen, or hard refresh (Ctrl+Shift+R).
+
+Round 8 — hero slider
+- Slides now glide: the old slide moves out and the new one moves in (0.5 s, eased), following the direction of the arrow, dot or swipe, on phone and desktop. Before, phones cut instantly and desktops only faded.
+- All slide photos are loaded and decoded right after the page has loaded, so a slide never slides in empty.
+- Respects "reduce motion" (no animation then). Code: goToSlide() in assets/js/pages/home.js, styles at the end of assets/css/hero.css.
+
+Round 9 — no blank areas while loading
+- Checked every page on a slow connection (frame by frame). Fixed the empty white areas:
+  * puja.html, package.html and the home "puja cards" strip now show grey shimmering placeholder cards (built into the HTML, replaced the moment the real cards are built).
+  * about.html hero photo is loaded first (was lazy-loaded above the fold).
+  * big photos now sit on a soft warm background while they download.
+  * (earlier rounds) puja details placeholder, hero text visible straight away, header baked into every page.
+- Shared placeholder styles: .ss-skel in assets/css/global.css.

@@ -187,24 +187,30 @@ function applyDetailI18n() {
   document.querySelectorAll("[data-i18n-placeholder]").forEach(el => { el.placeholder = dt(el.dataset.i18nPlaceholder); });
 }
 
-// Release translated labels only after the correct language has been applied.
+/* Translatable text is hidden by the inline <head> script ("ss-i18n-pending")
+   so visitors never see the English placeholder text first. We reveal it
+   once the selected language has been applied: right after all page
+   scripts run, or — if CMS overrides are still loading for the very first
+   time — after at most CMS_WAIT_MS so text never stays hidden for long. */
+window.__ssI18nOwner = true;
+const CMS_WAIT_MS = 400;
+function releaseI18n() {
+  // next frame = after every DOMContentLoaded handler (hero, cards, CMS cache) has run
+  requestAnimationFrame(() => document.documentElement.classList.remove("ss-i18n-pending", "ss-booting"));
+}
 document.addEventListener("DOMContentLoaded", () => {
   applyDetailI18n();
   applyListingI18n();
-  Promise.resolve(window.ssCmsReady).then(() => {
-    applyDetailI18n(); applyListingI18n();
-    if (typeof applyCmsContent === "function") applyCmsContent();
-    document.documentElement.classList.remove("ss-booting");
+  const cmsReady = window.ssCmsReady
+    ? Promise.race([window.ssCmsReady, new Promise(r => setTimeout(r, CMS_WAIT_MS))])
+    : Promise.resolve();
+  cmsReady.then(() => {
+    if (window.ssCmsReady) { applyDetailI18n(); applyListingI18n(); }
+    releaseI18n();
   });
-});
-// Automatically apply translations if on a page with data-i18n tags
-document.addEventListener("DOMContentLoaded", () => {
-  if (document.querySelector("[data-i18n]")) {
-    applyDetailI18n();
-  }
-  if (document.querySelector("[data-i18n-list]")) {
-    applyListingI18n();
-  }
+  Promise.resolve(window.ssCmsReady).then(() => {
+    if (typeof applyCmsContent === "function") applyCmsContent();
+  });
 });
 
 const LISTING_UI = {

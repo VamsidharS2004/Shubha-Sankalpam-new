@@ -1100,3 +1100,13 @@
     padding-bottom: 12px;
   }
 }
+
+
+/* Sliding between hero slides (see goToSlide in pages/home.js): both slides are on screen
+   for ~0.5 s while they glide; the slider clips them so nothing spills out. */
+.hero-slider.hero-animating { overflow: hidden !important; }
+.hero-slider.hero-animating .hero-slide { transition: none !important; will-change: transform; }
+.hero-slider.hero-animating .hero-slide.hero-leaving { display: block !important; opacity: 1 !important; visibility: visible !important; z-index: 1 !important; pointer-events: none; }
+@media (max-width: 767px) {
+  .hero-slider.hero-animating .hero-slide.hero-leaving { position: absolute !important; top: 0; left: 0; width: 100%; }
+}

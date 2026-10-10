@@ -7,6 +7,7 @@ const pujas = [
     "id": "001",
     "base_id": "మకష-నరయణ-బల-పజ",
     "language": "te",
+    "show_in_hero": true,
     "name": "మోక్ష నారాయణ బలి పూజ",
     "name_te": "మోక్ష నారాయణ బలి పూజ",
     "desc": "పూర్వీకుల శాంతి, సద్గతి కోసం అయోధ్య పవిత్ర క్షేత్రంలో మోక్ష నారాయణ బలి పూజను శాస్త్రోక్తంగా నిర్వహిస్తారు. శ్రీమహావిష్ణువును నారాయణ స్వరూపంగా ఆరాధిస్తూ, సంకల్పం, తర్పణం, పిండప్రదానం మరియు ప్రత్యేక ప్రార్థనలతో పితృదేవతలను స్మరించి ఈ పవిత్ర కర్మను సమర్పిస్తారు.",
@@ -18,6 +19,9 @@ const pujas = [
     "basePrice": 5116,
     "cat": "Special Puja",
     "image": "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/1bf4c453-9680-4840-b9d2-dc8e1a439035.webp",
+    "gallery": [
+      "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/f338199b-ac20-44b3-9d66-e6d6d5af3cfc.jpg"
+    ],
     "detail": {
       "faqs": [
         {
@@ -38,7 +42,6 @@ const pujas = [
         }
       ],
       "about": "మోక్ష నారాయణ బలి పూజ' అనేది పవిత్ర నగరమైన అయోధ్యలో, పూర్వీకుల శాంతి మరియు ఆధ్యాత్మిక శ్రేయస్సు కోసం నిర్వహించబడే ఒక పవిత్రమైన వైదిక అనుష్ఠానం. ఈ పూజలో భక్తుని పేరు మరియు గోత్రంతో కూడిన ప్రత్యేక 'సంకల్పం', నారాయణ స్వామి ఆరాధన, తర్పణం, పిండ ప్రదానం, నారాయణ హోమం మరియు వైదిక మంత్ర పఠనం వంటి అంశాలు ఉంటాయి. ఈ పూజకు సంబంధించిన పూర్తి వీడియో 48 గంటల లోపు వాట్సాప్ (WhatsApp) ద్వారా పంపబడుతుంది.",
-      "mantra": "ఓం నమో నారాయణాయ",
       "forWhom": "తమ పూర్వీకుల శాంతి మరియు ఆధ్యాత్మిక శ్రేయస్సు కోసం ప్రార్థనలు చేయాలనుకునే భక్తుల కోసం.",
       "gallery": [
         "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/f338199b-ac20-44b3-9d66-e6d6d5af3cfc.jpg"
@@ -74,7 +77,6 @@ const pujas = [
         }
       ],
       "duration": "సుమారు 2.5 గంటలు",
-      "mantra_te": "ఓం నమో నారాయణాయ",
       "procedure": [
         {
           "d": "భక్తుని పేరు మరియు గోత్రం ఉచ్చరిస్తూ చేసే సంకల్పంతో పూజ ప్రారంభమవుతుంది.",
@@ -106,16 +108,13 @@ const pujas = [
       "tradition_te": "వైదిక పితృ కర్మ",
       "desktopHeroImage": "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/64c1ba17-1046-4a3e-b507-7936f7fe4821.webp",
       "templeDetailsName": "అయోధ్య పుణ్యక్షేత్రం"
-    },
-    "gallery": [
-      "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/f338199b-ac20-44b3-9d66-e6d6d5af3cfc.jpg"
-    ],
-    "show_in_hero": true
+    }
   },
   {
     "id": "నవనరసహ-హోమం",
     "base_id": "నవనరసహ-హమ",
     "language": "te",
+    "show_in_hero": true,
     "name": "నవనారసింహ హోమం",
     "name_te": "నవనారసింహ హోమం",
     "desc": "కామిక ఏకాదశి పర్వదినాన, భయం మరియు దుష్ట శక్తుల నుండి రక్షించే శ్రీ నరసింహ స్వామి వారి తొమ్మిది రూపాలను ఆవాహన చేస్తూ ఈ హోమం నిర్వహించబడుతుంది. దైవానుగ్రహం, ధైర్యం మరియు రక్షణను కోరుతూ, వేద పండితులు మీ పేరు మరియు గోత్రాలను 'సంకల్పం'లో చేర్చి ఈ విశేషమైన అనుష్ఠానాన్ని నిర్వహిస్తారు.",
@@ -127,6 +126,7 @@ const pujas = [
     "basePrice": 999,
     "cat": "All",
     "image": "assets/images/pujas/narasimha.jpg",
+    "gallery": [],
     "detail": {
       "about": "కామిక ఏకాదశి పర్వదినాన, భయం మరియు దుష్ట శక్తుల నుండి రక్షించే శ్రీ నరసింహ స్వామి వారి తొమ్మిది రూపాలను ఆవాహన చేస్తూ ఈ హోమం నిర్వహించబడుతుంది. దైవానుగ్రహం, ధైర్యం మరియు రక్షణను కోరుతూ, వేద పండితులు మీ పేరు మరియు గోత్రాలను 'సంకల్పం'లో చేర్చి ఈ విశేషమైన అనుష్ఠానాన్ని నిర్వహిస్తారు.",
       "forWhom": "వ్యక్తిగత లేదా కుటుంబ",
@@ -145,14 +145,12 @@ const pujas = [
       "duration_hi": "",
       "duration_te": "సుమారు 2 గంటలు",
       "templeImage": "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/temples/f903e0fa-959e-4663-81dd-9c80a0319d99.jpg",
-      "show_in_hero": false,
+      "show_in_hero": true,
       "tradition_hi": "",
       "tradition_te": "వైష్ణవ వైదిక సంప్రదాయం",
       "desktopHeroImage": "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/2dda3b85-b5fd-413b-84a4-e6ed6f5fa5b4.jpg",
       "templeDetailsName": "అహోబిలం శ్రీ లక్ష్మీ నరసింహ స్వామి దేవాలయం"
-    },
-    "gallery": [],
-    "show_in_hero": false
+    }
   }
 ];
 

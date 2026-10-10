@@ -6,6 +6,7 @@ const MIME = {
   ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
   ".webp": "image/webp", ".svg": "image/svg+xml", ".ico": "image/x-icon",
   ".avif": "image/avif", ".wav": "audio/wav",
+  ".woff2": "font/woff2", ".woff": "font/woff",
   ".json": "application/json"
 };
 

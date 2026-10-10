@@ -14,41 +14,56 @@ window.CMS_DATA = null;
 let resolveCmsReady;
 window.ssCmsReady = new Promise(resolve => { resolveCmsReady = resolve; });
 
-const CMS_CACHE_KEY = "ss_cms_global_v1";
-const CMS_CACHE_TTL = 5 * 60 * 1000;
+const CMS_CACHE_KEY = "ss_cms_global_v2";
+const CMS_CACHE_TTL = 5 * 60 * 1000; // after this, refresh quietly in the background
 
+/* Cached CMS text is kept in localStorage (shared by all tabs and visits)
+   and applied instantly on every page load; a fresh copy is fetched in the
+   background only when the cache is older than CMS_CACHE_TTL. This removes
+   the network wait that made text change after the page had appeared. */
 function readCmsCache() {
     try {
-        const cached = JSON.parse(sessionStorage.getItem(CMS_CACHE_KEY) || "null");
-        if (cached && cached.savedAt && Date.now() - cached.savedAt < CMS_CACHE_TTL && cached.content) {
-            return cached.content;
-        }
+        const cached = JSON.parse(localStorage.getItem(CMS_CACHE_KEY) || "null");
+        if (cached && cached.content) return cached;
     } catch (_) {}
     return null;
 }
 
 function writeCmsCache(content) {
     try {
-        sessionStorage.setItem(CMS_CACHE_KEY, JSON.stringify({ savedAt: Date.now(), content }));
+        localStorage.setItem(CMS_CACHE_KEY, JSON.stringify({ savedAt: Date.now(), content }));
     } catch (_) {}
+}
+
+async function fetchCmsContent() {
+    const res = await fetch("/api/content/global", { headers: { "Accept": "application/json" }, signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.ok && data.content ? data.content : null;
 }
 
 async function initCmsRenderer() {
     try {
         const cached = readCmsCache();
         if (cached) {
-            window.CMS_DATA = cached;
+            window.CMS_DATA = cached.content;
             applyCmsContent();
+            if (Date.now() - (cached.savedAt || 0) > CMS_CACHE_TTL) {
+                // stale: refresh after the page is ready, re-apply only if something changed
+                fetchCmsContent().then(content => {
+                    if (!content) return;
+                    const changed = JSON.stringify(content) !== JSON.stringify(cached.content);
+                    writeCmsCache(content);
+                    if (changed) { window.CMS_DATA = content; applyCmsContent(); }
+                }).catch(() => {});
+            }
             return;
         }
 
-        const res = await fetch("/api/content/global", { headers: { "Accept": "application/json" }, signal: AbortSignal.timeout(5000) });
-        if (!res.ok) return; // Silent fail to fallback
-
-        const data = await res.json();
-        if (data.ok && data.content) {
-            window.CMS_DATA = data.content;
-            writeCmsCache(data.content);
+        const content = await fetchCmsContent();
+        if (content) {
+            window.CMS_DATA = content;
+            writeCmsCache(content);
             applyCmsContent();
         }
     } catch (e) {

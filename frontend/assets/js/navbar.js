@@ -30,29 +30,29 @@ function flowBackTarget(page, search, referrer, origin) {
   return "home.html";
 }
 
-function renderHeader() {
-  const page = location.pathname.split("/").pop() || "home.html";
+/* Header logo: a small pre-cropped image (same visible area as before). */
+const DEFAULT_HEADER_LOGO = "assets/images/logo-header.webp";
+function headerLogoSrc() {
+  return (typeof SITE !== "undefined" && SITE.LOGO) || DEFAULT_HEADER_LOGO;
+}
+
+/* Returns the header markup for a page. Used in the browser AND by
+   scripts/prerender-header.js, which bakes this exact markup into every
+   HTML file so the nav bar is on screen from the first paint (no blink
+   while JavaScript loads). After editing this template, run:
+       node scripts/prerender-header.js                                   */
+function headerHTML(page) {
   const isBookingFlow = (page === "booking.html" || page === "payment.html");
   const hasFlowBack = isBookingFlow || page === "puja-details.html";
   const act = p => (page === p ? ' class="active"' : "");
-  
-  if ($id("site-header").children.length > 0) {
-    if (hasFlowBack && $id("flowBack")) {
-      $id("flowBack").href = flowBackTarget(page, location.search, document.referrer, location.origin);
-    }
-    if (!$id("langBtn").dataset.enhanced) {
-      initLanguageMenu();
-      $id("langBtn").dataset.enhanced = "1";
-    }
-    return;
-  }
-  
-  $id("site-header").innerHTML = `
+  const brand = (typeof SITE !== "undefined" && SITE.BRAND) || "Shubha Sankalpam";
+  const wa = (typeof SITE !== "undefined" && SITE.WHATSAPP) || "917075568530";
+  return `
   <header class="${hasFlowBack ? 'flow-header' : ''}">
     <div class="container nav">
       ${hasFlowBack ? '<a class="flow-back" id="flowBack" href="puja.html" aria-label="Go back to previous step"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m7-7-7 7 7 7"/></svg><span>GO BACK</span></a>' : ''}
       <a class="logo" href="home.html" aria-label="Home" style="width:clamp(160px, 20vw, 220px); aspect-ratio:3.2/1; display:block; text-decoration:none;">
-        <img src="${SITE.LOGO || 'assets/images/logo_main-optimized.webp'}" alt="${SITE.BRAND} Logo" style="width:100%; height:100%; object-fit:cover; object-position:left center; display:block;">
+        <img src="${headerLogoSrc()}" alt="${brand} Logo" width="528" height="165" decoding="sync" style="width:100%; height:100%; object-fit:cover; object-position:center; display:block;">
       </a>
       <nav class="nav-links" aria-label="Main">
         ${hasFlowBack ? '' : `
@@ -76,7 +76,7 @@ function renderHeader() {
       </nav>
       <div class="nav-right">
         <div class="lang-wrap">
-          <button class="lang" id="langBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg> <span id="langLabel">Eng</span> <span class="lang-arr">▾</span></button>
+          <button class="lang" id="langBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg> <span id="langLabel">${LANG_LABEL_PLACEHOLDER}</span> <span class="lang-arr">▾</span></button>
           <div class="lang-menu hidden" id="langMenu">
             <div class="lang-head">CHOOSE LANGUAGE</div>
             <div id="langItems"></div>
@@ -85,8 +85,8 @@ function renderHeader() {
       </div>
     </div>
   </header>
-  
-  <a class="floating-wa" href="https://wa.me/${SITE.WHATSAPP}?text=I%20need%20help%20with%20puja%20booking" target="_blank" rel="noopener" aria-label="WhatsApp Help">
+  <script>(function(){try{var m={en:"English",hi:"हिन्दी",te:"తెలుగు"},l=localStorage.getItem("ss_lang")||"te";document.getElementById("langLabel").textContent=m[l]||m.te;}catch(e){}})();</script>
+  <a class="floating-wa" href="https://wa.me/${wa}?text=I%20need%20help%20with%20puja%20booking" target="_blank" rel="noopener" aria-label="WhatsApp Help">
     <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><path d="M12.031 2C6.495 2 2 6.496 2 12.032c0 1.838.48 3.633 1.391 5.215L2 22l4.896-1.285A9.972 9.972 0 0 0 12.031 22c5.535 0 10.031-4.496 10.031-10.032S17.566 2 12.031 2zm5.568 14.542c-.237.669-1.381 1.283-1.921 1.348-.541.066-1.236.195-3.523-.75-2.756-1.139-4.512-3.957-4.654-4.146-.141-.189-1.111-1.478-1.111-2.822 0-1.344.697-2.008.946-2.26.248-.252.54-.315.719-.315.18 0 .359 0 .506.006.155.006.35-.052.532.385.188.452.64 1.564.697 1.678.058.114.095.247.024.385-.072.138-.109.225-.216.351-.109.126-.229.273-.326.37-.109.108-.225.228-.103.438.122.209.544.898 1.168 1.455.808.72 1.488.941 1.7 1.05.212.109.335.089.461-.052.126-.143.541-.63.687-.847.146-.217.291-.182.485-.109.194.073 1.225.578 1.436.684.212.106.352.158.403.247.052.089.052.52-.185 1.189z"/></svg>
   </a>
   <nav class="bottom-nav" aria-label="Mobile">
@@ -95,10 +95,36 @@ function renderHeader() {
     <a href="package.html"${act("package.html")}><span class="bn-icon"><svg aria-hidden="true" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7 9-4 9 4v10l-9 4-9-4Z"/><path d="m3 7 9 4 9-4M12 11v10M7 5l10 4"/></svg></span>Packages</a>
     <a href="account.html"${act("account.html")}><span class="bn-icon"><svg aria-hidden="true" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span>Account</a>
   </nav>`;
+}
+const LANG_LABEL_PLACEHOLDER = "తెలుగు";
+
+function renderHeader() {
+  const page = location.pathname.split("/").pop() || "home.html";
+  const hasFlowBack = page === "booking.html" || page === "payment.html" || page === "puja-details.html";
+
+  if ($id("site-header").children.length > 0) {
+    // Header was pre-rendered into the HTML: only wire it up, never rebuild it
+    // (rebuilding is what made the nav bar blink on every page change).
+    if (hasFlowBack && $id("flowBack")) {
+      $id("flowBack").href = flowBackTarget(page, location.search, document.referrer, location.origin);
+    }
+    const logoImg = document.querySelector("#site-header .logo img");
+    if (logoImg && logoImg.getAttribute("src") !== headerLogoSrc()) logoImg.setAttribute("src", headerLogoSrc());
+    if (!$id("langBtn").dataset.enhanced) {
+      initLanguageMenu();
+      $id("langBtn").dataset.enhanced = "1";
+    }
+    return;
+  }
+
+  // Fallback for any page without a pre-rendered header. Scripts inside
+  // innerHTML don't run, and initLanguageMenu() sets the label anyway.
+  $id("site-header").innerHTML = headerHTML(page);
   if (hasFlowBack) {
     $id("flowBack").href = flowBackTarget(page, location.search, document.referrer, location.origin);
   }
   initLanguageMenu();
+  $id("langBtn").dataset.enhanced = "1";
 }
 
 function renderFooter() {
@@ -124,7 +150,7 @@ function renderFooter() {
       <div class="foot-grid">
         <div class="foot-col-brand">
           <div class="foot-logo-box">
-              <img src="${SITE.FOOTER_LOGO || 'assets/images/s_logo-optimized.webp'}" alt="${SITE.BRAND} Logo" style="width:auto;height:clamp(50px, 10vw, 75px);object-fit:contain;">
+              <img src="${SITE.FOOTER_LOGO || 'assets/images/s_logo-footer.webp'}" alt="${SITE.BRAND} Logo" width="160" height="160" loading="lazy" style="width:auto;height:clamp(50px, 10vw, 75px);object-fit:contain;">
               <div class="foot-logo-text">
                 <b style="display:block;font-size:1.6rem;color:#fff;font-weight:600;line-height:1.2;">${SITE.BRAND}</b>
                 <small style="color:var(--gold);font-size:0.7rem;letter-spacing:0.05em;font-weight:600;display:block;margin-top:4px;">DIVINE RITUALS FOR A BRIGHTER TOMORROW</small>
@@ -252,8 +278,9 @@ function initLayout() {
     const h = document.querySelector("header");
     if (h) document.documentElement.style.setProperty("--header-h", h.offsetHeight + "px");
   };
-  setHeaderHeight();
-  window.addEventListener("resize", setHeaderHeight);
+  // measure on the next frame, after the browser's own layout (avoids a forced reflow)
+  requestAnimationFrame(setHeaderHeight);
+  window.addEventListener("resize", () => requestAnimationFrame(setHeaderHeight));
   checkAbandonedBooking();
 }
 

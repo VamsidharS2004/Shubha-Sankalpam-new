@@ -39,15 +39,22 @@ if (typeof module !== "undefined") module.exports = { ${variableName} };
     }
 }
 
+const diskCatalogCache = new Map();
 function safeRead(filePath, variableName) {
     try {
         if (global.__cmsCache && global.__cmsCache[filePath]) {
             return global.__cmsCache[filePath][variableName] || [];
         }
-        const resolvePath = require.resolve(filePath);
-        delete require.cache[resolvePath];
-        const data = require(filePath);
-        return data[variableName] || [];
+        const stat = fs.statSync(filePath);
+        const signature = `${stat.mtimeMs}:${stat.size}`;
+        let cached = diskCatalogCache.get(filePath);
+        if (!cached || cached.signature !== signature) {
+            const resolvePath = require.resolve(filePath);
+            delete require.cache[resolvePath];
+            cached = { signature, data: require(filePath) };
+            diskCatalogCache.set(filePath, cached);
+        }
+        return cached.data[variableName] || [];
     } catch (e) {
         return [];
     }

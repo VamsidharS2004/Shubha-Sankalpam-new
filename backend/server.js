@@ -87,9 +87,14 @@ function serveStaticAsset(req, res, filePath) {
   });
 }
 
+const PUBLIC_CDN_CACHE = "max-age=60, stale-while-revalidate=86400";
+
 function sendCatalog(req, res, source, type) {
   const etag = '"' + require("crypto").createHash("sha256").update(source).digest("hex") + '"';
-  const headers = { "Cache-Control": "public, max-age=0, must-revalidate", "ETag": etag };
+  // Browsers always revalidate, but Vercel's CDN may keep a copy for 60 s and
+  // serve a stale copy while refreshing in the background. This stops every
+  // page view from waiting on the server function; admin edits appear within ~1 min.
+  const headers = { "Cache-Control": "public, max-age=0, must-revalidate", "Vercel-CDN-Cache-Control": PUBLIC_CDN_CACHE, "ETag": etag };
   if (req.headers["if-none-match"] === etag) { res.writeHead(304, headers); return res.end(); }
   return send(res, 200, source, type, headers);
 }

@@ -68,7 +68,7 @@ window.addEventListener("pageshow", () => {
 });
 
 /* POPULATE SUMMARY SIDEBAR */
-$id("bkImg").style.backgroundImage = `url(${item.image || 'assets/images/logo.png'})`;
+$id("bkImg").style.backgroundImage = `url(${item.image || 'assets/images/logo-header.webp'})`;
 $id("bkTitle").textContent = localName(item);
 
 window.addEventListener("languageChanged", () => {

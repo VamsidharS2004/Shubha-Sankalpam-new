@@ -149,7 +149,7 @@ const slidesEl = $id("pdSlides");
 slides.forEach((s, i) => {
   const d = document.createElement("div");
   d.className = "pd-slide" + (i === 0 ? " active" : "");
-  d.innerHTML = `${mediaHTML({ image: s.image, detail: item.detail }, localName(item), { eager: i === 0 })}`; // Removed pd-loc
+  d.innerHTML = `${mediaHTML({ image: s.image, detail: item.detail }, localName(item), { eager: i === 0, sizes: "(max-width: 900px) 100vw, 60vw" })}`; // Removed pd-loc
   slidesEl.appendChild(d);
 });
 let sCur = 0;
@@ -361,3 +361,14 @@ window.addEventListener('languageChanged', () => {
 
 // Reveal only after the selected item and its translations are rendered.
 document.documentElement.classList.add("ss-details-ready");
+// Drop the loading placeholder once the first photo has loaded (or failed, or 1.5 s passed),
+// so the page never shows an empty hero with the Book bar before the real content.
+(function () {
+  const root = document.documentElement;
+  const done = () => root.classList.remove("pd-booting");
+  const first = document.querySelector("#pdSlides img");
+  if (!first || first.complete) { requestAnimationFrame(done); return; }
+  first.addEventListener("load", done, { once: true });
+  first.addEventListener("error", done, { once: true });
+  setTimeout(done, 1500);
+})();

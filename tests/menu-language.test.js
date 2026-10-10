@@ -5,7 +5,15 @@ test('Content menu toggles closed and open with accessible state',()=>{
  handler();assert.equal(menu.hidden,true);assert.equal(toggle.expanded,'false');handler();assert.equal(menu.hidden,false);assert.equal(toggle.expanded,'true');
 });
 test('first paint waits for CMS translations before releasing page',async()=>{
- const source=fs.readFileSync('frontend/assets/js/language.js','utf8');const start=source.indexOf('// Release translated');const end=source.indexOf('// Automatically',start);let listener,resolve,visible=false;const ready=new Promise(r=>resolve=r);
- vm.runInNewContext(source.slice(start,end),{window:{ssCmsReady:ready},Promise,document:{addEventListener:(_,fn)=>listener=fn,documentElement:{classList:{remove:()=>visible=true}}},applyDetailI18n(){},applyListingI18n(){}});
- listener();await Promise.resolve();assert.equal(visible,false);resolve();await Promise.resolve();assert.equal(visible,true);
+ const source=fs.readFileSync('frontend/assets/js/language.js','utf8');const start=source.indexOf('window.__ssI18nOwner');const end=source.indexOf('const LISTING_UI',start);
+ const run=(ready)=>{let listener,visible=false;const win={ssCmsReady:ready};
+  vm.runInNewContext(source.slice(start,end),{window:win,Promise,setTimeout,requestAnimationFrame:fn=>fn(),document:{addEventListener:(_,fn)=>listener=fn,documentElement:{classList:{remove:()=>visible=true}}},applyDetailI18n(){},applyListingI18n(){}});
+  listener();return ()=>visible;};
+ // waits for CMS, then releases
+ let resolve;const isVisible=run(new Promise(r=>resolve=r));
+ await Promise.resolve();assert.equal(isVisible(),false);
+ resolve();await new Promise(r=>setImmediate(r));assert.equal(isVisible(),true);
+ // never stays hidden if the CMS request hangs
+ const hung=run(new Promise(()=>{}));
+ await new Promise(r=>setTimeout(r,450));assert.equal(hung(),true);
 });

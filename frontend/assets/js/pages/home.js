@@ -13,6 +13,11 @@ const heroDots = $id("heroDots");
 let topPujas = [];
 let currentSlide = 0;
 
+/* Hero photo URL for a given width: resized copy for Supabase uploads, else as-is. */
+function heroImageSrc(url, width) {
+  return supabaseResized(url, width) || url;
+}
+
 function twoToneHeadline(name) {
   const words = name.split(' ');
   if (words.length < 2) return name;
@@ -24,19 +29,59 @@ function twoToneHeadline(name) {
 
 function renderSlider() {
   if (!heroSlider || !heroDots || typeof pujas === "undefined") return;
-  heroSlider.querySelectorAll('[data-dynamic-hero]').forEach(slide => slide.remove());
-  const skel = document.getElementById('heroSkeleton');
-  if (skel) skel.remove();
+  // Keep the matching-language slide already in the HTML while other slides
+  // are prepared, preventing an empty hero frame during initialization.
+  heroSlider.querySelectorAll('[data-dynamic-hero]:not([data-slide="0"])').forEach(slide => slide.remove());
   
-  heroSlider.insertAdjacentHTML('beforeend', topPujas.map((p, i) => {
-    const loadingAttr = i === 0 ? 'fetchpriority="high" loading="eager"' : 'loading="lazy"';
+  const firstSlide = heroSlider.querySelector('[data-dynamic-hero][data-slide="0"]');
+  const firstPuja = topPujas[0];
+  if (firstSlide && firstPuja) {
+    const image = firstSlide.querySelector('.hero-img');
+    const picture = firstSlide.querySelector('picture');
+    const heading = firstSlide.querySelector('.hero-copy h1');
+    const description = firstSlide.querySelector('.hero-desc');
+    const meta = firstSlide.querySelectorAll('.hero-meta .hm-item');
+    const buttons = firstSlide.querySelectorAll('.hero-buttons a');
+    if (image) {
+      // same URLs the build bakes into home.html, so the browser never downloads twice
+      const src = heroImageSrc(firstPuja.image, 1200);
+      if (image.getAttribute("src") !== src) image.src = src;
+      if (supabaseResized(firstPuja.image, 1)) image.dataset.orig = firstPuja.image;
+      image.alt = localName(firstPuja);
+    }
+    if (picture && typeof responsiveDesktopImage === "function") {
+      const desktop = responsiveDesktopImage(firstPuja);
+      const source = picture.querySelector('source[media="(min-width: 1200px)"]');
+      if (desktop && source) source.srcset = desktop;
+      // phones: the main thumbnail, resized for phone screens
+      const mobileSource = picture.querySelector('source[media="(max-width: 767px)"]');
+      const mobile = heroImageSrc(firstPuja.image, 800);
+      if (mobileSource && mobileSource.getAttribute("srcset") !== mobile) mobileSource.srcset = mobile;
+    }
+    if (heading) heading.innerHTML = twoToneHeadline(localName(firstPuja));
+    if (description) description.textContent = localDesc(firstPuja);
+    if (meta[0]) meta[0].textContent = localTemple(firstPuja);
+    if (meta[1]) meta[1].textContent = localDate(firstPuja);
+    if (buttons[0]) {
+      buttons[0].href = `puja-details.html?id=${firstPuja.id}`;
+      buttons[0].innerHTML = '<span>Book Now</span>';
+    }
+    if (buttons[1]) buttons[1].textContent = 'View All Pujas';
+    const firstTrustRow = firstSlide.querySelector('.hero-feature-row');
+    if (firstTrustRow) firstTrustRow.innerHTML = renderTrustFeatures();
+  }
+  heroSlider.insertAdjacentHTML('beforeend', topPujas.slice(1).map((p, index) => {
+    const i = index + 1;
+    const loadingAttr = 'loading="lazy"';
     const desktopSrc = typeof responsiveDesktopImage === "function" ? responsiveDesktopImage(p) : "";
+    const mobileSrc = heroImageSrc(p.image, 800);
     return `
-    <div class="hero-slide hero-slide-overlay" data-slide="${i + 1}" data-dynamic-hero>
+    <div class="hero-slide hero-slide-overlay" data-slide="${i}" data-dynamic-hero>
       <div class="hero-image-wrap">
         <picture>
           ${desktopSrc ? `<source media="(min-width: 1200px)" srcset="${desktopSrc}">` : ""}
-          <img src="${p.image}" alt="${localName(p)}" class="hero-img" width="1920" height="1080" decoding="async" ${loadingAttr}>
+          ${mobileSrc ? `<source media="(max-width: 767px)" srcset="${mobileSrc}">` : ""}
+          <img src="${heroImageSrc(p.image, 1200)}" ${supabaseResized(p.image, 1) ? `data-orig="${p.image}"` : ""} alt="${localName(p)}" class="hero-img" width="1920" height="1080" decoding="async" ${loadingAttr} ${IMG_FALLBACK_ATTR}>
         </picture>
         <div class="hero-overlay-gradient"></div>
 
@@ -57,37 +102,52 @@ function renderSlider() {
             <a href="#pujas" class="btn hero-btn-secondary">View All Pujas</a>
           </div>
 
-          <div class="hero-feature-row">
-            ${TRUST_ITEMS.map((item, idx) => {
-              const [icon, ...rest] = item.split(' ');
-              return `
-                <div class="hero-feature">
-                  <div class="hf-badge">${icon}</div>
-                  <span class="hf-label">${typeof dt === 'function' ? dt('trust'+(idx+1)) : rest.join(' ')}</span>
-                </div>
-              `;
-            }).join('')}
-          </div>
+          <div class="hero-feature-row">${renderTrustFeatures()}</div>
         </div>
 
       </div>
     </div>
   `}).join(''));
 
-  heroDots.innerHTML = [null, ...topPujas].map((_, i) => `<button class="hero-dot ${i === currentSlide ? 'active' : ''}" data-dot="${i}" aria-label="Go to slide ${i + 1}"></button>`).join('');
+  heroDots.innerHTML = topPujas.map((_, i) => `<button class="hero-dot ${i === currentSlide ? 'active' : ''}" data-dot="${i}" aria-label="Go to slide ${i + 1}"></button>`).join('');
   
   heroDots.querySelectorAll('.hero-dot').forEach(dot => {
     dot.addEventListener('click', (e) => {
-      const idx = parseInt(e.target.dataset.dot);
-      goToSlide(idx);
+      const idx = parseInt(e.currentTarget.dataset.dot);
+      goToSlide(idx, true);
     });
   });
 }
 
-function goToSlide(idx) {
+function renderTrustFeatures() {
+  const items = Array.isArray(TRUST_ITEMS) ? TRUST_ITEMS.slice(0, 4) : [];
+  const icons = ['🎥', '🛕', '🕉️', '🙏'];
+  const labels = [
+    'పూజ వీడియో 48 గంటల్లో',
+    'అనుభవజ్ఞులైన పురోహితులు',
+    'పవిత్ర దేవాలయాల్లో పూజలు',
+    'ప్రామాణిక వైదిక పూజలు'
+  ];
+  return labels.map((label, idx) => `
+    <div class="hero-feature">
+      <div class="hf-badge">${icons[idx]}</div>
+      <span class="hf-label">${label}</span>
+    </div>
+  `).join('');
+}
+
+/* Move to a slide. With `animate`, the old slide glides out and the new one glides in
+   (direction follows the swipe/arrow/dot), instead of cutting or just fading. */
+let heroAnimation = null;
+function goToSlide(idx, animate) {
   const slides = heroSlider.querySelectorAll('.hero-slide');
   if (!slides.length) return;
+  const previous = currentSlide;
+  const raw = idx;
   idx = ((idx % slides.length) + slides.length) % slides.length;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const canAnimate = animate && !reduce && idx !== previous && slides[previous] && slides[idx] && typeof slides[idx].animate === "function";
+  if (heroAnimation) heroAnimation.finish();            // finish a running slide before starting the next
   currentSlide = idx;
   slides.forEach((slide, i) => {
     slide.classList.toggle('active', i === idx);
@@ -97,12 +157,43 @@ function goToSlide(idx) {
   heroDots.querySelectorAll('.hero-dot').forEach((dot, i) => {
     dot.classList.toggle('active', i === idx);
   });
+  if (!canAnimate) return;
+
+  const dir = raw > previous ? 1 : -1;                   // 1 = next (slides move left), -1 = previous
+  const leaving = slides[previous], entering = slides[idx];
+  const oldHeight = leaving.offsetHeight;
+  heroSlider.style.minHeight = oldHeight + "px";         // no height jump while both slides are on screen
+  heroSlider.classList.add("hero-animating");
+  leaving.classList.add("hero-leaving");
+  const opts = { duration: 520, easing: "cubic-bezier(.4,0,.2,1)", fill: "both" };
+  const out = leaving.animate([{ transform: "translate3d(0,0,0)" }, { transform: `translate3d(${-dir * 100}%,0,0)` }], opts);
+  const into = entering.animate([{ transform: `translate3d(${dir * 100}%,0,0)` }, { transform: "translate3d(0,0,0)" }], opts);
+  let done = false;
+  const finish = () => {
+    if (done) return; done = true;
+    out.cancel(); into.cancel();
+    leaving.classList.remove("hero-leaving");
+    heroSlider.classList.remove("hero-animating");
+    heroSlider.style.minHeight = "";
+    if (heroAnimation === api) heroAnimation = null;
+  };
+  const api = { finish };
+  heroAnimation = api;
+  into.onfinish = finish;
+  into.oncancel = finish;
 }
 
-/* Returns up to `max` hero pujas for the given language.
-   STRICT: puja must have BOTH p.language === lang AND p.show_in_hero === true.
-   No fallback — show_in_hero: false always means "never in hero".
-   Returns [] when nothing qualifies → renderHeroEmpty() is called instead. */
+/* Load and decode every slide photo after the page has loaded, so a slide never slides in empty. */
+function warmHeroImages() {
+  const run = () => heroSlider.querySelectorAll('.hero-img').forEach(img => {
+    img.loading = 'eager';
+    if (img.decode) img.decode().catch(() => {});
+  });
+  if (document.readyState === 'complete') setTimeout(run, 300);
+  else window.addEventListener('load', () => setTimeout(run, 300), { once: true });
+}
+
+/* Returns up to `max` hero pujas for the selected language. */
 function getHeroPujas(lang, max) {
   return pujas.filter(p => 
     p.language === lang && 
@@ -110,37 +201,14 @@ function getHeroPujas(lang, max) {
   ).slice(0, max);
 }
 
-/* Shows the branded empty-state banner and hides the slider + nav controls. */
+/* Keep the existing first hero visible if a language has no specific hero. */
 function renderHeroEmpty() {
-  if (heroSlider) { heroSlider.innerHTML = ""; heroSlider.style.display = "none"; }
-  if (heroDots)   { heroDots.innerHTML  = ""; heroDots.style.display  = "none"; }
-  const heroPrev = $id("heroPrev");
-  const heroNext = $id("heroNext");
-  if (heroPrev) heroPrev.style.display = "none";
-  if (heroNext) heroNext.style.display = "none";
-  const emptyBanner = $id("heroEmptyBanner");
-  if (emptyBanner) {
-    emptyBanner.style.display = "flex";
-    
-    // Localize the banner
-    const title = $id("heroEmptyTitle");
-    const desc = $id("heroEmptyDesc");
-    const btn = $id("heroEmptyBtn");
-    
-    if (currentLang === "te") {
-      if (title) title.innerHTML = '<span style="color:var(--gold,#C9A227)">పవిత్ర</span> పూజా సేవలు';
-      if (desc) desc.innerText = "భారతదేశ వ్యాప్తంగా ఉన్న పవిత్ర దేవాలయాలలో అనుభవజ్ఞులైన పురోహితులచే నిర్వహించబడే ప్రామాణిక వేద ఆచారాలు.";
-      if (btn) btn.innerHTML = "అన్ని పూజలను చూడండి &rarr;";
-    } else if (currentLang === "hi") {
-      if (title) title.innerHTML = '<span style="color:var(--gold,#C9A227)">पवित्र</span> पूजा सेवाएं';
-      if (desc) desc.innerText = "पूरे भारत के पवित्र मंदिरों में अनुभवी पुरोहितों द्वारा संपन्न प्रामाणिक वैदिक अनुष्ठान।";
-      if (btn) btn.innerHTML = "सभी पूजाएं देखें &rarr;";
-    } else {
-      if (title) title.innerHTML = '<span style="color:var(--gold,#C9A227)">Divine</span> Puja Services';
-      if (desc) desc.innerText = "Authentic Vedic rituals performed by experienced purohits at sacred temples across India.";
-      if (btn) btn.innerHTML = "View All Pujas &rarr;";
-    }
-  }
+  if (!heroSlider) return;
+  topPujas = pujas.filter(p => p.show_in_hero === true || (p.detail && p.detail.show_in_hero === true)).slice(0, 3);
+  if (!topPujas.length) return;
+  showHeroSlider();
+  renderSlider();
+  goToSlide(0);
 }
 
 /* Shows the slider and hides the empty-state banner. */
@@ -163,12 +231,13 @@ if (heroSlider && heroDots && typeof pujas !== "undefined") {
     showHeroSlider();
     renderSlider();
     goToSlide(Math.min(currentSlide, topPujas.length - 1));
+    warmHeroImages();
   }
 
   const heroPrev = $id("heroPrev");
   const heroNext = $id("heroNext");
-  if (heroPrev) heroPrev.addEventListener('click', () => goToSlide(currentSlide - 1));
-  if (heroNext) heroNext.addEventListener('click', () => goToSlide(currentSlide + 1));
+  if (heroPrev) heroPrev.addEventListener('click', () => goToSlide(currentSlide - 1, true));
+  if (heroNext) heroNext.addEventListener('click', () => goToSlide(currentSlide + 1, true));
 
   let startX = 0, isDragging = false;
   heroSlider.addEventListener('touchstart', e => { startX = e.touches[0].clientX; isDragging = true; }, {passive:true});
@@ -176,15 +245,15 @@ if (heroSlider && heroDots && typeof pujas !== "undefined") {
     if (!isDragging) return;
     const diffX = e.touches[0].clientX - startX;
     if (Math.abs(diffX) > 50) {
-      if (diffX > 0) goToSlide(currentSlide - 1);
-      else goToSlide(currentSlide + 1);
+      if (diffX > 0) goToSlide(currentSlide - 1, true);
+      else goToSlide(currentSlide + 1, true);
       isDragging = false;
     }
   }, {passive:true});
   heroSlider.addEventListener('touchend', () => { isDragging = false; });
   
   setInterval(() => {
-    if (!document.hidden && !heroSlider.matches(":hover, :focus-within") && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) goToSlide(currentSlide + 1);
+    if (!document.hidden && !heroSlider.matches(":hover, :focus-within") && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) goToSlide(currentSlide + 1, true);
   }, 6000);
 }
 wireTabs("tabs", $id("pujaCards"), pujas, "puja");

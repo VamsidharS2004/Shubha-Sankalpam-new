@@ -69,7 +69,7 @@
 
 html{scroll-behavior:smooth;overflow-x:hidden;max-width:100vw}
 
-body{font-family:var(--font);background-color:var(--bg);background-image:linear-gradient(rgba(252,250,250,0.55),rgba(252,250,250,0.55)),url('../images/bg-pattern.jpg');background-repeat:repeat;background-size:auto, 400px;background-attachment:fixed;color:var(--ink);line-height:1.6;padding-bottom:70px;max-width:100vw}
+body{font-family:var(--font);background-color:var(--bg);background-image:linear-gradient(rgba(252,250,250,0.55),rgba(252,250,250,0.55)),url('../images/bg-pattern.webp');background-repeat:repeat;background-size:auto, 400px;background-attachment:fixed;color:var(--ink);line-height:1.6;padding-bottom:70px;max-width:100vw}
 img,svg{display:block;max-width:100%}
 .card-media img, .pd-hero-media img, .gallery-frame img { width: 100%; height: 100%; object-fit: cover; display: block; aspect-ratio: 16/9; }
 
@@ -482,3 +482,17 @@ body { max-width: 100%; }
     left: 24px !important;
   }
 }
+
+
+/* Loading placeholders (grey shimmering cards). They sit inside containers that scripts fill in,
+   and are replaced the moment the real content is built - so a list is never an empty white area. */
+.ss-skel{pointer-events:none}
+.ss-skel .ss-skel-media{aspect-ratio:16/9;width:100%}
+.ss-skel .card-body{padding:14px 16px 18px}
+.ss-skel-media,.ss-skel-line{background:linear-gradient(100deg,#f1e8dc 30%,#f8f2e9 50%,#f1e8dc 70%);background-size:200% 100%;animation:ssSkel 1.3s ease-in-out infinite}
+.ss-skel-line{display:block;height:14px;border-radius:8px;margin:0 0 10px}
+@keyframes ssSkel{from{background-position:120% 0}to{background-position:-80% 0}}
+@media (prefers-reduced-motion:reduce){.ss-skel-media,.ss-skel-line{animation:none}}
+
+/* Soft warm placeholder behind big photos while they download (instead of a white hole) */
+.about-hero-content img,.card-media img,.temple-card-media img,.pd-slide img,.hero-image-wrap{background-color:#f3ebe0}

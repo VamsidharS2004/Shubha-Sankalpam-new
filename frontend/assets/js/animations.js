@@ -73,9 +73,17 @@
     });
   }, { threshold: 0.01, rootMargin: "0px 0px -40px 0px" });
 
+  /* Anything already on screen when we first see it stays visible: hiding
+     it and fading it back in made the top of every page flash on load. */
+  function alreadyOnScreen(el) {
+    var r = el.getBoundingClientRect();
+    return r.top < window.innerHeight && r.bottom > 0;
+  }
+
   function tagStaggerContainer(el) {
     if (el.dataset.revealed) return;
     el.dataset.revealed = "1";
+    if (alreadyOnScreen(el)) return;
     el.classList.add("reveal-stagger");
     Array.prototype.forEach.call(el.children, function (child, i) {
       child.style.setProperty("--reveal-i", i % 8); // cap the delay fan-out
@@ -88,6 +96,7 @@
     // skip the hero itself — it has its own load-in animation, not scroll-reveal
     if (el.id === "top") return;
     el.dataset.revealed = "1";
+    if (alreadyOnScreen(el)) return;
     el.classList.add("reveal");
     io.observe(el);
   }

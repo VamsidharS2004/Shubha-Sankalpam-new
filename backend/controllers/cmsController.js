@@ -257,6 +257,8 @@ async function uploadImage(req, res) {
 
       const { error } = await activeSupabase.storage.from('media').upload(storagePath, fileBuffer, {
         contentType: fileType.mime,
+        // every upload gets a new random file name, so browsers may keep it for a year
+        cacheControl: '31536000',
         upsert: false
       });
 

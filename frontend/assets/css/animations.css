@@ -48,6 +48,11 @@
 }
 .site-splash.skip{display:none;animation:none}
 
+/* Keep the fixed navigation above the one-time home splash so the
+   header never appears to blink when a navigation control is clicked. */
+body:has(#siteSplash) #site-header{position:relative;z-index:10000}
+body:has(#siteSplash) #site-header header{position:fixed;z-index:10000}
+
 .site-splash-stage{
   text-align:center;
   perspective:1200px;
