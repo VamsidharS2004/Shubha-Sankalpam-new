@@ -1,12 +1,13 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const { probeSizeSync } = require('./image-ratio');
 
 /* Home hero: bake the CURRENT first hero puja's images into the HTML (exactly
    what pages/home.js would set), so the browser downloads the right hero image
    first instead of a placeholder that JavaScript swaps out a second later.
    If the admin changes the hero after a deploy, home.js still swaps it as before. */
-function bakeHomeHero(html, root) {
+function bakeHomeHero(html, root, probe = probeSizeSync) {
   try {
     const ctx = {}; vm.createContext(ctx);
     vm.runInContext(fs.readFileSync(path.join(root, 'frontend/content/pujas.js'), 'utf8') + '\n;this.__p = pujas;', ctx);
@@ -37,11 +38,21 @@ function bakeHomeHero(html, root) {
     html = html.slice(0, slideStart) + slide + html.slice(slideEnd);
     html = html.replace(/<link rel="preload" as="image" href="https:\/\/[^"]*"[^>]*fetchpriority="high">\n/g, '');
     // start the hero download before CSS/JS finish (desktop vs. tablet image)
+    let preloadAndStyle = '';
     const preload = (desktop
       ? `<link rel="preload" as="image" href="${attr(desktop)}" media="(min-width: 1200px)" fetchpriority="high">\n<link rel="preload" as="image" href="${attr(tablet)}" media="(min-width: 768px) and (max-width: 1199px)" fetchpriority="high">\n`
       : `<link rel="preload" as="image" href="${attr(tablet)}" media="(min-width: 768px)" fetchpriority="high">\n`) +
       `<link rel="preload" as="image" href="${attr(phone)}" media="(max-width: 767px)" fetchpriority="high">\n`;
-    return html.replace('<!-- ss-head:end -->', preload + '<!-- ss-head:end -->');
+    // Reserve the hero photo's real shape before it downloads, so the text and stats below never jump
+    // when it arrives. Sizes are read from the photos at build time; if they can't be read, nothing is
+    // added and the page behaves exactly as before. (Phones use a fixed 16:9 box in responsive.css.)
+    html = html.replace(/<style id="ss-hero-ratio">[\s\S]*?<\/style>\n?/g, '');
+    const ratio = u => { const d = u && probe(u); return d && d.w > 0 && d.h > 0 ? `${d.w} / ${d.h}` : null; };
+    const tabletRatio = ratio(first.image), wideRatio = desktop ? ratio(desktop) : tabletRatio;
+    const rule = (q, r) => r ? `@media${q}{.hero-slide[data-slide="0"] .hero-image-wrap picture{aspect-ratio:${r}!important}}` : '';
+    const css = rule(' (min-width:768px) and (max-width:1199px)', tabletRatio) + rule(' (min-width:1200px)', wideRatio);
+    if (css) preloadAndStyle = `<style id="ss-hero-ratio">${css}</style>\n`;
+    return html.replace('<!-- ss-head:end -->', preload + preloadAndStyle + '<!-- ss-head:end -->');
   } catch (e) {
     console.warn('Hero bake skipped:', e.message);
     return html;
