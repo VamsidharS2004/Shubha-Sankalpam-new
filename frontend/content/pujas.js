@@ -7,7 +7,6 @@ const pujas = [
     "id": "001",
     "base_id": "మకష-నరయణ-బల-పజ",
     "language": "te",
-    "show_in_hero": true,
     "name": "మోక్ష నారాయణ బలి పూజ",
     "name_te": "మోక్ష నారాయణ బలి పూజ",
     "desc": "పూర్వీకుల శాంతి, సద్గతి కోసం అయోధ్య పవిత్ర క్షేత్రంలో మోక్ష నారాయణ బలి పూజను శాస్త్రోక్తంగా నిర్వహిస్తారు. శ్రీమహావిష్ణువును నారాయణ స్వరూపంగా ఆరాధిస్తూ, సంకల్పం, తర్పణం, పిండప్రదానం మరియు ప్రత్యేక ప్రార్థనలతో పితృదేవతలను స్మరించి ఈ పవిత్ర కర్మను సమర్పిస్తారు.",
@@ -19,9 +18,6 @@ const pujas = [
     "basePrice": 5116,
     "cat": "Special Puja",
     "image": "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/1bf4c453-9680-4840-b9d2-dc8e1a439035.webp",
-    "gallery": [
-      "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/f338199b-ac20-44b3-9d66-e6d6d5af3cfc.jpg"
-    ],
     "detail": {
       "faqs": [
         {
@@ -110,13 +106,16 @@ const pujas = [
       "tradition_te": "వైదిక పితృ కర్మ",
       "desktopHeroImage": "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/64c1ba17-1046-4a3e-b507-7936f7fe4821.webp",
       "templeDetailsName": "అయోధ్య పుణ్యక్షేత్రం"
-    }
+    },
+    "gallery": [
+      "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/f338199b-ac20-44b3-9d66-e6d6d5af3cfc.jpg"
+    ],
+    "show_in_hero": true
   },
   {
     "id": "నవనరసహ-హోమం",
     "base_id": "నవనరసహ-హమ",
     "language": "te",
-    "show_in_hero": false,
     "name": "నవనారసింహ హోమం",
     "name_te": "నవనారసింహ హోమం",
     "desc": "కామిక ఏకాదశి పర్వదినాన, భయం మరియు దుష్ట శక్తుల నుండి రక్షించే శ్రీ నరసింహ స్వామి వారి తొమ్మిది రూపాలను ఆవాహన చేస్తూ ఈ హోమం నిర్వహించబడుతుంది. దైవానుగ్రహం, ధైర్యం మరియు రక్షణను కోరుతూ, వేద పండితులు మీ పేరు మరియు గోత్రాలను 'సంకల్పం'లో చేర్చి ఈ విశేషమైన అనుష్ఠానాన్ని నిర్వహిస్తారు.",
@@ -128,15 +127,12 @@ const pujas = [
     "basePrice": 999,
     "cat": "All",
     "image": "assets/images/pujas/narasimha.jpg",
-    "gallery": [],
     "detail": {
       "about": "కామిక ఏకాదశి పర్వదినాన, భయం మరియు దుష్ట శక్తుల నుండి రక్షించే శ్రీ నరసింహ స్వామి వారి తొమ్మిది రూపాలను ఆవాహన చేస్తూ ఈ హోమం నిర్వహించబడుతుంది. దైవానుగ్రహం, ధైర్యం మరియు రక్షణను కోరుతూ, వేద పండితులు మీ పేరు మరియు గోత్రాలను 'సంకల్పం'లో చేర్చి ఈ విశేషమైన అనుష్ఠానాన్ని నిర్వహిస్తారు.",
-      "mantra": "ఓం నరసింహయ నమః",
       "forWhom": "వ్యక్తిగత లేదా కుటుంబ",
       "gallery": [],
       "about_te": "కామిక ఏకాదశి పవిత్ర సందర్భంలో, భయం మరియు దుష్టశక్తుల నుండి రక్షించే శ్రీ నరసింహ స్వామి వారి తొమ్మిది రూపాలను ఆవాహన చేస్తూ ఈ హోమం నిర్వహించబడుతుంది. సంకల్పంలో మీ పేరు మరియు గోత్రాలను చేర్చి, దైవానుగ్రహం, ధైర్యం మరియు రక్షణను కోరుతూ వేద పండితులు ఈ సంపూర్ణ పూజా కార్యక్రమాన్ని నిర్వహిస్తారు.",
       "duration": "2 గంటలు",
-      "mantra_te": "OM NARASIMHAYA NAMAHA",
       "procedure": [
         {
           "d": "పూజారి మీ పేరు, గోత్రం మరియు కుటుంబ సభ్యుల వివరాలతో సంకల్పం తీసుకుని, ఆ పూజను మీకు అంకితం చేస్తారు.",
@@ -154,7 +150,9 @@ const pujas = [
       "tradition_te": "వైష్ణవ వైదిక సంప్రదాయం",
       "desktopHeroImage": "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/2dda3b85-b5fd-413b-84a4-e6ed6f5fa5b4.jpg",
       "templeDetailsName": "అహోబిలం శ్రీ లక్ష్మీ నరసింహ స్వామి దేవాలయం"
-    }
+    },
+    "gallery": [],
+    "show_in_hero": false
   }
 ];
 

@@ -32,9 +32,20 @@ function send(res, status, body, type = "application/json", headers = {}) {
   if (acceptsGzip && isCompressible && !responseHeaders["Content-Encoding"] && status !== 204 && status !== 304) {
     const raw = Buffer.isBuffer(payload) ? payload : Buffer.from(String(payload ?? ""));
     if (raw.length >= 512) {
-      payload = zlib.gzipSync(raw, { level: 4 });
-      responseHeaders["Content-Encoding"] = "gzip";
-      responseHeaders["Content-Length"] = payload.length;
+      // Compress off the event loop so concurrent API requests can proceed.
+      zlib.gzip(raw, { level: 4 }, (error, compressed) => {
+        if (res.destroyed || res.writableEnded) return;
+        if (!error && compressed.length < raw.length) {
+          responseHeaders["Content-Encoding"] = "gzip";
+          responseHeaders["Content-Length"] = compressed.length;
+          res.writeHead(status, responseHeaders);
+          res.end(compressed);
+        } else {
+          res.writeHead(status, responseHeaders);
+          res.end(raw);
+        }
+      });
+      return;
     }
   }
 
