@@ -1251,3 +1251,21 @@ html.pd-booting .pd-sticky-bottom{visibility:hidden!important;opacity:0!importan
 @keyframes pdSkel{from{background-position:120% 0}to{background-position:-80% 0}}
 @media (prefers-reduced-motion:reduce){.pd-skel-img,.pd-skel-line,.pd-skel-card{animation:none}}
 @media (min-width:1000px){.pd-skel .pd-hero-left{width:67%}}
+
+/* ============ Zoomable photo viewer (puja details gallery) ============ */
+.ss-zoom{position:fixed;inset:0;z-index:9999;background:rgba(15,8,5,.94);display:none;touch-action:none}
+.ss-zoom.show{display:block}
+.ss-zoom-stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none;cursor:zoom-in}
+.ss-zoom.is-zoomed .ss-zoom-stage{cursor:grab}
+.ss-zoom-img{max-width:92vw;max-height:84vh;object-fit:contain;transform-origin:center center;user-select:none;-webkit-user-drag:none;will-change:transform;border-radius:6px}
+.ss-zoom-btn{position:absolute;border:0;background:rgba(255,255,255,.16);color:#fff;font:600 20px/1 system-ui,sans-serif;min-width:44px;height:44px;border-radius:999px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0 14px;backdrop-filter:blur(6px)}
+.ss-zoom-btn:hover,.ss-zoom-btn:focus-visible{background:rgba(255,255,255,.3);outline:none}
+.ss-zoom-close{top:14px;right:14px;font-size:28px}
+.ss-zoom-nav{top:50%;transform:translateY(-50%);font-size:34px}
+.ss-zoom-prev{left:12px}.ss-zoom-next{right:12px}
+.ss-zoom.single .ss-zoom-nav{display:none}
+.ss-zoom-count{position:absolute;top:22px;left:50%;transform:translateX(-50%);color:#fff;font:600 14px system-ui,sans-serif;opacity:.85}
+.ss-zoom-tools{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:10px}
+.ss-zoom-tools .ss-zoom-btn{position:static;min-width:52px}
+html.ss-zoom-lock,html.ss-zoom-lock body{overflow:hidden}
+@media (max-width:600px){.ss-zoom-nav{display:none}.ss-zoom.single .ss-zoom-nav{display:none}.ss-zoom-img{max-width:100vw;max-height:80vh;border-radius:0}}

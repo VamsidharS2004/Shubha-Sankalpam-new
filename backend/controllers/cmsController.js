@@ -8,6 +8,17 @@ const PUJAS_FILE_PATH = path.join(__dirname, "../../frontend/content/pujas.js");
 const PACKAGES_FILE_PATH = path.join(__dirname, "../../frontend/content/packages.js");
 const TEMPLES_FILE_PATH = path.join(__dirname, "../../frontend/content/temples.js");
 
+/* Before puja(s) are deleted, store a copy of their name/price/photo in the bookings made for them,
+   so Ongoing / Completed bookings still show the right photo afterwards. Never blocks the delete. */
+async function keepBookingSnapshots(filePath, kind, deletedIds) {
+  try {
+    if (!Array.isArray(deletedIds) || !deletedIds.length) return;
+    const existing = safeRead(filePath, kind) || [];
+    const gone = existing.filter(p => deletedIds.includes(p.id));
+    if (gone.length) await require("../models/bookingModel").backfillSnapshots(gone);
+  } catch (e) { console.error("Could not save booking snapshots before delete:", e.message); }
+}
+
 async function getPujas(req, res) {
   try {
     const snapshot=await readCatalog('cms_pujas');
@@ -24,6 +35,7 @@ async function updatePujas(req, res) {
       return send(res, 400, { error: "Invalid data format: 'pujas' must be an array." });
     }
 
+    await keepBookingSnapshots(PUJAS_FILE_PATH, "pujas", deletedIds);
     // Push to Supabase as source of truth
     await syncPujasToSupabase(pujas, { revision, deletedIds });
     
@@ -54,6 +66,7 @@ async function updatePackages(req, res) {
     if (!Array.isArray(packages)) return send(res, 400, { error: "Invalid data format" });
 
     // Push to Supabase as source of truth
+    await keepBookingSnapshots(PACKAGES_FILE_PATH, "packages", deletedIds);
     await syncPackagesToSupabase(packages, { revision, deletedIds });
 
     // Overwrite local file to update frontend instantly

@@ -96,11 +96,12 @@ function publishHtml(name) {
 const { bakeHomeHero } = require('./hero-bake');
 
 for (const entry of fs.readdirSync(path.join(root, 'frontend'), { withFileTypes: true })) {
-  if (!entry.isFile() || !entry.name.endsWith('.html') || ['admin.html', 'booking_backup.html', 'vedamandir.html', 'index.html'].includes(entry.name)) continue;
+  if (!entry.isFile() || !entry.name.endsWith('.html') || ['admin.html', 'booking_backup.html', 'vedamandir.html', 'index.html', 'google09a10f499bc60551.html'].includes(entry.name)) continue;
   publishHtml(entry.name);
 }
 fs.writeFileSync(path.join(output, 'home.html'), bakeHomeHero(fs.readFileSync(path.join(output, 'home.html'), 'utf8'), root));
 // Serve the homepage directly without an extra redirect round trip.
 fs.copyFileSync(path.join(output, 'home.html'), path.join(output, 'index.html'));
+for (const f of ['robots.txt', 'sitemap.xml', 'google09a10f499bc60551.html']) fs.copyFileSync(path.join(root, 'frontend', f), path.join(output, f));
 fs.copyFileSync(path.join(root, 'frontend/favicon.ico'), path.join(output, 'favicon.ico'));   // tab logo (browsers ask for /favicon.ico)
 console.log('Public frontend build ready (hashed CSS bundles, static content on CDN); /content catalogs, /api and /admin remain server routes.');

@@ -8,7 +8,7 @@ const path = require("node:path");
 
 const FRONTEND = path.resolve(__dirname, "../frontend");
 const ASSETS = path.join(FRONTEND, "assets");
-const SKIP_PAGES = new Set(["admin.html", "booking_backup.html", "index.html", "vedamandir.html", "video-player.html"]);
+const SKIP_PAGES = new Set(["404.html", "google09a10f499bc60551.html", "admin.html", "booking_backup.html", "index.html", "vedamandir.html", "video-player.html"]);
 const pages = fs.readdirSync(FRONTEND).filter(f => f.endsWith(".html") && !SKIP_PAGES.has(f));
 const read = p => fs.readFileSync(p, "utf8");
 const walk = dir => fs.readdirSync(dir, { withFileTypes: true }).flatMap(e =>

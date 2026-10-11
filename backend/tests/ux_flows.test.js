@@ -30,7 +30,7 @@ test('back destinations follow steps without checkout loops or external redirect
  const e=environment();vm.runInContext(code('navbar.js').split('function renderHeader()')[0],e.ctx);
  const target=e.ctx.flowBackTarget;
  assert.equal(target('payment.html','?id=puja%3A2','','https://example.test'),'booking.html?id=puja%3A2');
- assert.equal(target('booking.html','?id=puja%3A2','','https://example.test'),'puja-details.html?id=puja%3A2');
+ assert.equal(target('booking.html','?id=puja%3A2','','https://example.test'),'/puja-details/puja%3A2');
  assert.equal(target('puja-details.html','?id=puja%3A2','https://example.test/booking.html','https://example.test'),'puja.html');
  assert.equal(target('puja-details.html','?id=pkg%3A0','https://other.test/','https://example.test'),'package.html');
  assert.equal(target('puja-details.html','','https://example.test/home.html','https://example.test'),' /home.html'.trim());

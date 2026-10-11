@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /api/
+Disallow: /account
+Disallow: /login
+Disallow: /payment
+Disallow: /booking
+
+Sitemap: https://www.shubhasankalpam.com/sitemap.xml

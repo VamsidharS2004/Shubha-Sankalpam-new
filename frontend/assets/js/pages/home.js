@@ -1,6 +1,6 @@
 /* ===== HOME PAGE =====
-   🪔 SITE CODE � not content. Hero slide text, trust items, and
-   puja cards are pulled from /content � edit them there, not here. */
+   🪔 SITE CODE - not content. Hero slide text, trust items, and
+   puja cards are pulled from /content - edit them there, not here. */
 initLayout();
 
 /* cards + tabs + faq */
@@ -63,7 +63,7 @@ function renderSlider() {
     if (meta[0]) meta[0].textContent = localTemple(firstPuja);
     if (meta[1]) meta[1].textContent = localDate(firstPuja);
     if (buttons[0]) {
-      buttons[0].href = `puja-details.html?id=${firstPuja.id}`;
+      buttons[0].href = `/puja-details/${encodeURIComponent(firstPuja.id)}`;
       buttons[0].innerHTML = '<span>Book Now</span>';
     }
     if (buttons[1]) buttons[1].textContent = 'View All Pujas';
@@ -95,7 +95,7 @@ function renderSlider() {
           </div>
 
           <div class="hero-buttons">
-            <a href="puja-details.html?id=${p.id}" class="btn hero-btn-primary">
+            <a href="/puja-details/${encodeURIComponent(p.id)}" class="btn hero-btn-primary">
               <svg class="hero-book-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path></svg>
               <span>Book Now</span>
             </a>

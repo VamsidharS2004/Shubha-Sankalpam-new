@@ -89,6 +89,57 @@ function getBookingDetails(notes, fallback = {}) {
   };
 }
 
+/* Save a copy of a puja (name, price, photo) inside every booking of it that does not have one yet.
+   Called right before a puja is deleted, so old Ongoing / Completed bookings keep their photo and name.
+   items: [{ id, name, price, image, temple, cat }]  -> returns how many bookings were updated */
+async function backfillSnapshots(items) {
+  if (!supabase || !Array.isArray(items)) return 0;
+  let updated = 0;
+  for (const it of items) {
+    const name = String((it && it.name) || '').trim();
+    if (!name) continue;
+    const pattern = '%Puja: ' + name.replace(/[\\%_]/g, c => '\\' + c) + '%';
+    const { data, error } = await supabase.from('bookings').select('id, notes').ilike('notes', pattern).limit(2000);
+    if (error) { console.error('Snapshot backfill lookup failed:', error.message); continue; }
+    const snap = JSON.stringify({
+      id: it.id || '', name, price: Number(it.price) || 0,
+      image: it.image || (typeof it.media === 'string' ? it.media : (it.media && it.media.image)) || '',
+      temple: it.temple || '', cat: it.cat || ''
+    });
+    for (const b of data || []) {
+      const notes = String(b.notes || '');
+      const lines = notes.split(/\r?\n/).map(l => l.trim());
+      if (!lines.includes('Puja: ' + name) || lines.some(l => /^Snapshot:/i.test(l))) continue;
+      const next = notes.replace(/\s+$/, '') + '\nSnapshot: ' + snap;
+      if (next.length > 10000) continue;
+      const { error: upErr } = await supabase.from('bookings').update({ notes: next }).eq('id', b.id);
+      if (upErr) console.error('Snapshot backfill update failed:', upErr.message); else updated++;
+    }
+  }
+  return updated;
+}
+
+/* Bookings made before the "saved copy" existed get their puja photo/name from the permanent archive of
+   deleted pujas (ss_puja_archive), so old bookings of a deleted puja still show the right photo.
+   Never fails the request: if the archive table is missing, bookings are returned as they are. */
+async function withArchiveSnapshots(list) {
+  try {
+    if (!supabase || !Array.isArray(list)) return list;
+    const names = [...new Set(list.filter(b => !b.snapshot && b.puja).map(b => b.puja))];
+    if (!names.length) return list;
+    const { data, error } = await supabase.from('ss_puja_archive').select('id,name,record,deleted_at').in('name', names).order('deleted_at', { ascending: false });
+    if (error || !data || !data.length) return list;
+    const byName = new Map();
+    for (const a of data) {
+      if (byName.has(a.name)) continue;
+      const r = a.record || {};
+      const image = r.image || (typeof r.media === 'string' ? r.media : (r.media && r.media.image)) || '';
+      byName.set(a.name, { id: a.id, name: a.name, price: Number(r.price) || 0, image, temple: r.temple || '', cat: r.cat || '' });
+    }
+    return list.map(b => (!b.snapshot && byName.has(b.puja)) ? { ...b, snapshot: byName.get(b.puja) } : b);
+  } catch (e) { return list; }
+}
+
 function getShortId(notes, id) {
   const m = String(notes || "").match(/BookingID:\s*(\d{6})/);
   if (m) return m[1];
@@ -183,7 +234,7 @@ async function all() {
     `)
     .order("created_at", { ascending: false }).order("id", { ascending: true }));
 
-  return data.map(b => ({
+  return withArchiveSnapshots(data.map(b => ({
     id: b.id, shortId: getShortId(b.notes, b.id),
     price     : b.price,
     status    : b.status,
@@ -193,7 +244,7 @@ async function all() {
     phone     : b.devotees?.phone || "",
     notes     : b.notes || "",
     gotram: b.devotees?.gotra || '', puja: bookingPujaName(b.notes), snapshot: getSnapshot(b.notes), bookingDetails: getBookingDetails(b.notes, { gotram: b.devotees?.gotra })
-  }));
+  })));
 }
 
 async function getUserBookings(phone) {
@@ -227,7 +278,7 @@ async function getUserBookings(phone) {
     .eq("devotee_phone", p)
     .order("created_at", { ascending: false }).order("id", { ascending: true }));
 
-  return data.map(b => ({
+  return withArchiveSnapshots(data.map(b => ({
     id: b.id, shortId: getShortId(b.notes, b.id),
     price     : b.price,
     status    : b.status,
@@ -237,7 +288,7 @@ async function getUserBookings(phone) {
     phone     : b.devotees?.phone || "",
     puja      : bookingPujaName(b.notes),
     snapshot  : getSnapshot(b.notes)
-  }));
+  })));
 }
 
 async function updateBookingVideo(bookingId, videoUrl) {
@@ -531,5 +582,5 @@ module.exports = {
   all, getUserBookings,
   updateBookingVideo, updateBooking, deleteBooking,
   findById, attachOrder, findByOrderId, markPaid, setStatus,
-  getShortId, findPendingDuplicate, claimBooking
+  getShortId, findPendingDuplicate, claimBooking, backfillSnapshots, withArchiveSnapshots
 };

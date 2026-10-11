@@ -45,6 +45,12 @@ async function create(req, res) {
     source: "Website",
     notes: [
       raw.puja ? "Puja: " + raw.puja : "",
+      // saved copy of the puja (name, price, photo) so this booking still looks right if the puja is later deleted
+      "Snapshot: " + JSON.stringify({
+        id: item.id || "", name: item.name, price: item.price,
+        image: item.image || (typeof item.media === "string" ? item.media : (item.media && item.media.image)) || "",
+        temple: item.temple || "", cat: item.cat || ""
+      }),
       "WhatsApp: " + whatsapp,
       raw.family ? "Family: " + raw.family : "",
       raw.bookingDetails && typeof raw.bookingDetails === "object"

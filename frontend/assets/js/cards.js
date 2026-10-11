@@ -108,11 +108,11 @@ function mediaHTML(item, itemName, options = {}) {
 
 function cardHTML(p, i, type) {
   const ref = p.id || `${type}:${i}`;
-  const href = `puja-details.html?id=${encodeURIComponent(ref)}`;
+  const href = `/puja-details/${encodeURIComponent(ref)}`;
   const description = typeof localDesc === "function" ? localDesc(p) : (p.desc || "");
   const badge = p.badge ? `<span class="pkg-badge">${p.badge}</span>` : "";
   return `
-    <a class="card-media" href="${href}">${mediaHTML(p, localName(p))}
+    <a class="card-media" href="${href}">${mediaHTML(p, localName(p), { eager: i < 4 })}
       <button class="card-act card-heart" type="button" data-like="${ref}" aria-label="Add to wishlist">♡</button>
       <button class="card-act card-share" type="button" data-share="${ref}" aria-label="Share">⤴</button>
     </a>
@@ -216,7 +216,7 @@ document.body.addEventListener("click", async e => {
   const share = e.target.closest("[data-share]");
   if (!share) return;
   e.preventDefault(); e.stopPropagation();
-  const url = location.origin + "/puja-details.html?id=" + encodeURIComponent(share.dataset.share);
+  const url = location.origin + "/puja-details/" + encodeURIComponent(share.dataset.share);
   try {
     if (navigator.share) { await navigator.share({ url }); return; }
     await navigator.clipboard.writeText(url);

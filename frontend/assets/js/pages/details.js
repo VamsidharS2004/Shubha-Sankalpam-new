@@ -2,7 +2,7 @@
    ⚠️ SITE CODE — not content. All the text shown on this page comes
    from content/pujas.js (or content/puja-detail-defaults.js as a
    fallback) — edit the content there, not here.
-   URL: puja-details.html?id=puja:1  (or pkg:0)                */
+   URL: /puja-details/001   (older links like puja-details.html?id=001 still work and are tidied to the clean form) */
 initLayout();
 applyDetailI18n();
 
@@ -10,6 +10,32 @@ let ref = getParam("id") || "";
 let { item, type } = getItem(ref);
 let currentPuja = item;
 window.currentPuja = item;
+
+/* ---- clean URL: shubhasankalpam.com/puja-details/001 ----
+   the page uses <base href="/">, so in-page "#section" links are handled here */
+document.addEventListener("click", e => {
+  const a = e.target.closest && e.target.closest('a[href^="#"]');
+  if (!a || a.getAttribute("href") === "#") return;
+  const target = document.querySelector(a.getAttribute("href"));
+  if (!target) return;
+  e.preventDefault();
+  target.scrollIntoView({ behavior: "smooth", block: "start" });
+  try { history.replaceState(null, "", location.pathname + location.search + a.getAttribute("href")); } catch (_) {}
+});
+if (item) {
+  try {
+    const cleanId = encodeURIComponent(item.id != null ? item.id : ref);
+    const cleanPath = "/puja-details/" + cleanId;
+    if (/^\/puja-details(?:\.html)?\/?$/.test(location.pathname)) history.replaceState(null, "", cleanPath + location.hash);
+    const head = document.head;
+    let canon = head.querySelector('link[rel="canonical"]');
+    if (!canon) { canon = document.createElement("link"); canon.rel = "canonical"; head.appendChild(canon); }
+    canon.href = location.origin + cleanPath;
+    let og = head.querySelector('meta[property="og:url"]');
+    if (!og) { og = document.createElement("meta"); og.setAttribute("property", "og:url"); head.appendChild(og); }
+    og.content = location.origin + cleanPath;
+  } catch (_) {}
+}
 if (!item) {
   const container = document.querySelector('main') || document.querySelector('.pd-content') || document.body;
   if (container) {
@@ -292,8 +318,123 @@ if (galleryContainer) {
   }
 
   galleryContainer.innerHTML = galleryImages.map((src, i) => 
-    `<div class="pd-photo" style="padding:0"><img src="${src}" alt="${localName(item)}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover"></div>`
+    `<div class="pd-photo" data-zoom-index="${i}" role="button" tabindex="0" aria-label="Open photo ${i + 1} of ${galleryImages.length}" style="padding:0;cursor:zoom-in"><img src="${src}" alt="${localName(item)}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover"></div>`
   ).join("");
+
+  /* ---- zoomable photo viewer: tap a gallery photo to open it full screen,
+     then zoom with the + / - buttons, mouse wheel, pinch, or double-tap; drag to move
+     around when zoomed; swipe or use arrows for the next photo; Esc or x to close ---- */
+  (function () {
+    let box, stage, img, counter, current = 0, urls = galleryImages, alt = localName(item);
+    const st = { s: 1, x: 0, y: 0 }, MAX = 5;
+    const pts = new Map();
+    let pinch = null, drag = null, lastTap = 0, swipe = null;
+
+    function build() {
+      box = document.createElement("div");
+      box.className = "ss-zoom"; box.setAttribute("role", "dialog"); box.setAttribute("aria-modal", "true"); box.setAttribute("aria-label", "Photo viewer");
+      box.innerHTML = '<div class="ss-zoom-stage"><img class="ss-zoom-img" alt="" draggable="false"></div>' +
+        '<div class="ss-zoom-count"></div>' +
+        '<button class="ss-zoom-btn ss-zoom-close" aria-label="Close">&times;</button>' +
+        '<button class="ss-zoom-btn ss-zoom-nav ss-zoom-prev" aria-label="Previous photo">&lsaquo;</button>' +
+        '<button class="ss-zoom-btn ss-zoom-nav ss-zoom-next" aria-label="Next photo">&rsaquo;</button>' +
+        '<div class="ss-zoom-tools"><button class="ss-zoom-btn" data-z="out" aria-label="Zoom out">&minus;</button>' +
+        '<button class="ss-zoom-btn" data-z="reset" aria-label="Reset zoom">100%</button>' +
+        '<button class="ss-zoom-btn" data-z="in" aria-label="Zoom in">+</button></div>';
+      document.body.appendChild(box);
+      stage = box.querySelector(".ss-zoom-stage"); img = box.querySelector(".ss-zoom-img"); counter = box.querySelector(".ss-zoom-count");
+      box.querySelector(".ss-zoom-close").onclick = close;
+      box.querySelector(".ss-zoom-prev").onclick = () => go(-1);
+      box.querySelector(".ss-zoom-next").onclick = () => go(1);
+      box.querySelector(".ss-zoom-tools").onclick = e => {
+        const z = e.target.closest("[data-z]"); if (!z) return;
+        const r = stage.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        if (z.dataset.z === "in") zoomAt(st.s * 1.5, cx, cy); else if (z.dataset.z === "out") zoomAt(st.s / 1.5, cx, cy); else reset();
+      };
+      stage.addEventListener("wheel", e => { e.preventDefault(); zoomAt(st.s * (e.deltaY < 0 ? 1.2 : 1 / 1.2), e.clientX, e.clientY); }, { passive: false });
+      stage.addEventListener("pointerdown", down);
+      stage.addEventListener("pointermove", move);
+      stage.addEventListener("pointerup", up);
+      stage.addEventListener("pointercancel", up);
+      document.addEventListener("keydown", key);
+    }
+    function apply() {
+      const b = bounds(); st.x = Math.max(-b.x, Math.min(b.x, st.x)); st.y = Math.max(-b.y, Math.min(b.y, st.y));
+      img.style.transform = "translate(" + st.x + "px," + st.y + "px) scale(" + st.s + ")";
+      box.classList.toggle("is-zoomed", st.s > 1.01);
+      box.querySelector('[data-z="reset"]').textContent = Math.round(st.s * 100) + "%";
+    }
+    function bounds() { return { x: Math.max(0, (img.offsetWidth * st.s - stage.clientWidth) / 2), y: Math.max(0, (img.offsetHeight * st.s - stage.clientHeight) / 2) }; }
+    function reset() { st.s = 1; st.x = 0; st.y = 0; apply(); }
+    function zoomAt(ns, cx, cy) {
+      ns = Math.max(1, Math.min(MAX, ns));
+      const r = stage.getBoundingClientRect(), px = cx - (r.left + r.width / 2), py = cy - (r.top + r.height / 2), k = ns / st.s;
+      st.x = px - (px - st.x) * k; st.y = py - (py - st.y) * k; st.s = ns;
+      if (ns === 1) { st.x = 0; st.y = 0; }
+      apply();
+    }
+    function toggle(cx, cy) { st.s > 1.01 ? reset() : zoomAt(2.5, cx, cy); }
+    function show(i) {
+      current = (i + urls.length) % urls.length;
+      img.src = urls[current]; img.alt = alt;
+      counter.textContent = (current + 1) + " / " + urls.length;
+      box.classList.toggle("single", urls.length < 2);
+      reset();
+    }
+    function go(d) { if (urls.length > 1) show(current + d); }
+    function open(i) {
+      if (!box) build();
+      box.classList.add("show"); document.documentElement.classList.add("ss-zoom-lock");
+      show(i); box.querySelector(".ss-zoom-close").focus({ preventScroll: true });
+    }
+    function close() { box.classList.remove("show"); document.documentElement.classList.remove("ss-zoom-lock"); pts.clear(); pinch = drag = swipe = null; }
+    function key(e) {
+      if (!box || !box.classList.contains("show")) return;
+      if (e.key === "Escape") close();
+      else if (e.key === "ArrowLeft") go(-1);
+      else if (e.key === "ArrowRight") go(1);
+      else if (e.key === "+" || e.key === "=") zoomAt(st.s * 1.5, innerWidth / 2, innerHeight / 2);
+      else if (e.key === "-") zoomAt(st.s / 1.5, innerWidth / 2, innerHeight / 2);
+      else if (e.key === "0") reset();
+    }
+    function down(e) {
+      stage.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pts.size === 2) {
+        const [a, b] = [...pts.values()]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), s: st.s }; drag = swipe = null;
+      } else { drag = { x: e.clientX, y: e.clientY, ox: st.x, oy: st.y, t: Date.now(), moved: false }; swipe = st.s <= 1.01 ? { x: e.clientX } : null; }
+    }
+    function move(e) {
+      if (!pts.has(e.pointerId)) return;
+      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pinch && pts.size === 2) {
+        const [a, b] = [...pts.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+        zoomAt(pinch.s * d / pinch.d, (a.x + b.x) / 2, (a.y + b.y) / 2);
+      } else if (drag) {
+        const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+        if (Math.abs(dx) + Math.abs(dy) > 6) drag.moved = true;
+        if (st.s > 1.01) { st.x = drag.ox + dx; st.y = drag.oy + dy; apply(); }
+      }
+    }
+    function up(e) {
+      const had = pts.delete(e.pointerId);
+      if (pinch) { if (pts.size < 2) pinch = null; if (!pts.size) drag = swipe = null; return; }
+      if (!had || !drag) return;
+      const dx = e.clientX - drag.x, now = Date.now();
+      if (swipe && Math.abs(dx) > 60 && Math.abs(e.clientY - drag.y) < 80) go(dx < 0 ? 1 : -1);
+      else if (!drag.moved && now - drag.t < 300) {
+        if (now - lastTap < 320) { lastTap = 0; toggle(e.clientX, e.clientY); }
+        else {
+          lastTap = now;
+          const r = img.getBoundingClientRect();
+          const outside = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+          if (st.s <= 1.01 && outside) setTimeout(() => { if (lastTap === now) close(); }, 330);
+        }
+      }
+      drag = swipe = null;
+    }
+    galleryContainer.addEventListener("click", e => { const t = e.target.closest("[data-zoom-index]"); if (t) open(+t.dataset.zoomIndex); });
+    galleryContainer.addEventListener("keydown", e => { if (e.key !== "Enter" && e.key !== " ") return; const t = e.target.closest("[data-zoom-index]"); if (t) { e.preventDefault(); open(+t.dataset.zoomIndex); } });
+  })();
 }
 
 
@@ -361,14 +502,6 @@ window.addEventListener('languageChanged', () => {
 
 // Reveal only after the selected item and its translations are rendered.
 document.documentElement.classList.add("ss-details-ready");
-// Drop the loading placeholder once the first photo has loaded (or failed, or 1.5 s passed),
-// so the page never shows an empty hero with the Book bar before the real content.
-(function () {
-  const root = document.documentElement;
-  const done = () => root.classList.remove("pd-booting");
-  const first = document.querySelector("#pdSlides img");
-  if (!first || first.complete) { requestAnimationFrame(done); return; }
-  first.addEventListener("load", done, { once: true });
-  first.addEventListener("error", done, { once: true });
-  setTimeout(done, 1500);
-})();
+// Drop the loading placeholder as soon as the details are rendered (title, text, price), without
+// waiting for the photo: the photo box keeps its size and soft background while it downloads.
+requestAnimationFrame(() => document.documentElement.classList.remove("pd-booting"));

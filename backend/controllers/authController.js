@@ -10,12 +10,18 @@ const analyticsModel = require("../models/analyticsModel");
    stored in plain text, only its hash (see hashOtp below) */
 const pendingOtps = new Map();
 
-/* simple in-memory rate limit: max 3 OTP requests per phone per
+/* simple in-memory rate limit: max 5 OTP requests per phone per
    15 minutes, so this endpoint can't be used to spam a number or
    drain your SMS/WhatsApp balance */
 const requestLog = new Map(); // phone -> [timestamps]
+const OTP_LIMIT = 5, OTP_WINDOW_MS = 15 * 60 * 1000;
 function rateLimited(phone) {
-  // Disabled rate limiting completely for testing
+  const now = Date.now();
+  const recent = (requestLog.get(phone) || []).filter(t => now - t < OTP_WINDOW_MS);
+  if (recent.length >= OTP_LIMIT) { requestLog.set(phone, recent); return true; }
+  recent.push(now);
+  requestLog.set(phone, recent);
+  if (requestLog.size > 5000) for (const [k, v] of requestLog) if (!v.some(t => now - t < OTP_WINDOW_MS)) requestLog.delete(k);
   return false;
 }
 

@@ -110,3 +110,9 @@ support hours and footer description, used by the public footer. No new SQL requ
 Second supplied video was inspected as sampled frames; the first video was not
 available. 21 offline tests include navigation, booking-details reveal timing and
 signup detail reporting. Live visual, SMS and payment checks remain to be performed.
+
+## Keeping deleted pujas and all booking details (run once)
+Run `supabase/20261011_keep_deleted_pujas.sql` once in the Supabase SQL editor (safe to run again).
+- Every puja/package you delete from the website is copied, in full, into `ss_puja_archive` first (it is never lost). Earlier deletions are recovered from the change history.
+- Bookings are never deleted by the website (the delete buttons are disabled), so every booking and everything the devotee submitted stays in `bookings` / `booking_names`.
+- Two read-only reports: `select * from ss_puja_summary order by total_bookings desc;` (every puja ever offered, still on the website or not, with booking counts and amounts) and `select * from ss_booking_report where puja_name = '...';` (each booking with names, gotram, WhatsApp, family members and all submitted details).

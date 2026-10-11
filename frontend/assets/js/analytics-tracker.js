@@ -1,7 +1,7 @@
 /* Lightweight first-party tracking. No authentication details or query strings. */
 (()=>{
  if(navigator.doNotTrack==='1'||navigator.webdriver)return;
- const page=location.pathname.split('/').pop()||'home.html';
+ const page=/^\/puja-details\/[^\/]+\/?$/.test(location.pathname)?'puja-details.html':(location.pathname.split('/').pop()||'home.html');
  if(page.includes('admin')||page.includes('backup'))return;
  const uuid=()=>crypto.randomUUID();let visitor,session,referrer='Direct';
  try{const source=new URL(document.referrer);if(source.hostname!==location.hostname)referrer=source.hostname;}catch(e){}

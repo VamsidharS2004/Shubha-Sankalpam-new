@@ -36,11 +36,21 @@ ensureInitialSync().then(() => {
     console.log("[Server] CMS synchronization complete.");
 });
 
+/* Friendly 404 page (frontend/404.html). Falls back to a tiny inline page. */
+function sendNotFoundPage(res) {
+  let page = "<h1>404 - Page not found</h1><p><a href=\"/home.html\">Go to Home</a></p>";
+  try { page = fs.readFileSync(path.join(FRONTEND_DIR, "404.html"), "utf8"); } catch (e) { /* keep fallback */ }
+  return send(res, 404, page, "text/html", { "Cache-Control": "no-cache", "X-Robots-Tag": "noindex" });
+}
+
 // Stream immutable frontend assets so large files are never buffered in
 // memory and synchronous gzip work does not block other requests.
 function serveStaticAsset(req, res, filePath) {
   fs.stat(filePath, (err, stats) => {
-    if (err || !stats.isFile()) return send(res, 404, "Not found", "text/plain");
+    if (err || !stats.isFile()) {
+      // a missing page gets the friendly 404; a missing image/script stays a tiny plain 404
+      return /\.(?:html?)$|(?:^|[\\/])[^.\\/]*$/i.test(filePath) ? sendNotFoundPage(res) : send(res, 404, "Not found", "text/plain");
+    }
 
     const ext = path.extname(filePath).toLowerCase();
     const type = MIME[ext] || "application/octet-stream";
@@ -94,7 +104,7 @@ function sendCatalog(req, res, source, type) {
   // Browsers always revalidate, but Vercel's CDN may keep a copy for 60 s and
   // serve a stale copy while refreshing in the background. This stops every
   // page view from waiting on the server function; admin edits appear within ~1 min.
-  const headers = { "Cache-Control": "public, max-age=0, must-revalidate", "Vercel-CDN-Cache-Control": PUBLIC_CDN_CACHE, "ETag": etag };
+  const headers = { "Cache-Control": "public, max-age=30, stale-while-revalidate=600", "Vercel-CDN-Cache-Control": PUBLIC_CDN_CACHE, "ETag": etag };
   if (req.headers["if-none-match"] === etag) { res.writeHead(304, headers); return res.end(); }
   return send(res, 200, source, type, headers);
 }
@@ -106,6 +116,19 @@ const requestHandler = async (req, res) => {
        here, and if that throw isn't caught, it takes down the ENTIRE
        server for every visitor, not just that one request. */
     const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+
+    /* Safe security headers on every response (no CSP: it could block payment/Supabase scripts) */
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "SAMEORIGIN");
+    res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+    res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    if (String(req.headers["x-forwarded-proto"] || "").split(",")[0].trim() === "https")
+      res.setHeader("Strict-Transport-Security", "max-age=31536000");
+    if (/^\/(?:admin|api)(?:[\/.]|$)/.test(url.pathname)) res.setHeader("X-Robots-Tag", "noindex, nofollow");
+
+    /* Health check for uptime monitors */
+    if (req.method === "GET" && url.pathname === "/api/health")
+      return send(res, 200, { ok: true, time: new Date().toISOString() });
 
     /* 1. API */
     if (await handleApi(req, res, url)) return;
@@ -176,7 +199,10 @@ const requestHandler = async (req, res) => {
 
     /* 3. Frontend static files */
     let filePath = path.join(FRONTEND_DIR, decodeURIComponent(url.pathname));
-    if (url.pathname === "/") {
+    if (/^\/puja-details\/[^\/]+\/?$/.test(url.pathname)) {
+      /* clean URL: /puja-details/001 serves the puja details page (the page reads the id from the path) */
+      filePath = path.join(FRONTEND_DIR, "puja-details.html");
+    } else if (url.pathname === "/") {
       filePath = path.join(FRONTEND_DIR, "home.html");
     } else if (!path.extname(filePath)) {
       const htmlCandidate = filePath + ".html";
@@ -201,7 +227,7 @@ const requestHandler = async (req, res) => {
             });
             data = Buffer.from(htmlStr, 'utf8');
         }
-      if (err) return send(res, 404, "<h1>404 — Page not found</h1>", "text/html");
+      if (err) return sendNotFoundPage(res);
       let cacheHeader = {};
       if (filePath.match(/\.(png|jpg|jpeg|webp|avif|gif|svg|ico|css|js|json|wav|woff2?)$/)) {
           cacheHeader = { "Cache-Control": "public, max-age=31536000, immutable" };

@@ -7,7 +7,7 @@ const path = require("path");
 const PUBLIC_CONTENT_CACHE_MS = 30_000;
 // Public website text: let Vercel's CDN answer for 60 s (and serve stale while
 // refreshing) instead of starting the server function + Supabase on every visit.
-const PUBLIC_CDN_HEADERS = { "Cache-Control": "public, max-age=0, must-revalidate", "Vercel-CDN-Cache-Control": "max-age=60, stale-while-revalidate=86400" };
+const PUBLIC_CDN_HEADERS = { "Cache-Control": "public, max-age=30, stale-while-revalidate=600", "Vercel-CDN-Cache-Control": "max-age=60, stale-while-revalidate=86400" };
 let publicContentCache = null;
 let publicContentCacheAt = 0;
 let publicContentLoad = null;

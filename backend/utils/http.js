@@ -7,7 +7,7 @@ const MIME = {
   ".webp": "image/webp", ".svg": "image/svg+xml", ".ico": "image/x-icon",
   ".avif": "image/avif", ".wav": "audio/wav",
   ".woff2": "font/woff2", ".woff": "font/woff",
-  ".json": "application/json"
+  ".json": "application/json", ".txt": "text/plain", ".xml": "application/xml"
 };
 
 const zlib = require("zlib");

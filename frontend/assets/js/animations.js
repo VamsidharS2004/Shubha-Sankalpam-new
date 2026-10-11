@@ -71,7 +71,7 @@
         io.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.01, rootMargin: "0px 0px -40px 0px" });
+  }, { threshold: 0.01, rootMargin: "0px 0px 700px 0px" });
 
   /* Anything already on screen when we first see it stays visible: hiding
      it and fading it back in made the top of every page flash on load. */

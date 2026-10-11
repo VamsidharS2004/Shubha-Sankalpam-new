@@ -13,11 +13,16 @@ const LANGS = [
   { code: "te", native: "తెలుగు",    en: "Telugu",    icon: "తె", ready: true }
 ];
 
+/* page file name; the clean URL /puja-details/001 counts as puja-details.html */
+function pageName() {
+  return /^\/puja-details\/[^\/]+\/?$/.test(location.pathname) ? "puja-details.html" : (location.pathname.split("/").pop() || "home.html");
+}
+
 // Follow the booking steps instead of sending the devotee back into login or checkout.
 function flowBackTarget(page, search, referrer, origin) {
   const ref = new URLSearchParams(search).get("id") || "puja:0";
   if (page === "payment.html") return "booking.html?id=" + encodeURIComponent(ref);
-  if (page === "booking.html") return "puja-details.html?id=" + encodeURIComponent(ref);
+  if (page === "booking.html") return "/puja-details/" + encodeURIComponent(ref);
   if (page === "puja-details.html") {
     try {
       const previous = new URL(referrer);
@@ -99,7 +104,7 @@ function headerHTML(page) {
 const LANG_LABEL_PLACEHOLDER = "తెలుగు";
 
 function renderHeader() {
-  const page = location.pathname.split("/").pop() || "home.html";
+  const page = pageName();
   const hasFlowBack = page === "booking.html" || page === "payment.html" || page === "puja-details.html";
 
   if ($id("site-header").children.length > 0) {
@@ -287,7 +292,7 @@ function initLayout() {
 async function checkAbandonedBooking() {
   if (typeof authToken === 'undefined' || !authToken) return;
   // Don't show the banner if we are already in the checkout, booking flow, or account page
-  const page = location.pathname.split("/").pop() || "";
+  const page = pageName();
   if (page === "payment.html" || page === "booking.html" || page === "account.html") return;
 
   try {

@@ -5,7 +5,13 @@
    MAIN.JS — shared helpers (API calls, session state) used by every page
    ============================================================ */
 const $id = x => document.getElementById(x);
-const getParam = k => new URLSearchParams(location.search).get(k);
+/* ?id=... works as before; on the clean URL /puja-details/001 the id comes from the path */
+const getParam = k => {
+  const v = new URLSearchParams(location.search).get(k);
+  if (v !== null || k !== "id") return v;
+  const m = location.pathname.match(/^\/puja-details\/([^\/]+)\/?$/);
+  try { return m ? decodeURIComponent(m[1]) : null; } catch (_) { return m ? m[1] : null; }
+};
 
 let authToken = null;
 try { authToken = localStorage.getItem("token"); } catch (e) {}

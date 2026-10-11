@@ -119,6 +119,17 @@ document.querySelectorAll("#bkTabs .bk-tab").forEach(tab => {
   });
 });
 
+/* is this booking's puja/package still on the website? (matches by saved id first, then by name) */
+function bookingPujaStillListed(b) {
+  const name = b.puja || b.puja_name || b.pujaName || b.puja_title || "";
+  if (String(name).includes("razorpay_")) return true;
+  const lists = [typeof pujas !== "undefined" ? pujas : null, typeof packages !== "undefined" ? packages : null];
+  if (!lists.some(l => Array.isArray(l) && l.length)) return true; // catalog did not load: never hide anything
+  const snapId = b.snapshot && b.snapshot.id;
+  return lists.some(l => Array.isArray(l) && l.some(p => (snapId && p.id === snapId) || p.name === name || p.title_en === name || p.title_te === name));
+}
+const escapeHtml = v => String(v == null ? "" : v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
 function renderBookingsList() {
     const list = $id("myBookingsList");
     list.innerHTML = "";
@@ -150,7 +161,9 @@ function renderBookingsList() {
       let type = "puja";
       
       if (typeof pujas !== 'undefined') {
-        let idx = pujas.findIndex(p => p.name === bookingPuja || p.title_en === bookingPuja || p.title_te === bookingPuja);
+        const snapId = b.snapshot && b.snapshot.id;
+        let idx = snapId ? pujas.findIndex(p => p.id === snapId) : -1;
+        if (idx === -1) idx = pujas.findIndex(p => p.name === bookingPuja || p.title_en === bookingPuja || p.title_te === bookingPuja);
         if (idx === -1 && String(bookingPuja).includes("razorpay_")) {
            idx = pujas.findIndex(p => p.price === b.price);
         }
@@ -191,13 +204,21 @@ function renderBookingsList() {
 
       const bookingIdText = b.shortId || (typeof numericBookingId === "function" ? numericBookingId(b.id) : b.id.split('-')[0]);
 
+      // Gotram: this booking's gotram, else the profile gotram, else a clear "Not provided" (never a bare "N/A")
+      const profileGotra = (($id("dashGotram") || {}).textContent || "").trim();
+      const bookingGotra = String(b.gotram || "").trim() || (profileGotra && profileGotra !== "Not provided" ? profileGotra : "");
+      const uiLang = localStorage.getItem("ss_lang") || "te";
+      const gotramWords = { te: ["Gotram", "ఇవ్వలేదు"], hi: ["Gotram", "नहीं दिया गया"], en: ["Gotram", "Not provided"] }[uiLang] || ["Gotram", "Not provided"];
+      const gotramLabel = gotramWords[0];
+      const gotramText = bookingGotra ? escapeHtml(bookingGotra) : gotramWords[1];
+
       // 1. Replace the meta info (Temple/Date) with Booking specific info (Gotram/Family/Booking Date)
       const meta = card.querySelector(".card-meta");
       if (meta) {
         meta.innerHTML = `
           <span title="Booking ID"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px; margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg> ID: ${bookingIdText}</span>
           <span title="Booking Date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> ${b.createdAt ? new Date(b.createdAt).toLocaleDateString("en-IN") : "Date not available"}</span>
-          <span title="Gotram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px; margin-right:4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> ${b.gotram || 'N/A'}</span>
+          <span title="Gotram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px; margin-right:4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> ${gotramLabel}: ${gotramText}</span>
         `;
       }
 
@@ -280,7 +301,10 @@ function renderProfileData(me) {
     else if (s === "payment-claimed")             b.status = "payment-claimed";
     else                                          b.status = "paid"; // unknown → Ongoing tab
     return b;
-  });
+  })
+  // A booking still waiting for payment is removed from the list once its puja is deleted from the website.
+  // Ongoing and Completed bookings stay (they use the saved name and photo).
+  .filter(b => !(BK_TAB_STATUSES.pending.includes(b.status) && !bookingPujaStillListed(b)));
   if (!startTab) {
       const pendingCount = allBookings.filter(b => BK_TAB_STATUSES["pending"].includes(b.status)).length;
       if (pendingCount === 0) {
