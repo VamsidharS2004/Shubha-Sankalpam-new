@@ -612,6 +612,7 @@ async function loadDevotees() {
         list.forEach(d => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
+                <td><input type="checkbox" class="devotee-row-select" value="${esc(d.phone)}" aria-label="Select ${esc(d.name)}"></td>
                 <td>
                     <div>${esc(d.name)}</div>
                     <div class="text-muted" style="font-size:0.8rem">ID: ${esc((d.id||"").substring(0,8))}</div>

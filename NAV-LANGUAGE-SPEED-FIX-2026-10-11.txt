@@ -219,3 +219,17 @@ Round 20 - Photos for bookings of already-deleted pujas
   puja photo/price/temple from the permanent archive table ss_puja_archive (matched by puja name).
   Needs 20261011_keep_deleted_pujas.sql to have been run once. If the archived image path is broken, run:
   node scripts/backfill-booking-snapshots.js --set "PUJA NAME=assets/images/pujas/xxx.webp"
+
+Round 22 - Legal pages, Contact page, support email (2026-10-15)
+- privacy.html: full Privacy Policy from PRIVACY_POLICY.docx (19 sections, contents list). Email filled with support@shubhasankalpam.com.
+  STILL TO FILL BY OWNER: Grievance Officer name in section 18 shows "[GRIEVANCE OFFICER NAME]".
+- terms.html: was a copy of the old Privacy text; now a proper Terms and Conditions (draft - have a lawyer review).
+- contact.html (new): email, WhatsApp, hours, company details. Footer "Contact Us" now opens it; added to sitemap.xml.
+- about.html: email/phone are clickable, link to Contact page, operator name added.
+- content/site-settings.js: SUPPORT_EMAIL = support@shubhasankalpam.com (used in footer and account page).
+- refund.html still has the old copy of the Privacy text (not part of this round).
+
+ROUND 23 (client requests)
+- Footer Contact: email is now a mailto: link and the phone number a tel: link (navbar.js + navbar.css).
+- Footer lotus flower (assets/images/footer_flower.png): removed the dark red/black background box so it is transparent (same 60x37 size), and removed the drop-shadow filter on both footer flower icons.
+- Footer contact alignment: email on one line (no mid-word break), icons/text aligned at all widths; footer grid widened for the contact column.

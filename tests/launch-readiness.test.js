@@ -65,3 +65,18 @@ test("deleted pujas are archived in Supabase and reports exist", () => {
   for (const needle of ["ss_puja_archive", "BEFORE DELETE ON public.%I", "ss_puja_summary", "ss_booking_report", "ss_record_history"])
     assert.ok(sql.includes(needle), needle);
 });
+
+test('legal and contact pages: support email, no placeholders, listed in sitemap', () => {
+  const fs = require('fs'), path = require('path');
+  const read = f => fs.readFileSync(path.join(__dirname, '..', 'frontend', f), 'utf8');
+  for (const f of ['privacy.html', 'terms.html', 'contact.html']) {
+    const h = read(f);
+    assert.ok(h.includes('support@shubhasankalpam.com'), f + ' shows the support email');
+    assert.ok(!h.includes('[OFFICIAL EMAIL ADDRESS]'), f + ' has no email placeholder');
+    assert.ok(!h.includes('�'), f + ' has no broken characters');
+  }
+  assert.ok(read('privacy.html').includes('GOWTHRIX INNOVATIONS PRIVATE LIMITED'));
+  assert.ok(/<h1>Terms and Conditions<\/h1>/.test(read('terms.html')), 'terms page has its own title');
+  assert.ok(read('sitemap.xml').includes('/contact.html'), 'contact page in sitemap');
+  assert.ok(read('assets/js/navbar.js').includes('<a href="contact.html">'), 'footer links to the Contact page');
+});

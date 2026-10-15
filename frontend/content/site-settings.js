@@ -14,6 +14,10 @@ const SITE = {
   // support email address (support@yourdomain)
   DOMAIN: "shubhasankalpam.com",
 
+  // Support email shown in the footer, Contact Us page, legal pages and
+  // the account page. One address used everywhere on the website.
+  SUPPORT_EMAIL: "support@shubhasankalpam.com",
+
   // Your WhatsApp number for the "Need Help?" button, booking via
   // WhatsApp, and the WhatsApp Expert button.
   // Format: 91 followed by your 10-digit number, no spaces or +
