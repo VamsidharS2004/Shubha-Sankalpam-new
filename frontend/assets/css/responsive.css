@@ -493,7 +493,6 @@
   aspect-ratio: 16 / 9;
   border-radius: 18px;
 }
-.hero-arrow { top: clamp(240px, 29vw, 560px); }
 
 /* Responsive home hero: show the complete uploaded artwork at its own
    aspect ratio. No blurred background, letterbox fill, or image crop. */

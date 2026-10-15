@@ -109,6 +109,8 @@ function renderSlider() {
     </div>
   `}).join(''));
 
+  /* One puja = nothing to switch between: hide the arrows and the single dot (CSS keys off this class). */
+  heroSlider.closest(".hero-landing")?.classList.toggle("hero-multi", topPujas.length > 1);
   heroDots.innerHTML = topPujas.map((_, i) => `<button class="hero-dot ${i === currentSlide ? 'active' : ''}" data-dot="${i}" aria-label="Go to slide ${i + 1}"></button>`).join('');
   
   heroDots.querySelectorAll('.hero-dot').forEach(dot => {
@@ -237,6 +239,38 @@ if (heroSlider && heroDots && typeof pujas !== "undefined") {
     goToSlide(Math.min(currentSlide, topPujas.length - 1));
     warmHeroImages();
   }
+
+  /* Keep the previous / next arrows vertically centred on the banner picture, a little inside its left and right edges. */
+  let arrowFrame = 0;
+  const placeHeroArrows = () => {                 // coalesce bursts of events into one layout read per frame
+    if (arrowFrame) return;
+    arrowFrame = requestAnimationFrame(() => { arrowFrame = 0; positionHeroArrows(); });
+  };
+  const positionHeroArrows = () => {
+    const prev = $id("heroPrev"), next = $id("heroNext");
+    const section = heroSlider.closest(".hero-landing");
+    if (!section || !section.classList.contains("hero-multi")) return;   // single puja: arrows are hidden, nothing to place
+    const pic = heroSlider.querySelector(".hero-slide.active .hero-image-wrap picture") || heroSlider.querySelector(".hero-slide.active .hero-image-wrap");
+    if (!prev || !next || !section || !pic) return;
+    const s = section.getBoundingClientRect(), r = pic.getBoundingClientRect();
+    if (!r.height) return;
+    const top = r.top - s.top + r.height / 2;
+    const inset = Math.max(10, Math.min(24, r.width * 0.015));
+    prev.style.top = next.style.top = top + "px";
+    prev.style.left = (r.left - s.left + inset) + "px";
+    next.style.right = (s.right - r.right + inset) + "px";
+  };
+  placeHeroArrows();
+  window.addEventListener("resize", placeHeroArrows, { passive: true });
+  window.addEventListener("load", placeHeroArrows, { once: true });
+  heroSlider.addEventListener("load", placeHeroArrows, true);          // any slide photo finishing loading
+  if (typeof ResizeObserver === "function") {
+    const ro = new ResizeObserver(placeHeroArrows);
+    ro.observe(heroSlider);
+    heroSlider.querySelectorAll(".hero-image-wrap").forEach(el => ro.observe(el));
+  }
+  heroSlider.addEventListener("transitionend", placeHeroArrows);
+  new MutationObserver(placeHeroArrows).observe(heroSlider, { subtree: true, attributes: true, attributeFilter: ["class"] });
 
   const heroPrev = $id("heroPrev");
   const heroNext = $id("heroNext");

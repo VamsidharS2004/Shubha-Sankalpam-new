@@ -233,3 +233,17 @@ ROUND 23 (client requests)
 - Footer Contact: email is now a mailto: link and the phone number a tel: link (navbar.js + navbar.css).
 - Footer lotus flower (assets/images/footer_flower.png): removed the dark red/black background box so it is transparent (same 60x37 size), and removed the drop-shadow filter on both footer flower icons.
 - Footer contact alignment: email on one line (no mid-word break), icons/text aligned at all widths; footer grid widened for the contact column.
+
+ROUND 24 (client request): Admin CSV downloads
+- Devotees tab: tick boxes (select-all on the header) and 'Download ... CSV'; with nothing ticked it downloads all devotees. Search box now filters the list.
+- Bookings tab: 'Download CSV' (ticked rows, otherwise whatever the filters show - e.g. one puja via 'Filter by puja') and 'Download separate CSV per puja (ZIP)'.
+- Booking CSV has booking ID, puja, date, status, amount, booked-by, phone, WhatsApp, Gotram, Sankalpam, number of devotees, devotee names, special-puja ancestors, and any extra form fields.
+- New file: frontend/assets/js/admin-export.js (no server change).
+
+ROUND 25: CSV/Excel export now includes the View-details information. 'Download Excel' has two tabs (Bookings + Booking Details); the CSV has the Booking Details section below the table; phones show as +91XXXXXXXXXX (no 9.19E+11). Per-puja ZIP now contains Excel files. Future enhancement (manual booking) is only written up in FUTURE-ENHANCEMENT-manual-booking.md, not built.
+
+ROUND 26: Bookings downloads tidied into ONE 'Download' dropdown (Excel / CSV / one file per puja ZIP); label shows 'Download selected (N)' when rows are ticked.
+
+ROUND 27: Home banner previous/next arrows are now centred vertically on the banner picture (positioned by home.js, so they follow every slide and screen size) and restyled (dark circle, white border) so they stand out on light images. Removed the fixed-top override in responsive.css. Still hidden on phones (swipe + dots).
+
+ROUND 28: Slider arrows (and the lone dot) are hidden when only one puja is in the banner. Arrow placement is coalesced to one layout read per frame. Speed check: single CSS bundle, deferred scripts, preloads and cache headers were already in place; no image, hero or layout changes were made.
