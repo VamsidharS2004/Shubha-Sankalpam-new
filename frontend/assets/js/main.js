@@ -21,6 +21,8 @@ function clearToken() { authToken = null; try { localStorage.removeItem("token")
 const urlToken = getParam("token");
 if (urlToken) saveToken(urlToken);
 
+function visitorId() { try { return localStorage.getItem("ss_visitor_id") || ""; } catch (e) { return ""; } }
+
 async function api(path, method = "GET", body = undefined, silent = false) {
   const res = await fetch(path, {
     method,
@@ -28,6 +30,7 @@ async function api(path, method = "GET", body = undefined, silent = false) {
     signal: AbortSignal.timeout(20000),
     headers: {
       "Content-Type": "application/json",
+      ...(visitorId() ? { "X-Visitor-Id": visitorId() } : {}),
       ...(authToken ? { "Authorization": "Bearer " + authToken } : {})
     },
     body: body ? JSON.stringify(body) : undefined
@@ -113,9 +116,11 @@ const localTemple = p => {
   if (/varasidhi/i.test(value) || /వరసిద్ధి/i.test(value)) return isTe ? "శ్రీ వరసిద్ధి వినాయక ఆలయం" : "Sri Varasidhi Vinayaka Temple";
   return value || (isTe ? "శ్రీ వేంకటేశ్వర స్వామి ఆలయం" : "Sri Venkateswara Swamy Temple");
 };
+/* a puja whose date & time (muhurat) has passed is no longer listed or offered; the admin keeps it */
+const pujaEnded = p => { const m = Date.parse(p && p.muhurat); return Number.isFinite(m) && m < Date.now(); };
 const localDate = p => {
   if (currentLang !== "te" || !p.muhurat) return p.date || "";
-  try { return new Date(p.muhurat).toLocaleDateString("te-IN", { weekday: "long", day: "numeric", month: "long" }); }
+  try { return new Date(p.muhurat).toLocaleDateString("te-IN", { weekday: "long", day: "numeric", month: "long", timeZone: "Asia/Kolkata" }); }
   catch (_) { return p.date || ""; }
 };
 

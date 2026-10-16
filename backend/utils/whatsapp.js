@@ -10,21 +10,27 @@ const { AISENSY_API_KEY } = require("../config");
  * @returns {Promise<boolean>} True if successful, false otherwise.
  */
 async function sendAiSensyMessage(phone, campaignName, userName = "Devotee", templateParams = [], media = null) {
+  return (await sendAiSensyDetailed(phone, campaignName, userName, templateParams, media)).ok;
+}
+
+/* Same as sendAiSensyMessage but says WHY it failed: { ok, error }. */
+async function sendAiSensyDetailed(phone, campaignName, userName = "Devotee", templateParams = [], media = null) {
+  const no = error => ({ ok: false, error });
   if (!AISENSY_API_KEY || !campaignName) {
     console.error("[AiSensy] Missing API Key or Campaign Name. Skipping WhatsApp message.");
-    return false;
+    return no("AiSensy API key or template name is missing.");
   }
 
   try {
     const number = String(phone ?? "").replace(/\D/g, "");
     if (!/^(?:91)?[6-9]\d{9}$/.test(number)) {
       console.error("[AiSensy] Invalid or missing recipient phone. Skipping WhatsApp message.");
-      return false;
+      return no("Invalid or missing recipient phone.");
     }
     const digits = "91" + number.slice(-10);
     if (!Array.isArray(templateParams) || templateParams.some(value => value == null || !String(value).trim())) {
       console.error("[AiSensy] Missing template parameters. Skipping WhatsApp message.");
-      return false;
+      return no("Missing template parameters.");
     }
     console.log("[AiSensy] Sending payment notification request.");
     const r = await fetch("https://backend.aisensy.com/campaign/t1/api/v2", {
@@ -42,16 +48,18 @@ async function sendAiSensyMessage(phone, campaignName, userName = "Devotee", tem
     });
     
     if (!r.ok) {
-      console.error(`[AiSensy] API Error: ${r.status} ${r.statusText}`);
-      return false;
+      let detail = "";
+      try { detail = (await r.text()).replace(/\s+/g, " ").slice(0, 200); } catch (_) {}
+      console.error(`[AiSensy] API Error: ${r.status} ${r.statusText} ${detail}`);
+      return no(`AiSensy rejected it (${r.status}${detail ? ": " + detail : ""})`);
     }
     
     console.log("[AiSensy] API accepted notification request; check AiSensy for delivery status.");
-    return true;
+    return { ok: true };
   } catch (err) {
     console.error(`[AiSensy] Network/Fetch Error:`, err.message);
-    return false;
+    return no("Could not reach AiSensy: " + err.message);
   }
 }
 
-module.exports = { sendAiSensyMessage };
+module.exports = { sendAiSensyMessage, sendAiSensyDetailed };

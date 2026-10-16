@@ -1269,3 +1269,16 @@ html.pd-booting .pd-sticky-bottom{visibility:hidden!important;opacity:0!importan
 .ss-zoom-tools .ss-zoom-btn{position:static;min-width:52px}
 html.ss-zoom-lock,html.ss-zoom-lock body{overflow:hidden}
 @media (max-width:600px){.ss-zoom-nav{display:none}.ss-zoom.single .ss-zoom-nav{display:none}.ss-zoom-img{max-width:100vw;max-height:80vh;border-radius:0}}
+
+/* ---- admin-typed text: paragraphs, headings and points are kept (see assets/js/rich-text.js) ---- */
+.rich-text { overflow-wrap: anywhere; }
+.rich-text > :first-child { margin-top: 0; }
+.rich-text > :last-child { margin-bottom: 0; }
+.rich-text .rt-p { margin: 0 0 .85em; line-height: 1.75; }
+.rich-text .rt-h { margin: 1.1em 0 .45em; font-size: 1.08em; font-weight: 800; color: var(--red, #8b1d2c); line-height: 1.35; }
+.rich-text .rt-sub { margin: 1em 0 .35em; font-size: 1em; font-weight: 700; color: var(--ink, #2a1a14); line-height: 1.4; }
+.rich-text .rt-list { margin: 0 0 .9em; padding-left: 1.3em; }
+.rich-text .rt-list li { margin: 0 0 .4em; line-height: 1.65; padding-left: .15em; }
+.rich-text .rt-list.rt-symbols { list-style: none; padding-left: .2em; }
+.rich-text .rt-list.rt-symbols li { padding-left: 0; }
+.rich-text strong { font-weight: 800; color: var(--ink, #2a1a14); }

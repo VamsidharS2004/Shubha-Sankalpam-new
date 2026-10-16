@@ -5,6 +5,7 @@ const {rangeFor,summarize}=require('../utils/analyticsSummary');
 const {resolveItem}=require('../utils/catalog');
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const allowedPages=new Set(['home.html','puja.html','puja-details.html','package.html','booking.html','payment.html','account.html','login.html','about.html','privacy.html','terms.html','refund.html','success.html']);
+const {cleanSource}=require('../utils/visitorLeads');
 const rates=new Map();const reports=new Map();
 function validateEvent(body){
  if(!UUID.test(body.id||'')||!UUID.test(body.visitorId||'')||!UUID.test(body.sessionId||''))throw new Error('Invalid event reference');
@@ -16,7 +17,7 @@ function validateEvent(body){
  }
  let item=null;if(body.type==='puja_view'){item=resolveItem(String(body.pujaId||''));if(!item)throw new Error('Unknown puja');}
  return {id:body.id,visitor_id:body.visitorId,session_id:body.sessionId,event_type:body.type,page:body.page,
-  language:body.language,device:body.device,referrer,puja_id:item?String(item.id):null,puja_name:item?String(item.name||item.title_en||item.id).slice(0,300):null};
+  language:body.language,device:body.device,referrer,puja_id:item?String(item.id):null,puja_name:item?String(item.name||item.title_en||item.id).slice(0,300):null,source:cleanSource(body.source)};
 }
 async function recordEvent(req,res){
  if(!supabase)return send(res,503,{error:'Analytics database unavailable'});
@@ -28,14 +29,16 @@ async function recordEvent(req,res){
   if(rates.size>5000)rates.clear();let rate=rates.get(key);
   if(!rate||now-rate.start>60000)rate={start:now,count:0};rates.set(key,rate);
   if(++rate.count>180)return send(res,429,{error:'Too many analytics events'});
-  const {error}=await supabase.from('ss_analytics_events').upsert(row,{onConflict:'id',ignoreDuplicates:true});
+  let {error}=await supabase.from('ss_analytics_events').upsert(row,{onConflict:'id',ignoreDuplicates:true});
+  if(error&&/source/i.test(error.message||'')){const {source,...legacy}=row;({error}=await supabase.from('ss_analytics_events').upsert(legacy,{onConflict:'id',ignoreDuplicates:true}));}
   if(error)return send(res,503,{error:'Analytics tracking unavailable. Check the analytics migration.'});
+  require('./visitorLeadsController').purgeOld();
   return send(res,200,{ok:true});
  }catch(e){return send(res,400,{error:'Invalid analytics event'});}
 }
 async function getSummary(req,res,url){
  if(!supabase)return send(res,503,{error:'Analytics database unavailable'});
- const days=Number(url.searchParams.get('days')||30);if(![7,30,90].includes(days))return send(res,400,{error:'Choose 7, 30 or 90 days'});
+ const days=Number(url.searchParams.get('days')||30);if(![7,30,90,180,365].includes(days))return send(res,400,{error:'Choose 7, 30, 90, 180 or 365 days'});
  try{
   const cached=reports.get(days);if(cached&&Date.now()-cached.time<30000)return send(res,200,{ok:true,...cached.data});
   const range=rangeFor(days);

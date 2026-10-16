@@ -4,8 +4,8 @@ function setup(ok=true){
  const elements=new Map(); const el=id=>{if(!elements.has(id))elements.set(id,{value:'',disabled:false,querySelector:()=>null});return elements.get(id);};
  const original={id:'pkg_existing',name:'',name_te:'ప్యాకేజీ',price:100,detail:{unknown:'preserve',mantra_te:'మంత్రం'}};
  let request;const alerts=[];
- const context={document:{getElementById:el},structuredClone,crypto,Number,parseInt,encodeURIComponent,console,alert:x=>alerts.push(x),KEY:'test',allPackages:[original],packagesRevision:'rev',packageSaving:false,packageDetailFields:{benefits:['t','d'],procedure:['t','d'],receive:['r'],faqs:['q','a'],gallery:['url']},readPackageDetailRows:type=>type==='gallery'?['/image.webp']:[{t_te:'వివరాలు'}],fetch:async(url,options)=>{request=JSON.parse(options.body);return{ok,json:async()=>({error:'Conflict'})}},closeAllDrawers(){},loadPackages(){}};
- vm.createContext(context);vm.runInContext(source.slice(source.indexOf('async function savePackage()'),source.indexOf('// ================== Temples CMS')),context);
+ const context={window:{},document:{getElementById:el},structuredClone,crypto,Number,parseInt,encodeURIComponent,console,alert:x=>alerts.push(x),KEY:'test',allPackages:[original],packagesRevision:'rev',packageSaving:false,packageDetailFields:{benefits:['t','d'],procedure:['t','d'],receive:['r'],faqs:['q','a'],gallery:['url']},readPackageDetailRows:type=>type==='gallery'?['/image.webp']:[{t_te:'వివరాలు'}],fetch:async(url,options)=>{request=JSON.parse(options.body);return{ok,json:async()=>({error:'Conflict'})}},closeAllDrawers(){},loadPackages(){}};
+ vm.createContext(context);vm.runInContext(source.slice(source.indexOf('async function savePackage('),source.indexOf('// ================== Temples CMS')),context);
  el('editPackageIndex').value='0';el('editPackagePrice').value='125.50';el('editPackageNameTe').value='కొత్త పేరు';
  return{context,el,original,alerts,get request(){return request}};
 }

@@ -676,35 +676,6 @@
   .hero-copy .hero-buttons { gap: 6px !important; margin-bottom: 5px !important; }
 }
 
-/* Persistent Book Now bar on puja details. Keep it clear of the site's
-   existing mobile bottom navigation and provide room for it in the page. */
-.pd-sticky-bottom {
-  position: fixed !important;
-  left: 50% !important;
-  right: auto !important;
-  bottom: 14px !important;
-  width: min(1000px, calc(100vw - 32px)) !important;
-  max-width: 1000px !important;
-  margin: 0 !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  transform: translate(-50%, 0) !important;
-  pointer-events: auto !important;
-  z-index: 950 !important;
-}
-#pd-content, .pd-content { padding-bottom: 92px; }
-@media (max-width: 900px) {
-  .pd-sticky-bottom {
-    left: 10px !important;
-    right: 10px !important;
-    bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
-    width: auto !important;
-    max-width: none !important;
-    transform: none !important;
-  }
-  #pd-content, .pd-content { padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px)); }
-}
-
 /* CTA sizing and responsive image frames from the latest desktop/mobile QA. */
 .hero-book-icon { display: inline-block; width: 20px; height: 20px; max-width: 20px; flex: 0 0 20px; }
 .hero-copy .hero-buttons > a { box-sizing: border-box; min-height: 44px; height: 44px; padding: 8px 12px; gap: 8px; }
@@ -1069,36 +1040,6 @@
   .hero-copy .hero-feature { padding: 10px 4px; border-radius: 11px; }
   .hero-copy .hf-badge { flex-basis: 40px; width: 40px; height: 40px; font-size: 1.1rem; }
   .hero-copy .hf-label { font-size: .68rem; line-height: 1.25; }
-}
-
-/* Final cascade overrides for the screenshots just reviewed. */
-.pd-sticky-bottom {
-  position: fixed !important;
-  left: 50% !important;
-  right: auto !important;
-  bottom: 14px !important;
-  width: min(900px, calc(100vw - 32px)) !important;
-  max-width: 900px !important;
-  margin: 0 !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  transform: translate(-50%, 0) !important;
-  pointer-events: auto !important;
-  z-index: 950 !important;
-}
-#pd-content { padding-bottom: 92px; }
-@media (max-width: 900px) {
-  .pd-sticky-bottom {
-    position: fixed !important;
-    left: 10px !important;
-    right: 10px !important;
-    bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
-    width: auto !important;
-    max-width: none !important;
-    transform: none !important;
-  }
-  body:has(.pd-sticky-bottom) .floating-wa { bottom: calc(150px + env(safe-area-inset-bottom, 0px)) !important; }
-  #pd-content { padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* Last-in-file CTA and card sizing overrides. */
@@ -1871,4 +1812,30 @@
    downloads so the text and trust bar below never jump down. */
 @media (max-width: 767px) {
   .hero-image-wrap picture { aspect-ratio: 16 / 9 !important; }
+}
+
+
+/* ===== Puja / package details: Book Now bar + tabs =====
+   - The Book Now bar is a sticky element at the END of the page content (see puja-details.css). It follows you
+     down the page, and when you reach the end it rests in the empty space between the gallery and the footer
+     instead of covering the footer.
+   - It is shown ONLY while the Book Now button inside the page is out of view (details.js adds .visible).
+   - The phone bottom menu (Home / Puja / Packages / Account) stays visible; the bar sits just above it.
+   - The tab row (About / Benefits ...) is attached directly under the header: no gap. */
+.pd-sticky-bottom { z-index: 55 !important; /* under the header (100) and the phone menu (60) */ opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s ease; }
+.pd-sticky-bottom.visible { opacity: 1; visibility: visible; pointer-events: auto; }
+@media (max-width: 900px) {
+  /* above the bottom menu; WhatsApp button sits above the bar only while the bar is shown */
+  body.pd-page .floating-wa, body.pd-page .abandoned-fab { bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important; }
+  body.pd-page.pd-sb-on .floating-wa, body.pd-page.pd-sb-on .abandoned-fab { bottom: calc(150px + env(safe-area-inset-bottom, 0px)) !important; }
+}
+@media (max-width: 960px) {
+  .pd-sidebar {
+    top: calc(var(--header-h, 57px) - 1px) !important;
+    width: 100vw !important; max-width: 100vw !important;
+    margin-left: calc(50% - 50vw) !important; margin-right: 0 !important;
+    border-radius: 0 !important; border-left: 0 !important; border-right: 0 !important;
+    background: #fffaf2 !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+    box-shadow: 0 2px 6px rgba(107, 18, 32, .08);
+  }
 }

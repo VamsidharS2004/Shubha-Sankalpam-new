@@ -36,13 +36,23 @@ async function updatePujas(req, res) {
     }
 
     await keepBookingSnapshots(PUJAS_FILE_PATH, "pujas", deletedIds);
+    const before = safeRead(PUJAS_FILE_PATH, "pujas") || [];
     // Push to Supabase as source of truth
-    await syncPujasToSupabase(pujas, { revision, deletedIds });
-    
+    const saved = await syncPujasToSupabase(pujas, { revision, deletedIds });
+
     // Overwrite local file to update frontend instantly
     safeWrite(PUJAS_FILE_PATH, "pujas", pujas);
 
-    send(res, 200, { ok: true, message: "Pujas updated successfully" });
+    // Photos that are new in this save: have Supabase build the phone/tablet sizes now, so the first
+    // visitor does not wait for it. (Skipped for drafts - they are not public yet.)
+    const { warmImages, imagesOf } = require("../utils/imageWarm");
+    const known = new Set(before.flatMap(imagesOf));
+    const fresh = pujas.filter(p => !(p.detail && p.detail.status === "draft")).flatMap(imagesOf).filter(u => !known.has(u));
+    await warmImages(fresh, 6000);
+    // Rebuild the baked home page (optional: only when VERCEL_DEPLOY_HOOK_URL is set)
+    require("../utils/redeploy").requestRedeploy();
+
+    send(res, 200, { ok: true, message: "Pujas updated successfully", revision: saved && saved.revision });
   } catch (err) {
     console.error("Error writing pujas:", err);
     send(res, err.status || 503, { error: err.message || "Failed to save pujas." });
@@ -67,12 +77,20 @@ async function updatePackages(req, res) {
 
     // Push to Supabase as source of truth
     await keepBookingSnapshots(PACKAGES_FILE_PATH, "packages", deletedIds);
-    await syncPackagesToSupabase(packages, { revision, deletedIds });
+    const before = safeRead(PACKAGES_FILE_PATH, "packages") || [];
+    const saved = await syncPackagesToSupabase(packages, { revision, deletedIds });
 
     // Overwrite local file to update frontend instantly
     safeWrite(PACKAGES_FILE_PATH, "packages", packages);
 
-    send(res, 200, { ok: true, message: "Packages updated successfully" });
+    // Same as pujas: build phone/tablet image sizes now (not for drafts), re-bake the home page if a hook is set
+    const { warmImages, imagesOf } = require("../utils/imageWarm");
+    const known = new Set(before.flatMap(imagesOf));
+    const fresh = packages.filter(p => !(p.detail && p.detail.status === "draft")).flatMap(imagesOf).filter(u => !known.has(u));
+    await warmImages(fresh, 6000);
+    require("../utils/redeploy").requestRedeploy();
+
+    send(res, 200, { ok: true, message: "Packages updated successfully", revision: saved && saved.revision });
   } catch (err) {
     console.error("Error writing packages:", err);
     send(res, err.status || 503, { error: err.message || "Failed to save packages." });
@@ -281,6 +299,9 @@ async function uploadImage(req, res) {
       }
 
       const { data: publicUrlData } = activeSupabase.storage.from('media').getPublicUrl(storagePath);
+
+      // build the phone/tablet sizes now (a few seconds), so the first visitor gets them instantly
+      await require('../utils/imageWarm').warmImages([publicUrlData.publicUrl], 7000);
 
       if (hasResponded) return;
       hasResponded = true;

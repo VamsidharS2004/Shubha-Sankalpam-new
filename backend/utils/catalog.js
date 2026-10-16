@@ -1,5 +1,6 @@
 const path = require('path');
 const { safeRead, ensureInitialSync } = require('./cmsSync');
+const { isPublic } = require('./pujaVisibility');
 
 function catalog() {
   const pujasPath = path.join(__dirname, "../../frontend/content/pujas.js");
@@ -23,7 +24,7 @@ async function resolveItemAsync(ref, legacyName) {
     const matches = [...pujas,...packages].filter(p => [p.name,p.title_en,p.title_te].includes(legacyName));
     if (matches.length === 1) item = matches[0];
   }
-  if (!item || !Number.isFinite(Number(item.price)) || Number(item.price) <= 0) return null;
+  if (!item || !isPublic(item) || !Number.isFinite(Number(item.price)) || Number(item.price) <= 0) return null;
   return {...item, price:Number(item.price)};
 }
 
@@ -38,7 +39,7 @@ function resolveItem(ref, legacyName) {
     const matches = [...pujas,...packages].filter(p => [p.name,p.title_en,p.title_te].includes(legacyName));
     if (matches.length === 1) item = matches[0];
   }
-  if (!item || !Number.isFinite(Number(item.price)) || Number(item.price) <= 0) return null;
+  if (!item || !isPublic(item) || !Number.isFinite(Number(item.price)) || Number(item.price) <= 0) return null;
   return {...item, price:Number(item.price)};
 }
 

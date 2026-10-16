@@ -1,7 +1,7 @@
 const OFFSET=330*60000;
 const dayKey=value=>{const d=new Date(value);return Number.isFinite(d.getTime())?new Date(d.getTime()+OFFSET).toISOString().slice(0,10):null;};
 function rangeFor(days,now=new Date()){
- if(![7,30,90].includes(Number(days)))days=30;
+ if(![7,30,90,180,365].includes(Number(days)))days=30;
  const end=now.getTime();const today=dayKey(now);const start=Date.parse(today+'T00:00:00+05:30')-(Number(days)-1)*86400000;
  return {days:Number(days),start:new Date(start).toISOString(),end:new Date(end).toISOString()};
 }

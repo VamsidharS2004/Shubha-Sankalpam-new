@@ -37,7 +37,34 @@
   for(const key of ['topPujas','pages','sources','devices','languages','statuses']){rows.push([],[key,'Count']);for(const r of report[key])rows.push([r.name,r.views??r.count]);}
   const blob=new Blob(['\uFEFF'+rows.map(row=>row.map(csvCell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='Shubha-Sankalpam-analytics-'+report.range.days+'days.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
  }
+
+ /* ---------- Visitor leads (who viewed which pujas, booked or not) ---------- */
+ let leads=[];
+ const ist=v=>v?new Date(v).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',dateStyle:'medium',timeStyle:'short'}):'—';
+ const pujaText=l=>l.pujas.map(p=>p.name+(p.views>1?' ×'+p.views:'')).join(', ')||'—';
+ function visibleLeads(){
+  const f=id('leadsFilter').value,q=id('leadsSearch').value.trim().toLowerCase();
+  return leads.filter(l=>(f==='all'||(f==='booked')===l.booked)&&(!q||[l.name,l.phone,l.source,pujaText(l)].join(' ').toLowerCase().includes(q)));
+ }
+ function renderLeads(){
+  const rows=visibleLeads();
+  table('leadsTable',['Name','Mobile','Source','First visit (IST)','Last visit (IST)','Pujas viewed (× times)','Booked?'],rows.map(l=>[l.name,l.phone||'—',l.source,ist(l.firstSeen),ist(l.lastSeen),pujaText(l),l.booked?'Yes ('+l.bookings+')':'No']));
+  id('leadsStatus').textContent=rows.length+' of '+leads.length+' identified visitors shown.';
+  id('leadsExport').disabled=!rows.length;
+ }
+ async function loadLeads(){
+  if(!KEY)return;id('leadsStatus').textContent='Loading visitor leads…';
+  try{const res=await fetch('/api/admin/analytics/leads?key='+encodeURIComponent(KEY));const data=await res.json();if(!res.ok)throw new Error(data.error||'Could not load leads');leads=data.leads;renderLeads();}
+  catch(e){leads=[];id('leadsTable').replaceChildren();id('leadsStatus').textContent=e.message;}
+ }
+ function exportLeads(){
+  const rows=[['Name','Mobile','Source','First visit (IST)','Last visit (IST)','Pujas viewed','Total puja views','Booked','Bookings']];
+  for(const l of visibleLeads())rows.push([l.name,l.phone,l.source,ist(l.firstSeen),ist(l.lastSeen),pujaText(l),l.pujaViews,l.booked?'Yes':'No',l.bookings]);
+  const blob=new Blob(['﻿'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='Shubha-Sankalpam-visitor-leads.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ }
  document.addEventListener('DOMContentLoaded',()=>{
+  id('leadsRefresh').addEventListener('click',loadLeads);id('leadsFilter').addEventListener('change',renderLeads);id('leadsSearch').addEventListener('input',renderLeads);id('leadsExport').addEventListener('click',exportLeads);
+  document.querySelector('[data-target="view-analytics"]').addEventListener('click',loadLeads);
   id('reportRefresh').addEventListener('click',load);id('reportDays').addEventListener('change',load);id('reportExport').addEventListener('click',exportCsv);
   document.querySelector('[data-target="view-analytics"]').addEventListener('click',load);
   setInterval(()=>{if(KEY&&!document.hidden&&!loading&&id('reportAutoRefresh').checked&&id('view-analytics').classList.contains('active'))load();},60000);

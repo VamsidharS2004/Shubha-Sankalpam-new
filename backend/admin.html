@@ -213,11 +213,21 @@
                     <i class="ph ph-plus"></i> New Puja
                 </button>
             </div>
+            <div id="pujaLocalDraftNote" class="puja-restore" style="display:none"></div>
+            <div class="puja-filter" id="pujaStatusFilter" role="tablist" aria-label="Filter pujas by status">
+                <button type="button" class="active" data-f="all">All</button>
+                <button type="button" data-f="live">Live</button>
+                <button type="button" data-f="draft">Drafts</button>
+                <button type="button" data-f="scheduled">Scheduled</button>
+                <button type="button" data-f="ended">Ended</button>
+            </div>
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
                             <th>Puja Name</th>
+                            <th>Status</th>
+                            <th>Puja date</th>
                             <th>Language</th>
                             <th>Base Price</th>
                             <th>Actions</th>
@@ -244,11 +254,20 @@
                     <i class="ph ph-plus"></i> New Package
                 </button>
             </div>
+            <div id="packageLocalDraftNote" class="puja-restore" style="display:none"></div>
+            <div class="puja-filter" id="packageStatusFilter" role="tablist" aria-label="Filter packages by status">
+                <button type="button" class="active" data-f="all">All</button>
+                <button type="button" data-f="live">Live</button>
+                <button type="button" data-f="draft">Drafts</button>
+                <button type="button" data-f="scheduled">Scheduled</button>
+                <button type="button" data-f="ended">Ended</button>
+            </div>
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
                             <th>Package Name</th>
+                            <th>Status</th>
                             <th>Telugu</th>
                             <th>Hindi</th>
                             <th>Base Price</th>
@@ -331,7 +350,7 @@
 <section id="view-analytics" class="view-section">
 <div class="page-header"><h1 style="color:var(--accent)">Analytics</h1></div>
 <div class="analytics-toolbar">
-<label>Period <select id="reportDays"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option></select></label>
+<label>Period <select id="reportDays"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option><option value="180">Last 6 months</option><option value="365">Last 12 months</option></select></label>
 <button class="btn" id="reportRefresh" type="button">Refresh</button><button class="btn btn-primary" id="reportExport" type="button" disabled>Export CSV</button>
 <label><input type="checkbox" id="reportAutoRefresh" checked> Auto-refresh (60s)</label>
 </div>
@@ -350,6 +369,17 @@
 </div>
 <div class="analytics-panel" style="margin-top:20px"><h2>Daily report</h2><div class="scroll-table" id="reportDaily"></div></div>
             <!-- Active Users & Puja Browsing Analytics Section -->
+<div class="analytics-panel" style="margin-top:20px" id="leadsPanel">
+<h2>Visitor leads &mdash; who looked at which pujas</h2>
+<p class="analytics-note">Anyone who visits (Instagram, WhatsApp, Google, anywhere) is remembered by their browser. As soon as they log in or book, their name and mobile number are linked to everything they viewed. Records are kept for 12 months and then deleted automatically. Use <b>Not booked</b> to find people to call.</p>
+<div class="analytics-toolbar">
+<input type="search" id="leadsSearch" placeholder="Search name, phone, puja, source&hellip;" style="min-width:240px">
+<label>Show <select id="leadsFilter"><option value="notbooked" selected>Not booked yet</option><option value="booked">Booked</option><option value="all">Everyone</option></select></label>
+<button class="btn" id="leadsRefresh" type="button">Refresh</button><button class="btn btn-primary" id="leadsExport" type="button" disabled>Export CSV</button>
+</div>
+<p id="leadsStatus" role="status" aria-live="polite"></p>
+<div class="scroll-table" id="leadsTable"></div>
+</div>
             <div class="analytics-section" id="activeUsersAnalyticsSection" style="margin-top: 36px;">
                 <div class="page-header" style="margin-bottom: 16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
                     <div>
@@ -502,6 +532,80 @@
         </div>
         <div class="drawer-body">
             <input type="hidden" id="editBookingOldId" value="">
+
+            <!-- NEW booking taken over the phone / customer care -->
+            <div id="phoneBookingFields">
+                <div class="pb-note"><i class="ph ph-phone-call"></i> Booking taken by phone / customer care. Add it after the customer has paid and sent the payment screenshot.</div>
+
+                <div class="form-group">
+                    <label for="pbPuja">Puja / package</label>
+                    <select id="pbPuja"><option value="">-- Select --</option></select>
+                </div>
+                <div class="pb-row">
+                    <div class="form-group">
+                        <label for="pbPrice">Price (₹)</label>
+                        <input type="number" id="pbPrice" min="1" step="1" placeholder="Filled from the puja">
+                    </div>
+                    <div class="form-group">
+                        <label for="pbDate">Puja date</label>
+                        <input type="date" id="pbDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="pbTime">Time <span class="text-muted">(optional)</span></label>
+                        <input type="time" id="pbTime">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Devotee names</label>
+                    <div id="pbNames"></div>
+                    <button type="button" class="btn" id="pbAddName" style="margin-top:6px;padding:5px 10px"><i class="ph ph-plus"></i> Add another name</button>
+                </div>
+                <div class="pb-row">
+                    <div class="form-group">
+                        <label for="pbGotram">Gotram</label>
+                        <input type="text" id="pbGotram" placeholder="e.g. Kashyapa">
+                        <label class="pb-check"><input type="checkbox" id="pbGotramUnknown"> Gotram not known</label>
+                    </div>
+                    <div class="form-group">
+                        <label for="pbPhone">Customer mobile / WhatsApp</label>
+                        <input type="tel" id="pbPhone" inputmode="numeric" maxlength="14" placeholder="10-digit mobile number">
+                        <div class="text-muted" style="font-size:.75rem;margin-top:4px">The customer logs in with this number to see the booking.</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="pbSankalpam">Sankalpam / intention <span class="text-muted">(optional)</span></label>
+                    <textarea id="pbSankalpam" rows="2" placeholder="e.g. For health and prosperity of family"></textarea>
+                </div>
+
+                <div class="pb-pay">
+                    <label class="pb-check pb-check-main"><input type="checkbox" id="pbPaid" checked> Payment received (screenshot seen)</label>
+                    <div id="pbPayFields">
+                        <div class="pb-row">
+                            <div class="form-group">
+                                <label for="pbMethod">Paid by</label>
+                                <select id="pbMethod">
+                                    <option>UPI / QR</option><option>Bank transfer</option><option>Cash</option><option>Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="pbAmount">Amount received (₹)</label>
+                                <input type="number" id="pbAmount" min="1" step="1" placeholder="Same as price">
+                            </div>
+                        </div>
+                        <div class="form-group" id="pbRefGroup">
+                            <label for="pbRef">Payment reference / UPI transaction ID</label>
+                            <input type="text" id="pbRef" maxlength="60" placeholder="From the payment screenshot">
+                        </div>
+                        <label class="pb-check"><input type="checkbox" id="pbWhatsapp" checked> Send WhatsApp confirmation to the customer</label>
+                    </div>
+                    <div class="text-muted" id="pbPendingNote" style="display:none;font-size:.8rem">Saved as <b>Pending</b>. No WhatsApp message is sent until payment is received.</div>
+                </div>
+                <div id="pbError" role="alert" style="display:none;margin-top:10px;color:#ff8f8f;font-size:.85rem"></div>
+            </div>
+
+            <!-- EDIT an existing booking (unchanged) -->
+            <div id="legacyBookingFields" style="display:none">
             <div class="form-group">
                 <label>Puja</label>
                 <select id="newBookingPujaId">
@@ -539,6 +643,7 @@
                 <label>Sankalpa / Intention</label>
                 <textarea id="newBookingNotes" placeholder="e.g. For health and prosperity of family" rows="3"></textarea>
             </div>
+                    </div>
         </div>
         <div class="drawer-footer">
             <button class="btn close-drawer">Cancel</button>
@@ -594,18 +699,42 @@
 
     <!-- Drawer: Edit Puja -->
     <aside class="drawer" id="drawer-edit-puja" style="width: 800px; right: -800px; max-width: 100vw; overflow-y: auto;"> 
-        <div class="drawer-header" style="justify-content:space-between; align-items:center; position:sticky; top:0; background:white; z-index:10; border-bottom:1px solid var(--border);">
-            <h3 id="editPujaTitle">Edit Puja</h3>
-            <div style="display:flex; gap:12px;">
-                <button class="btn close-drawer"><i class="ph ph-arrow-left"></i> Cancel</button>
-                <button class="btn btn-primary" id="btnSavePuja"><i class="ph ph-floppy-disk"></i> Save</button>
+        <div class="drawer-header puja-head">
+            <div class="puja-head-row">
+                <h3 id="editPujaTitle">Edit Puja</h3>
+                <button class="btn close-drawer" id="btnPujaClose" title="Close. Nothing is lost - your work stays saved on this device."><i class="ph ph-x"></i> Close</button>
             </div>
+            <div class="puja-vis-bar">
+                <div class="puja-vis-field">
+                    <label for="pujaVisibility">Who can see this puja?</label>
+                    <select id="pujaVisibility">
+                        <option value="draft">Private (draft) - only you, not on the website</option>
+                        <option value="public">Public - live on the website now</option>
+                        <option value="scheduled">Schedule - goes live automatically</option>
+                    </select>
+                </div>
+                <div class="puja-vis-field" id="pujaScheduleBox" style="display:none">
+                    <label>Go live on (India time)</label>
+                    <div class="dt-row">
+                        <input type="date" id="pujaPublishDate" aria-label="Go-live date">
+                        <select id="pujaPublishHour" aria-label="Hour"></select><span>:</span><select id="pujaPublishMin" aria-label="Minute"></select>
+                        <select id="pujaPublishAp" aria-label="AM or PM"><option>AM</option><option>PM</option></select>
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="btnSavePuja"><i class="ph ph-floppy-disk"></i> <span id="btnSavePujaText">Save draft</span></button>
+            </div>
+            <div class="puja-autosave" id="pujaAutosaveNote" role="status" aria-live="polite">Changes are saved automatically while you type.</div>
         </div>
         <div class="drawer-body" style="display:flex; flex-direction:column; gap:24px;">
+            <div id="pujaRestoreBanner" class="puja-restore" style="display:none">
+                <span id="pujaRestoreText"></span>
+                <button type="button" class="btn btn-primary" id="pujaRestoreYes">Restore my work</button>
+                <button type="button" class="btn" id="pujaRestoreNo">Start fresh</button>
+            </div>
             <input type="hidden" id="editPujaIndex" value="-1">
             <div class="form-group">
-                <label>URL Slug (ID) * <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Used in website links, e.g., ?id=...)</span></label>
-                <input type="text" id="editPujaId">
+                <label>Page link (ID) * <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Filled in automatically from the title. It becomes the puja's web address, so leave it as it is.)</span></label>
+                <input type="text" id="editPujaId" placeholder="Filled automatically">
             </div>
             <div class="form-group">
                 <label>Base Price (₹) * <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Shows on Home, Puja Details, & Booking pages)</span></label>
@@ -614,13 +743,14 @@
 
             <!-- General Info -->
             <div style="border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
-                <h4 style="margin-bottom:16px; color:var(--text-main); font-size:1rem;">General Details</h4>
+                <h4 style="margin-bottom:4px; color:var(--text-main); font-size:1rem;">1. Basic details</h4>
+                <p class="text-muted" style="margin:0 0 14px; font-size:.82rem;">Fields marked * must be filled to make a puja Public or Scheduled. A Private draft can be saved with just a title.</p>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
                     <div class="form-group">
                         <label>Language</label><select id="editPujaLang" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border); background:var(--bg-input); color:var(--text-main);"><option value="en">English</option><option value="te">Telugu</option><option value="hi">Hindi</option></select>
                         <label style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
                             <input type="checkbox" id="editPujaShowInHero">
-                            Show in Hero Slider
+                            Show in the home page banner slider
                         </label>
                     </div><div class="form-group"><label>Category <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Used for filters on Home page)</span></label>
                         <select id="editPujaCat" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border); background:var(--bg-input); color:var(--text-main);">
@@ -679,27 +809,34 @@
                         <input type="text" id="editPujaTempleDetailsName" placeholder="e.g. Sri Venkateswara Swamy Temple, Tirumala">
                     </div>
                     <div class="form-group">
-                        <label>Display Date <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Shows on Home & Puja Details pages)</span></label>
-                        <input type="text" id="editPujaDate">
+                        <label>Date shown to visitors * <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Written automatically when you pick the date below. You may edit the words.)</span></label>
+                        <input type="text" id="editPujaDate" placeholder="Filled automatically">
                     </div>
                 </div>
                 <div class="form-group" style="margin-top:16px;">
-                    <label>Muhurat (Exact Datetime for Countdown) <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Drives the countdown timer on Puja Details)</span></label>
-                    <!-- Using text for simplicity due to date format mapping, but can use datetime-local -->
-                    <input type="text" id="editPujaMuhurat" placeholder="YYYY-MM-DDTHH:MM:SS+05:30">
+                    <label>Puja date &amp; time * <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(India time. Pick it from the calendar and the lists. It runs the countdown on the puja page, and when the time passes the puja disappears from the website by itself but stays here so you can duplicate it.)</span></label>
+                    <div class="dt-row" data-dt="editPujaMuhurat">
+                        <input type="date" id="editPujaMuhuratDate" aria-label="Puja date">
+                        <select id="editPujaMuhuratHour" aria-label="Hour"></select><span>:</span><select id="editPujaMuhuratMin" aria-label="Minute"></select>
+                        <select id="editPujaMuhuratAp" aria-label="AM or PM"><option>AM</option><option>PM</option></select>
+                    </div>
+                    <input type="hidden" id="editPujaMuhurat">
                 </div>
             </div>
 
             <!-- Puja Content -->
             <div style="border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
-                <h4 style="margin-bottom:16px; color:var(--text-main); font-size:1rem;">Puja Content</h4>
+                <h4 style="margin-bottom:4px; color:var(--text-main); font-size:1rem;">2. Title &amp; description (what visitors read)</h4>
+                <p class="text-muted" style="margin:0 0 14px; font-size:.82rem;">Type it the way you want it to look: a blank line starts a new paragraph, a line starting with <b>-</b> becomes a bullet point, a line starting with <b>#</b> becomes a heading. The white preview box under each text area shows exactly how it will look on the website.</p>
                 <div class="form-group">
                     <label id="lblPujaTitle">Puja Title</label>
                     <input type="text" id="editPujaNameEn">
                 </div>
                 <div class="form-group">
                     <label id="lblPujaDesc">Description</label>
-                    <textarea id="editPujaDescEn" rows="3"></textarea>
+                    <textarea id="editPujaDescEn" rows="4"></textarea>
+                    <div class="rt-preview-label">Preview (as on the website)</div>
+                    <div class="rt-preview rich-text" id="editPujaDescPreview"></div>
                 </div>
                 <h5 style="margin:16px 0 8px; color:var(--text-muted); font-size:0.9rem;">Details Page Data <span style="font-size:12px;font-weight:400;margin-left:8px;text-transform:none;">(Information shown only on the Puja Details page)</span></h5>
                 <div class="form-group">
@@ -716,13 +853,15 @@
                 </div>
                 <div class="form-group">
                     <label>About this Puja <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;text-transform:none;">(Main description on Puja Details page)</span></label>
-                    <textarea id="editPujaAboutEn" rows="5"></textarea>
+                    <textarea id="editPujaAboutEn" rows="8"></textarea>
+                    <div class="rt-preview-label">Preview (as on the website)</div>
+                    <div class="rt-preview rich-text" id="editPujaAboutPreview"></div>
                 </div>
             </div>
 
             <!-- Advanced Arrays -->
             <div style="border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
-                <h4 style="margin-bottom:16px; color:var(--text-main); font-size:1rem;">Advanced Puja Details <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;text-transform:none;">(These sections only appear on the Puja Details page)</span></h4>
+                <h4 style="margin-bottom:16px; color:var(--text-main); font-size:1rem;">3. Extra sections (optional) - Advanced Puja Details <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;text-transform:none;">(These sections only appear on the Puja Details page)</span></h4>
                 <p class="text-muted" style="margin-bottom: 16px; font-size: 0.85rem;">Leaving these blank will use the default content for this puja.</p>
                 
                 <h5 style="margin:16px 0 8px; color:var(--text-main);">1. Puja Benefits</h5>
@@ -745,131 +884,233 @@
                 <div id="editor-gallery" style="display:flex; flex-direction:column; gap:8px;"></div>
                 <button class="btn" style="margin-top:8px; font-size:0.8rem;" onclick="addDynamicRow('gallery')">+ Add Gallery Image</button>
             </div>
-            
-            </div>
-              <p class="text-muted" style="font-size: 0.8rem;">Note: Saving will update the live content immediately.</p>
+            <p class="text-muted" style="font-size: 0.8rem;">Private drafts never show on the website. Public and Scheduled pujas update the live website when saved. After the puja date and time pass, the puja leaves the website by itself and stays here, so you can open it, change the date and reuse it with Duplicate.</p>
         </div>
     </aside>
 
     <!-- Drawer: Add/Edit Package (Same as Puja, plus Badge) -->
-    <aside class="drawer" id="drawer-edit-package">
-        <div class="drawer-header">
-            <div>
+    <aside class="drawer" id="drawer-edit-package" style="width: 800px; right: -800px; max-width: 100vw; overflow-y: auto;">
+        <div class="drawer-header puja-head">
+            <div class="puja-head-row">
                 <h3 id="packageDrawerTitle">Edit Package</h3>
-                <div class="text-muted">Modify package details</div>
+                <button class="btn close-drawer" id="btnPackageClose" title="Close. Nothing is lost - your work stays saved on this device."><i class="ph ph-x"></i> Close</button>
             </div>
-            <button class="close-drawer"><i class="ph ph-x"></i></button>
-        </div>
-        <div class="drawer-body">
-            <input type="hidden" id="editPackageId">
-            <input type="hidden" id="editPackageIndex" value="-1">
-            
-            
-<div class="form-group" style="margin-top: 16px;">
-    <label>Editing Language</label>
-    <select id="editPackageLangToggle" onchange="togglePackageLangs(this.value)" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border); background:var(--bg-input); color:var(--text-main);">
-        <option value="en">English</option>
-        <option value="te">Telugu</option>
-        <option value="hi">Hindi</option>
-    </select>
-</div>
-<script>
-function togglePackageLangs(lang) {
-    document.getElementById("pkg-lang-en").style.display = lang === 'en' ? 'block' : 'none';
-    document.getElementById("pkg-lang-te").style.display = lang === 'te' ? 'block' : 'none';
-    document.getElementById("pkg-lang-hi").style.display = lang === 'hi' ? 'block' : 'none';
-}
-</script>
-
-<h4 style="margin-bottom:12px; color:var(--text-main); border-bottom:1px solid #eee; padding-bottom:4px;">1. General Details</h4>
-            
-            <div class="form-group">
-                <label>Package Badge (e.g. Monthly)</label>
-                <input type="text" id="editPackageBadge" placeholder="e.g. Monthly">
-            </div>
-
-            <div class="form-group">
-                <label>Image (Path or Keyword)</label>
-                <input type="text" id="editPackageImage" placeholder="assets/images/packages/... OR ganesha">
-                <div class="img-upload-widget" data-target="editPackageImage" data-entity="packages">
-                    <img loading="lazy" id="prevPackageImage" class="img-preview" src="" alt="" style="display:none; max-width:120px; max-height:80px; object-fit:cover; border-radius:6px; margin-top:8px; border:1px solid var(--line);">
-                    <div style="display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap;">
-                        <input type="file" id="filePackageImage" accept="image/jpeg,image/png,image/webp" style="flex:1; min-width:0;">
-                        <button type="button" class="btn btn-primary upload-img-btn" style="padding:6px 14px; font-size:0.85rem;" data-file="filePackageImage" data-text="editPackageImage" data-prev="prevPackageImage" data-entity="packages">Upload Image</button>
+            <div class="puja-vis-bar">
+                <div class="puja-vis-field">
+                    <label for="packageVisibility">Who can see this package?</label>
+                    <select id="packageVisibility">
+                        <option value="draft">Private (draft) - only you, not on the website</option>
+                        <option value="public">Public - live on the website now</option>
+                        <option value="scheduled">Schedule - goes live automatically</option>
+                    </select>
+                </div>
+                <div class="puja-vis-field" id="packageScheduleBox" style="display:none">
+                    <label>Go live on (India time)</label>
+                    <div class="dt-row">
+                        <input type="date" id="packagePublishDate" aria-label="Go-live date">
+                        <select id="packagePublishHour" aria-label="Hour"></select><span>:</span><select id="packagePublishMin" aria-label="Minute"></select>
+                        <select id="packagePublishAp" aria-label="AM or PM"><option>AM</option><option>PM</option></select>
                     </div>
-                    <span id="statusPackageImage" style="font-size:0.8rem; margin-top:4px; display:block;"></span>
                 </div>
+                <button class="btn btn-primary" id="savePackageBtn"><i class="ph ph-floppy-disk"></i> <span id="btnSavePackageText">Save draft</span></button>
             </div>
-            
-            <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-                <div>
-                    <label>Base Price (₹)</label>
-                    <input type="number" id="editPackagePrice" placeholder="Price">
-                </div>
-                <div>
-                    <label>Temple Name</label>
-                    <input type="text" id="editPackageTemple" placeholder="e.g. Kashi Vishwanath">
-                </div>
+            <div class="puja-autosave" id="packageAutosaveNote" role="status" aria-live="polite">Changes are saved automatically while you type.</div>
+        </div>
+        <div class="drawer-body" style="display:flex; flex-direction:column; gap:24px;">
+            <div id="packageRestoreBanner" class="puja-restore" style="display:none">
+                <span id="packageRestoreText"></span>
+                <button type="button" class="btn btn-primary" id="packageRestoreYes">Restore my work</button>
+                <button type="button" class="btn" id="packageRestoreNo">Start fresh</button>
             </div>
-            
-            <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-                <div>
-                    <label>Display Date (Text)</label>
-                    <input type="text" id="editPackageDate" placeholder="e.g. Every Masa Shivaratri">
-                </div>
-                <div>
-                    <label>Muhurat (ISO Datetime)</label>
-                    <input type="text" id="editPackageMuhurat" placeholder="YYYY-MM-DDTHH:MM:SS+05:30">
-                </div>
-            </div>
-            
-            <!-- We can re-use identical fields by giving them package-specific IDs to avoid conflict -->
-            <div id="pkg-lang-en"><h4 style="margin-top:24px; margin-bottom:12px; color:var(--text-main); border-bottom:1px solid #eee; padding-bottom:4px;">2. English Content</h4>
+            <p class="text-muted" style="margin:0; font-size:.82rem;">A Private draft can be saved with just a name. Public and Scheduled packages need a name (in at least one language) and a price. Past packages leave the website by themselves but stay here so you can Duplicate them.</p>
+            <input type="hidden" id="editPackageIndex" value="-1">
             <div class="form-group">
-                <label>Package Name (English)</label>
-                <input type="text" id="editPackageNameEn" placeholder="Name">
+                <label>Page link (ID) <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Created automatically. It is the package's identity for bookings, so it cannot be changed.)</span></label>
+                <input type="text" id="editPackageId" readonly placeholder="Created automatically">
             </div>
             <div class="form-group">
-                <label>Short Description (English)</label>
-                <textarea id="editPackageDescEn" rows="2"></textarea>
-            </div>
-            <div class="form-group">
-                <label>About this Package (English)</label>
-                <textarea id="editPackageAboutEn" rows="3"></textarea>
-            </div>
-            
-            </div><div id="pkg-lang-te" style="display:none;"><h4 style="margin-top:24px; margin-bottom:12px; color:var(--text-main); border-bottom:1px solid #eee; padding-bottom:4px;">3. Telugu Content</h4>
-            <div class="form-group">
-                <label>Package Name (Telugu)</label>
-                <input type="text" id="editPackageNameTe">
-            </div>
-            <div class="form-group">
-                <label>Short Description (Telugu)</label>
-                <textarea id="editPackageDescTe" rows="2"></textarea>
-            </div>
-            <div class="form-group">
-                <label>About this Package (Telugu)</label>
-                <textarea id="editPackageAboutTe" rows="3"></textarea>
-            </div>
-            
-            </div><div id="pkg-lang-hi" style="display:none;"><h4 style="margin-top:24px; margin-bottom:12px; color:var(--text-main); border-bottom:1px solid #eee; padding-bottom:4px;">4. Hindi Content</h4>
-            <div class="form-group">
-                <label>Package Name (Hindi)</label>
-                <input type="text" id="editPackageNameHi">
-            </div>
-            <div class="form-group">
-                <label>Short Description (Hindi)</label>
-                <textarea id="editPackageDescHi" rows="2"></textarea>
-            </div>
-            <div class="form-group">
-                <label>About this Package (Hindi)</label>
-                <textarea id="editPackageAboutHi" rows="3"></textarea>
+                <label>Base Price (₹) * <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Shows on Home, Package Details, &amp; Booking pages)</span></label>
+                <input type="number" id="editPackagePrice" placeholder="Price">
             </div>
 
+            <!-- General Info -->
+            <div style="border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
+                <h4 style="margin-bottom:4px; color:var(--text-main); font-size:1rem;">1. Basic details</h4>
+                <p class="text-muted" style="margin:0 0 14px; font-size:.82rem;">A package keeps English, Telugu and Hindi together. Choose the language you are typing in; the other languages stay as they are. A Private draft can be saved with just a name.</p>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                    <div class="form-group">
+                        <label>Editing Language</label>
+                        <select id="editPackageLangToggle" onchange="togglePackageLangs(this.value)" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border); background:var(--bg-input); color:var(--text-main);">
+                            <option value="en">English</option>
+                            <option value="te">Telugu</option>
+                            <option value="hi">Hindi</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Package Badge <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(e.g. Monthly. Shown on the package card)</span></label>
+                        <input type="text" id="editPackageBadge" placeholder="e.g. Monthly">
+                    </div>
+                    <div class="form-group">
+                        <label>Image (Path or Theme) <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Main image for package cards/details; fallback on mobile/tablet)</span></label>
+                        <input type="text" id="editPackageImage" placeholder="assets/images/packages/...">
+                        <div class="img-upload-widget" data-target="editPackageImage" data-entity="packages">
+                            <img loading="lazy" id="prevPackageImage" class="img-preview" src="" alt="" style="display:none; max-width:120px; max-height:80px; object-fit:cover; border-radius:6px; margin-top:8px; border:1px solid var(--line);">
+                            <div style="display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap;">
+                                <input type="file" id="filePackageImage" accept="image/jpeg,image/png,image/webp" style="flex:1; min-width:0;">
+                                <button type="button" class="btn btn-primary upload-img-btn" style="padding:6px 14px; font-size:0.85rem;" data-file="filePackageImage" data-text="editPackageImage" data-prev="prevPackageImage" data-entity="packages">Upload Image</button>
+                            </div>
+                            <span style="font-size:12px;color:#777;display:block;margin-top:6px;">Recommended thumbnail: 1920 × 1080 px. It keeps its full image ratio on every screen; uploads are optimized without cropping.</span>
+                            <span id="statusPackageImage" style="font-size:0.8rem; margin-top:4px; display:block;"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Laptop Hero Image <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Wide banner on laptops/desktops only)</span></label>
+                        <input type="text" id="editPackageDesktopHeroImage" placeholder="Upload a wide hero image">
+                        <div class="img-upload-widget" data-target="editPackageDesktopHeroImage" data-entity="packages">
+                            <img loading="lazy" id="prevPackageDesktopHeroImage" class="img-preview" src="" alt="" style="display:none; max-width:240px; max-height:100px; object-fit:contain; border-radius:6px; margin-top:8px; border:1px solid var(--line);">
+                            <div style="display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap;">
+                                <input type="file" id="filePackageDesktopHeroImage" accept="image/jpeg,image/png,image/webp" style="flex:1; min-width:0;">
+                                <button type="button" class="btn btn-primary upload-img-btn" style="padding:6px 14px; font-size:0.85rem;" data-file="filePackageDesktopHeroImage" data-text="editPackageDesktopHeroImage" data-prev="prevPackageDesktopHeroImage" data-entity="packages">Upload Laptop Hero</button>
+                            </div>
+                            <span style="font-size:12px;color:#777;display:block;margin-top:6px;">Recommended: 1920 × 700 px (wide landscape). Used only on laptop/desktop. Mobile, tablet, cards, and details keep using the Main Thumbnail.</span>
+                            <span id="statusPackageDesktopHeroImage" style="font-size:0.8rem; margin-top:4px; display:block;"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Temple Name <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Shows on Home &amp; Package Details pages)</span></label>
+                        <input type="text" id="editPackageTemple" placeholder="e.g. Kashi Vishwanath">
+                    </div>
+                    <div class="form-group">
+                        <label>Temple Image (Path or Theme) <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Background banner on Package Details page)</span></label>
+                        <input type="text" id="editPackageTempleImage" placeholder="assets/images/temples/...">
+                        <div class="img-upload-widget" data-target="editPackageTempleImage" data-entity="temples">
+                            <img loading="lazy" id="prevPackageTempleImage" class="img-preview" src="" alt="" style="display:none; max-width:120px; max-height:80px; object-fit:cover; border-radius:6px; margin-top:8px; border:1px solid var(--line);">
+                            <div style="display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap;">
+                                <input type="file" id="filePackageTempleImage" accept="image/jpeg,image/png,image/webp" style="flex:1; min-width:0;">
+                                <button type="button" class="btn btn-primary upload-img-btn" style="padding:6px 14px; font-size:0.85rem;" data-file="filePackageTempleImage" data-text="editPackageTempleImage" data-prev="prevPackageTempleImage" data-entity="temples">Upload Temple Image</button>
+                            </div>
+                            <span id="statusPackageTempleImage" style="font-size:0.8rem; margin-top:4px; display:block;"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Full Temple Name (Temple Details Section) <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Overrides the main temple name in the 'Temple Details' section)</span></label>
+                        <input type="text" id="editPackageTempleDetailsName" placeholder="e.g. Sri Venkateswara Swamy Temple, Tirumala">
+                    </div>
+                    <div class="form-group">
+                        <label>Date shown to visitors <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Words, e.g. "Every Masa Shivaratri")</span></label>
+                        <input type="text" id="editPackageDate" placeholder="e.g. Every Masa Shivaratri">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:16px;">
+                    <label>Date &amp; time (India time) <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Pick it from the calendar and the lists. It runs the countdown on the package page, and when the time passes the package leaves the website by itself but stays here so you can duplicate it.)</span></label>
+                    <div class="dt-row" data-dt="editPackageMuhurat">
+                        <input type="date" id="editPackageMuhuratDate" aria-label="Date">
+                        <select id="editPackageMuhuratHour" aria-label="Hour"></select><span>:</span><select id="editPackageMuhuratMin" aria-label="Minute"></select>
+                        <select id="editPackageMuhuratAp" aria-label="AM or PM"><option>AM</option><option>PM</option></select>
+                    </div>
+                    <input type="hidden" id="editPackageMuhurat">
+                </div>
             </div>
-<h4>Package details</h4><div class="form-group"><label>Duration (EN)</label><input id="package-duration-en" type="text"></div><div class="form-group"><label>Duration (TE)</label><input id="package-duration-te" type="text"></div><div class="form-group"><label>Duration (HI)</label><input id="package-duration-hi" type="text"></div><div class="form-group"><label>Tradition (EN)</label><input id="package-tradition-en" type="text"></div><div class="form-group"><label>Tradition (TE)</label><input id="package-tradition-te" type="text"></div><div class="form-group"><label>Tradition (HI)</label><input id="package-tradition-hi" type="text"></div><div class="form-group"><label>Who is this package for? (EN)</label><input id="package-forWhom-en" type="text"></div><div class="form-group"><label>Who is this package for? (TE)</label><input id="package-forWhom-te" type="text"></div><div class="form-group"><label>Who is this package for? (HI)</label><input id="package-forWhom-hi" type="text"></div><h4>Benefits</h4><div id="package-editor-benefits"></div><button type="button" class="btn" onclick="addPackageDetailRow('benefits')">Add Benefits</button><h4>Procedure</h4><div id="package-editor-procedure"></div><button type="button" class="btn" onclick="addPackageDetailRow('procedure')">Add Procedure</button><h4>Included items</h4><div id="package-editor-receive"></div><button type="button" class="btn" onclick="addPackageDetailRow('receive')">Add Included items</button><h4>FAQs</h4><div id="package-editor-faqs"></div><button type="button" class="btn" onclick="addPackageDetailRow('faqs')">Add FAQs</button><h4>Gallery image URLs</h4><div id="package-editor-gallery"></div><button type="button" class="btn" onclick="addPackageDetailRow('gallery')">Add Gallery image URLs</button>
-            <div style="margin-top:24px; display:flex; gap:12px;">
-                <button class="btn btn-primary" id="savePackageBtn" style="flex:1; justify-content:center;">Save Changes</button>
+
+            <!-- Package Content -->
+            <div style="border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
+                <h4 style="margin-bottom:4px; color:var(--text-main); font-size:1rem;">2. Title &amp; description (what visitors read)</h4>
+                <p class="text-muted" style="margin:0 0 14px; font-size:.82rem;">Type it the way you want it to look: a blank line starts a new paragraph, a line starting with <b>-</b> becomes a bullet point, a line starting with <b>#</b> becomes a heading. The white preview box under each text area shows exactly how it will look on the website. Use "Editing Language" above to switch language.</p>
+                <div id="pkg-lang-en">
+                <div class="form-group">
+                    <label>Package Title (English) <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Shows on Home, Package Details, &amp; Booking pages)</span></label>
+                    <input type="text" id="editPackageNameEn">
+                </div>
+                <div class="form-group">
+                    <label>Description (English) <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Short blurb shown on package cards)</span></label>
+                    <textarea id="editPackageDescEn" rows="4"></textarea>
+                    <div class="rt-preview-label">Preview (as on the website)</div>
+                    <div class="rt-preview rich-text" id="editPackageDescPreviewEn"></div>
+                </div>
+                <h5 style="margin:16px 0 8px; color:var(--text-muted); font-size:0.9rem;">Details Page Data <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Information shown only on the Package Details page)</span></h5>
+                <div class="form-group"><label>Tradition (English)</label><input id="package-tradition-en" type="text"></div>
+                <div class="form-group"><label>Duration (English)</label><input id="package-duration-en" type="text"></div>
+                <div class="form-group"><label>For Whom (English)</label><input id="package-forWhom-en" type="text"></div>
+                <div class="form-group">
+                    <label>About this Package (English) <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Main description on Package Details page)</span></label>
+                    <textarea id="editPackageAboutEn" rows="8"></textarea>
+                    <div class="rt-preview-label">Preview (as on the website)</div>
+                    <div class="rt-preview rich-text" id="editPackageAboutPreviewEn"></div>
+                </div>
+            </div>
+                <div id="pkg-lang-te" style="display:none;">
+                <div class="form-group">
+                    <label>Package Title (Telugu) </label>
+                    <input type="text" id="editPackageNameTe">
+                </div>
+                <div class="form-group">
+                    <label>Description (Telugu) </label>
+                    <textarea id="editPackageDescTe" rows="4"></textarea>
+                    <div class="rt-preview-label">Preview (as on the website)</div>
+                    <div class="rt-preview rich-text" id="editPackageDescPreviewTe"></div>
+                </div>
+                <h5 style="margin:16px 0 8px; color:var(--text-muted); font-size:0.9rem;">Details Page Data <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Information shown only on the Package Details page)</span></h5>
+                <div class="form-group"><label>Tradition (Telugu)</label><input id="package-tradition-te" type="text"></div>
+                <div class="form-group"><label>Duration (Telugu)</label><input id="package-duration-te" type="text"></div>
+                <div class="form-group"><label>For Whom (Telugu)</label><input id="package-forWhom-te" type="text"></div>
+                <div class="form-group">
+                    <label>About this Package (Telugu) </label>
+                    <textarea id="editPackageAboutTe" rows="8"></textarea>
+                    <div class="rt-preview-label">Preview (as on the website)</div>
+                    <div class="rt-preview rich-text" id="editPackageAboutPreviewTe"></div>
+                </div>
+            </div>
+                <div id="pkg-lang-hi" style="display:none;">
+                <div class="form-group">
+                    <label>Package Title (Hindi) </label>
+                    <input type="text" id="editPackageNameHi">
+                </div>
+                <div class="form-group">
+                    <label>Description (Hindi) </label>
+                    <textarea id="editPackageDescHi" rows="4"></textarea>
+                    <div class="rt-preview-label">Preview (as on the website)</div>
+                    <div class="rt-preview rich-text" id="editPackageDescPreviewHi"></div>
+                </div>
+                <h5 style="margin:16px 0 8px; color:var(--text-muted); font-size:0.9rem;">Details Page Data <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Information shown only on the Package Details page)</span></h5>
+                <div class="form-group"><label>Tradition (Hindi)</label><input id="package-tradition-hi" type="text"></div>
+                <div class="form-group"><label>Duration (Hindi)</label><input id="package-duration-hi" type="text"></div>
+                <div class="form-group"><label>For Whom (Hindi)</label><input id="package-forWhom-hi" type="text"></div>
+                <div class="form-group">
+                    <label>About this Package (Hindi) </label>
+                    <textarea id="editPackageAboutHi" rows="8"></textarea>
+                    <div class="rt-preview-label">Preview (as on the website)</div>
+                    <div class="rt-preview rich-text" id="editPackageAboutPreviewHi"></div>
+                </div>
+            </div>
+            </div>
+
+            <!-- Advanced Arrays -->
+            <div style="border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
+                <h4 style="margin-bottom:16px; color:var(--text-main); font-size:1rem;">3. Extra sections (optional) - Advanced Package Details <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(These sections only appear on the Package Details page)</span></h4>
+                <p class="text-muted" style="margin-bottom: 16px; font-size: 0.85rem;">Leaving these blank will use the default content for this package. These rows follow the "Editing Language" chosen above; switch the language to fill the Telugu or Hindi text of the same rows.</p>
+                
+                <h5 style="margin:16px 0 8px; color:var(--text-main);">1. Package Benefits</h5>
+                <div id="package-editor-benefits" style="display:flex; flex-direction:column; gap:8px;"></div>
+                <button type="button" class="btn" style="margin-top:8px; font-size:0.8rem;" onclick="addPackageDetailRow('benefits')">+ Add Benefit</button>
+                
+                <h5 style="margin:24px 0 8px; color:var(--text-main);">2. Package Procedure</h5>
+                <div id="package-editor-procedure" style="display:flex; flex-direction:column; gap:8px;"></div>
+                <button type="button" class="btn" style="margin-top:8px; font-size:0.8rem;" onclick="addPackageDetailRow('procedure')">+ Add Step</button>
+                
+                <h5 style="margin:24px 0 8px; color:var(--text-main);">3. What You Will Receive</h5>
+                <div id="package-editor-receive" style="display:flex; flex-direction:column; gap:8px;"></div>
+                <button type="button" class="btn" style="margin-top:8px; font-size:0.8rem;" onclick="addPackageDetailRow('receive')">+ Add Item</button>
+                
+                <h5 style="margin:24px 0 8px; color:var(--text-main);">4. FAQs (Frequently Asked Questions)</h5>
+                <div id="package-editor-faqs" style="display:flex; flex-direction:column; gap:8px;"></div>
+                <button type="button" class="btn" style="margin-top:8px; font-size:0.8rem;" onclick="addPackageDetailRow('faqs')">+ Add FAQ</button>
+                
+                <h5 style="margin:24px 0 8px; color:var(--text-main);">5. Gallery Images</h5>
+                <div id="package-editor-gallery" style="display:flex; flex-direction:column; gap:8px;"></div>
+                <button type="button" class="btn" style="margin-top:8px; font-size:0.8rem;" onclick="addPackageDetailRow('gallery')">+ Add Gallery Image</button>
+            </div>
+            <p class="text-muted" style="font-size: 0.8rem;">Private drafts never show on the website. Public and Scheduled packages update the live website when saved. After the package date and time pass, it leaves the website by itself and stays here, so you can open it, change the date and reuse it with Duplicate.</p>
+            <div style="display:flex; gap:12px;">
                 <button class="btn" id="deletePackageBtn" style="color:var(--red); border-color:var(--red); display:none;"><i class="ph ph-trash"></i></button>
             </div>
         </div>
@@ -938,7 +1179,7 @@ function togglePackageLangs(lang) {
         </div>
     </aside>
 
-    <script src="/content/pujas.js"></script><script src="/content/packages.js"></script><script defer src="/assets/js/admin.js?v=20261005-no-mantra-fields"></script>
+    <script src="/content/pujas.js"></script><script src="/content/packages.js"></script><script defer src="/assets/js/admin.js?v=20261016-drafts2"></script>
 <style>
 .dl-menu{position:relative;display:inline-block}
 .dl-menu-list{position:absolute;left:0;top:calc(100% + 6px);z-index:60;min-width:300px;background:var(--bg-panel);border:1px solid var(--border-light);border-radius:10px;padding:6px;box-shadow:0 12px 30px rgba(0,0,0,.45)}
@@ -951,10 +1192,55 @@ function togglePackageLangs(lang) {
 .dl-menu-list button small{display:block;font-size:.74rem;color:var(--text-muted)}
 @media (max-width:520px){.dl-menu-list{min-width:0;width:min(300px,calc(100vw - 48px))}}
 </style>
+<style>
+.pb-note{background:rgba(229,140,79,.1);border:1px solid rgba(229,140,79,.35);border-radius:8px;padding:9px 12px;font-size:.82rem;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start;line-height:1.4}
+.pb-note i{color:var(--accent);font-size:1.1rem;margin-top:1px}
+.pb-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.pb-check{display:flex!important;align-items:center;gap:8px;font-size:.85rem;color:var(--text-muted);margin-top:8px;cursor:pointer}
+.pb-check input{width:auto}
+.pb-check-main{color:var(--text-main);font-weight:600;margin-top:0;font-size:.92rem}
+.pb-pay{border:1px solid var(--border-light);border-radius:10px;padding:12px 14px;margin-top:6px;background:rgba(255,255,255,.02)}
+#pbPayFields{margin-top:12px}
+.pb-name-row{display:flex;gap:6px;margin-bottom:6px}
+.pb-name-row input{flex:1;min-width:0;width:auto}
+.pb-name-row button{padding:4px 9px;flex:0 0 auto;width:auto}
+</style>
 <script defer src="/assets/js/admin-export.js?v=20261015-menu"></script>
-<script defer src="/assets/js/admin-analytics.js?v=20261003-admin-v3"></script>
+<script defer src="/assets/js/rich-text.js?v=20261016-drafts2"></script>
+<script defer src="/assets/js/admin-puja.js?v=20261016-drafts2"></script>
+<script defer src="/assets/js/admin-phone-booking.js?v=20261015-phone2"></script>
+<script defer src="/assets/js/admin-analytics.js?v=20261016-leads"></script>
 <script defer src="/assets/js/booking-form-ui.js?v=20261003-form-v2"></script>
 <script defer src="/assets/js/admin-booking-form.js?v=20261003-form-v2"></script>
+
+<style id="puja-admin-style">
+.puja-head{position:sticky;top:0;z-index:10;background:var(--bg-panel);display:block !important;padding:14px 20px 10px}
+.puja-head-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.puja-head-row h3{margin:0 !important}
+.puja-vis-bar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin-top:10px}
+.puja-vis-field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.puja-vis-field label{font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em}
+.puja-vis-field select,.puja-vis-field input{padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-input);color:var(--text-main);max-width:100%}
+.puja-vis-bar .btn-primary{margin-left:auto}
+.puja-autosave{margin-top:8px;font-size:.78rem;color:var(--text-muted);min-height:1.1em}
+.puja-autosave.ok{color:#2e9e62}.puja-autosave.warn{color:#d49a2a}.puja-autosave.err{color:#e0584f}
+.dt-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.dt-row input[type=date],.dt-row select{padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-input);color:var(--text-main);width:auto}
+.puja-restore{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--accent);border-radius:8px;background:rgba(224,135,71,.08);font-size:.88rem}
+.puja-restore span{flex:1 1 220px}
+.rt-preview-label{margin:8px 0 4px;font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em}
+.rt-preview{padding:12px 14px;border-radius:8px;border:1px dashed var(--border);background:#fff;color:#3a2a22;font-size:.92rem;min-height:2.4em}
+.rt-preview:empty::before{content:"Nothing typed yet";color:#9a8f89}
+.rt-preview .rt-p{margin:0 0 .85em;line-height:1.7}.rt-preview .rt-h{margin:1em 0 .4em;font-size:1.05em;font-weight:800;color:#8b1d2c}.rt-preview .rt-sub{margin:.9em 0 .3em;font-weight:700}
+.rt-preview .rt-list{margin:0 0 .9em;padding-left:1.3em}.rt-preview .rt-list li{margin:0 0 .35em;line-height:1.6}.rt-preview .rt-symbols{list-style:none;padding-left:.2em}
+.rt-preview>:first-child{margin-top:0}.rt-preview>:last-child{margin-bottom:0}
+.puja-filter{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.puja-filter button{padding:7px 14px;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:.82rem}
+.puja-filter button.active{background:var(--accent);border-color:var(--accent);color:#1a0d08;font-weight:700}
+.st-badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.72rem;font-weight:700;white-space:nowrap}
+.st-live{background:rgba(46,158,98,.18);color:#43c785}.st-draft{background:rgba(160,160,160,.2);color:#b8b8b8}
+.st-scheduled{background:rgba(70,130,220,.2);color:#7fb0f5}.st-ended{background:rgba(224,88,79,.16);color:#f08a83}
+</style>
 </body>
 </html>
 

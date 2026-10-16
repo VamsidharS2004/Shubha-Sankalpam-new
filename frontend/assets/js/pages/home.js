@@ -36,39 +36,61 @@ function renderSlider() {
   const firstSlide = heroSlider.querySelector('[data-dynamic-hero][data-slide="0"]');
   const firstPuja = topPujas[0];
   if (firstSlide && firstPuja) {
-    const image = firstSlide.querySelector('.hero-img');
-    const picture = firstSlide.querySelector('picture');
-    const heading = firstSlide.querySelector('.hero-copy h1');
-    const description = firstSlide.querySelector('.hero-desc');
-    const meta = firstSlide.querySelectorAll('.hero-meta .hm-item');
-    const buttons = firstSlide.querySelectorAll('.hero-buttons a');
-    if (image) {
-      // same URLs the build bakes into home.html, so the browser never downloads twice
-      const src = heroImageSrc(firstPuja.image, 1200);
-      if (image.getAttribute("src") !== src) image.src = src;
-      if (supabaseResized(firstPuja.image, 1)) image.dataset.orig = firstPuja.image;
-      image.alt = localName(firstPuja);
-    }
-    if (picture && typeof responsiveDesktopImage === "function") {
-      const desktop = responsiveDesktopImage(firstPuja);
-      const source = picture.querySelector('source[media="(min-width: 1200px)"]');
-      if (desktop && source) source.srcset = desktop;
-      // phones: the main thumbnail, resized for phone screens
-      const mobileSource = picture.querySelector('source[media="(max-width: 767px)"]');
-      const mobile = heroImageSrc(firstPuja.image, 800);
-      if (mobileSource && mobileSource.getAttribute("srcset") !== mobile) mobileSource.srcset = mobile;
-    }
-    if (heading) heading.innerHTML = twoToneHeadline(localName(firstPuja));
-    if (description) description.textContent = localDesc(firstPuja);
-    if (meta[0]) meta[0].textContent = localTemple(firstPuja);
-    if (meta[1]) meta[1].textContent = localDate(firstPuja);
-    if (buttons[0]) {
-      buttons[0].href = `/puja-details/${encodeURIComponent(firstPuja.id)}`;
-      buttons[0].innerHTML = '<span>Book Now</span>';
-    }
-    if (buttons[1]) buttons[1].textContent = 'View All Pujas';
-    const firstTrustRow = firstSlide.querySelector('.hero-feature-row');
-    if (firstTrustRow) firstTrustRow.innerHTML = renderTrustFeatures();
+    /* The page is built with the right first hero already in it (text + photo), so normally nothing here
+       changes. Each value is written only when it really differs, and a different photo is swapped in only
+       once it has downloaded - the banner never goes blank or flips between two pujas. */
+    const same = firstSlide.dataset.pujaId === String(firstPuja.id);
+    const apply = () => {
+      const image = firstSlide.querySelector('.hero-img');
+      const picture = firstSlide.querySelector('picture');
+      const heading = firstSlide.querySelector('.hero-copy h1');
+      const description = firstSlide.querySelector('.hero-desc');
+      const meta = firstSlide.querySelectorAll('.hero-meta .hm-item');
+      const buttons = firstSlide.querySelectorAll('.hero-buttons a');
+      const setText = (el, v) => { if (el && el.textContent !== v) el.textContent = v; };
+      if (image) {
+        const src = heroImageSrc(firstPuja.image, 1200);
+        if (image.getAttribute("src") !== src) image.src = src;
+        if (supabaseResized(firstPuja.image, 1)) image.dataset.orig = firstPuja.image;
+        if (image.alt !== localName(firstPuja)) image.alt = localName(firstPuja);
+      }
+      if (picture && typeof responsiveDesktopImage === "function") {
+        const desktop = responsiveDesktopImage(firstPuja);
+        const source = picture.querySelector('source[media="(min-width: 1200px)"]');
+        if (desktop && source && source.getAttribute("srcset") !== desktop) source.srcset = desktop;
+        const mobileSource = picture.querySelector('source[media="(max-width: 767px)"]');
+        const mobile = heroImageSrc(firstPuja.image, 800);
+        if (mobileSource && mobileSource.getAttribute("srcset") !== mobile) mobileSource.srcset = mobile;
+      }
+      if (heading) {
+        const wanted = document.createElement("div"); wanted.innerHTML = twoToneHeadline(localName(firstPuja));
+        if (wanted.innerHTML !== heading.innerHTML) heading.innerHTML = wanted.innerHTML;
+      }
+      setText(description, localDesc(firstPuja));
+      if (meta[0]) setText(meta[0], localTemple(firstPuja));
+      if (meta[1]) setText(meta[1], localDate(firstPuja));
+      if (buttons[0]) {
+        const href = `/puja-details/${encodeURIComponent(firstPuja.id)}`;
+        if (buttons[0].getAttribute("href") !== href) buttons[0].setAttribute("href", href);
+        if (buttons[0].textContent !== "Book Now") buttons[0].innerHTML = '<span>Book Now</span>';
+      }
+      if (buttons[1]) setText(buttons[1], 'View All Pujas');
+      const firstTrustRow = firstSlide.querySelector('.hero-feature-row');
+      if (firstTrustRow) { const t = document.createElement("div"); t.innerHTML = renderTrustFeatures(); if (t.innerHTML !== firstTrustRow.innerHTML) firstTrustRow.innerHTML = t.innerHTML; }
+      firstSlide.dataset.pujaId = String(firstPuja.id);
+    };
+    const current = firstSlide.querySelector('.hero-img');
+    const needsNewPhoto = !same && firstPuja.image && current && current.getAttribute("src") !== heroImageSrc(firstPuja.image, 1200);
+    if (needsNewPhoto) {
+      // the page shows an older hero: fetch the right photo first, then swap photo and text together
+      const probe = new Image();
+      let swapped = false;
+      const swap = () => { if (!swapped) { swapped = true; apply(); } };
+      probe.onload = () => (probe.decode ? probe.decode().catch(() => {}) : Promise.resolve()).then(swap);
+      probe.onerror = swap;
+      probe.src = heroImageSrc(firstPuja.image, window.innerWidth < 768 ? 800 : 1200);
+      setTimeout(swap, 2500);
+    } else apply();
   }
   heroSlider.insertAdjacentHTML('beforeend', topPujas.slice(1).map((p, index) => {
     const i = index + 1;
@@ -195,14 +217,37 @@ function warmHeroImages() {
     img.loading = 'eager';
     if (img.decode) img.decode().catch(() => {});
   });
-  if (document.readyState === 'complete') setTimeout(run, 300);
-  else window.addEventListener('load', () => setTimeout(run, 300), { once: true });
+  const first = heroSlider.querySelector('.hero-slide[data-slide="0"] .hero-img');
+  if (!first || first.complete) setTimeout(run, 50);
+  else first.addEventListener('load', () => setTimeout(run, 50), { once: true });
+}
+
+/* A slide may only be shown once its photo is ready; otherwise it would slide in empty. */
+function slideReady(i) {
+  const img = heroSlider.querySelectorAll('.hero-slide')[i] && heroSlider.querySelectorAll('.hero-slide')[i].querySelector('.hero-img');
+  return !img || (img.complete && img.naturalWidth > 0);
+}
+function whenSlideReady(i, then) {
+  if (slideReady(i)) return then();
+  const img = heroSlider.querySelectorAll('.hero-slide')[i].querySelector('.hero-img');
+  img.loading = 'eager';
+  let fired = false;
+  const go = () => { if (!fired) { fired = true; then(); } };
+  img.addEventListener('load', go, { once: true });
+  img.addEventListener('error', go, { once: true });
+  setTimeout(go, 2500);
+}
+function stepSlide(delta) {
+  const n = heroSlider.querySelectorAll('.hero-slide').length;
+  if (!n) return;
+  const target = (((currentSlide + delta) % n) + n) % n;
+  whenSlideReady(target, () => goToSlide(currentSlide + delta, true));
 }
 
 /* Returns up to `max` hero pujas for the selected language. */
 function getHeroPujas(lang, max) {
   return pujas.filter(p => 
-    p.language === lang && 
+    p.language === lang && !pujaEnded(p) &&
     (p.show_in_hero === true || (p.detail && p.detail.show_in_hero === true))
   ).slice(0, max);
 }
@@ -210,7 +255,7 @@ function getHeroPujas(lang, max) {
 /* Keep the existing first hero visible if a language has no specific hero. */
 function renderHeroEmpty() {
   if (!heroSlider) return;
-  topPujas = pujas.filter(p => p.show_in_hero === true || (p.detail && p.detail.show_in_hero === true)).slice(0, 3);
+  topPujas = pujas.filter(p => !pujaEnded(p) && (p.show_in_hero === true || (p.detail && p.detail.show_in_hero === true))).slice(0, 3);
   if (!topPujas.length) return;
   showHeroSlider();
   renderSlider();
@@ -274,8 +319,8 @@ if (heroSlider && heroDots && typeof pujas !== "undefined") {
 
   const heroPrev = $id("heroPrev");
   const heroNext = $id("heroNext");
-  if (heroPrev) heroPrev.addEventListener('click', () => goToSlide(currentSlide - 1, true));
-  if (heroNext) heroNext.addEventListener('click', () => goToSlide(currentSlide + 1, true));
+  if (heroPrev) heroPrev.addEventListener('click', () => stepSlide(-1));
+  if (heroNext) heroNext.addEventListener('click', () => stepSlide(1));
 
   let startX = 0, isDragging = false;
   heroSlider.addEventListener('touchstart', e => { startX = e.touches[0].clientX; isDragging = true; }, {passive:true});
@@ -283,15 +328,18 @@ if (heroSlider && heroDots && typeof pujas !== "undefined") {
     if (!isDragging) return;
     const diffX = e.touches[0].clientX - startX;
     if (Math.abs(diffX) > 50) {
-      if (diffX > 0) goToSlide(currentSlide - 1, true);
-      else goToSlide(currentSlide + 1, true);
+      if (diffX > 0) stepSlide(-1);
+      else stepSlide(1);
       isDragging = false;
     }
   }, {passive:true});
   heroSlider.addEventListener('touchend', () => { isDragging = false; });
   
   setInterval(() => {
-    if (!document.hidden && !heroSlider.matches(":hover, :focus-within") && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) goToSlide(currentSlide + 1, true);
+    if (!document.hidden && !heroSlider.matches(":hover, :focus-within") && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const n = heroSlider.querySelectorAll('.hero-slide').length;
+      if (n > 1 && slideReady((currentSlide + 1) % n)) goToSlide(currentSlide + 1, true);   // never slide into a photo that has not loaded yet
+    }
   }, 6000);
 }
 wireTabs("tabs", $id("pujaCards"), pujas, "puja");

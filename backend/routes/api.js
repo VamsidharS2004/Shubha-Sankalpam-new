@@ -16,12 +16,14 @@ const { requireLogin, optionalLogin, adminOnly } = require("../middleware/auth")
 
 const siteSettings = require('../controllers/siteSettingsController');
 const analyticsReports = require('../controllers/analyticsReportController');
+const visitorLeads = require('../controllers/visitorLeadsController');
 const bookingForm = require('../controllers/bookingFormController');
 const routes = [
   {method:'GET',path:'/api/content/booking-form',middleware:[],handler:bookingForm.getForm},
   {method:'GET',path:'/api/admin/booking-form',middleware:[adminOnly],handler:bookingForm.getForm},
   {method:'PUT',path:'/api/admin/booking-form',middleware:[adminOnly],handler:bookingForm.saveForm},
   {method:'POST',path:'/api/analytics/event',middleware:[],handler:analyticsReports.recordEvent},
+  {method:'GET',path:'/api/admin/analytics/leads',middleware:[adminOnly],handler:visitorLeads.getLeads},
   {method:'GET',path:'/api/admin/analytics/summary',middleware:[adminOnly],handler:analyticsReports.getSummary},
   {method:'GET',path:'/api/admin/settings',middleware:[adminOnly],handler:siteSettings.getSettings},
   {method:'PUT',path:'/api/admin/settings',middleware:[adminOnly],handler:siteSettings.updateSettings},
@@ -43,6 +45,8 @@ const routes = [
   { method: "POST", path: "/api/admin/upload",   middleware: [adminOnly],    handler: cms.uploadImage },
   { method: "GET",  path: "/api/admin/bookings", middleware: [adminOnly],    handler: booking.listAll },
   { method: "POST", path: "/api/admin/bookings", middleware: [adminOnly],    handler: booking.adminCreateBooking },
+  { method: "POST", path: "/api/admin/bookings/phone", middleware: [adminOnly], handler: require("../controllers/phoneBookingController").createPhoneBooking },
+  { method: "POST", path: "/api/admin/bookings/resend-confirmation", middleware: [adminOnly], handler: require("../controllers/phoneBookingController").resendConfirmation },
   { method: "PUT",  path: "/api/admin/bookings/video", middleware: [adminOnly], handler: booking.updateVideo },
   { method: "POST", path: "/api/admin/upload-video/start", middleware: [adminOnly], handler: video.startVideoUpload },
   { method: "POST", path: "/api/admin/upload-video/chunk", middleware: [adminOnly], handler: video.uploadVideoChunk },

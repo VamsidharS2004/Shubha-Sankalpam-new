@@ -5,7 +5,7 @@ const { supabase } = require("./supabase");
 
 const PUJAS_FILE = path.join(__dirname, "../../frontend/content/pujas.js");
 const PACKAGES_FILE = path.join(__dirname, "../../frontend/content/packages.js");
-const CMS_SYNC_CACHE_MS = 30_000;
+const CMS_SYNC_CACHE_MS = 4_000;
 let lastSuccessfulSyncAt = 0;
 let lastSyncAttemptAt = 0;
 let syncInFlight = null;
@@ -178,7 +178,7 @@ async function performSupabaseSync() {
 function syncFromSupabase() {
     if (!supabase) return Promise.resolve();
     if (Date.now() - lastSuccessfulSyncAt < CMS_SYNC_CACHE_MS) return Promise.resolve();
-    if (Date.now() - lastSyncAttemptAt < 5_000) return Promise.resolve();
+    if (Date.now() - lastSyncAttemptAt < 2_000) return Promise.resolve();
     if (!syncInFlight) {
         lastSyncAttemptAt = Date.now();
         syncInFlight = performSupabaseSync().finally(() => { syncInFlight = null; });

@@ -53,6 +53,12 @@ if (authToken && item) {
 // Keep puja-specific descriptions and procedures attached only to their own puja.
 let D = item.detail || {};
 
+/* admin text -> paragraphs / headings / points (see assets/js/rich-text.js); plain text if that file is missing */
+function setRichText(el, text) {
+  if (!el) return;
+  if (typeof ssSetRich === "function") ssSetRich(el, text); else el.textContent = text;
+}
+
 function renderDetails() {
   document.title = localName(item) + " — Puja Details";
   $id("pdCaption").textContent = localName(item).toUpperCase();
@@ -79,12 +85,12 @@ function renderDetails() {
   const aboutText = String(D["about_" + currentLang] || ((!item.language || item.language === currentLang) ? (D.about || "") : "")).trim();
   const descriptionEl = $id("pdDescription");
   if (descriptionEl) {
-    descriptionEl.textContent = description;
+    setRichText(descriptionEl, description);       // keeps the paragraphs / headings / points typed in admin
     descriptionEl.hidden = !description;
   }
   // Keep the long-form puja explanation in About Puja; the short description
   // is shown immediately below the title in the hero.
-  $id("pdAbout").textContent = aboutText;
+  setRichText($id("pdAbout"), aboutText);
   const btn = $id("pdReadMore");
   if (btn) btn.innerHTML = `<span data-i18n="read_more">${dt("read_more")}</span> <span class="rm-arrow">⌄</span>`;
   
@@ -103,7 +109,7 @@ function renderDetails() {
     div.className = "benefit-card";
     div.innerHTML = `<span class="ben-icon">🌸</span><div><h3></h3><p></p></div>`;
     div.querySelector("h3").textContent = b["t_" + currentLang] || b.t;
-    div.querySelector("p").textContent = b["d_" + currentLang] || b.d;
+    setRichText(div.querySelector("p"), b["d_" + currentLang] || b.d);
     $id("pdBenefits").appendChild(div);
   });
 
@@ -114,7 +120,7 @@ function renderDetails() {
     div.innerHTML = `<span class="proc-num">${String(i + 1).padStart(2, "0")}</span>
       <div class="proc-card">${s.core ? `<span class="core-tag">✦ <span data-i18n="core_ritual">${dt("core_ritual")}</span></span>` : ""}<h3></h3><p></p></div>`;
     div.querySelector("h3").textContent = s["t_" + currentLang] || s.t;
-    div.querySelector("p").textContent = s["d_" + currentLang] || s.d;
+    setRichText(div.querySelector("p"), s["d_" + currentLang] || s.d);
     $id("pdProcedure").appendChild(div);
   });
   
@@ -255,20 +261,31 @@ if ($id("pdStickyBook")) $id("pdStickyBook").addEventListener("click", goBook);
 const bookBtnRow = $id("bookBtnRow");
 const stickyRow = $id("pdStickyRow");
 if (bookBtnRow && stickyRow) {
-  // Use a negative root margin to account for the fixed header height (~80px).
-  // This makes the intersection area start below the header.
-  const observer = new IntersectionObserver((entries) => {
-    const entry = entries[0];
-    // Show sticky bar ONLY if button is out of view (above the viewport)
-    // We check boundingClientRect.top < 100 to ensure we scrolled DOWN past it, 
-    // rather than it being below the fold on initial load.
-    if (!entry.isIntersecting && entry.boundingClientRect.top < 100 && !stickyRow.classList.contains("hidden-by-tick")) {
-      stickyRow.classList.add("visible");
-    } else {
-      stickyRow.classList.remove("visible");
-    }
-  }, { threshold: 0, rootMargin: "-80px 0px 0px 0px" });
-  observer.observe(bookBtnRow);
+  // The bottom bar is shown whenever the in-page Book Now button is NOT in view (scrolled past it, or
+  // still below the fold) and hidden while that button is on screen, so the two never overlap.
+  // "In view" ignores the area covered by the fixed header + sticky tabs (top) and by the bar itself (bottom).
+  let observer = null;
+  const setBar = on => {
+    const show = on && !stickyRow.classList.contains("hidden-by-tick");
+    stickyRow.classList.toggle("visible", show);
+    document.body.classList.toggle("pd-sb-on", show);
+  };
+  const watch = () => {
+    if (observer) observer.disconnect();
+    const header = document.querySelector("header");
+    const tabs = document.querySelector(".pd-sidebar");
+    const mobile = window.matchMedia("(max-width: 960px)").matches;
+    const top = (header ? header.offsetHeight : 70) + (mobile && tabs ? tabs.offsetHeight : 0);
+    const bottom = stickyRow.offsetHeight ? stickyRow.offsetHeight + 24 : 90;
+    observer = new IntersectionObserver(entries => setBar(!entries[entries.length - 1].isIntersecting), {
+      threshold: 0, rootMargin: "-" + top + "px 0px -" + bottom + "px 0px"
+    });
+    observer.observe(bookBtnRow);
+  };
+  watch();
+  let resizeTimer;
+  window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(watch, 150); });
+  window.addEventListener("load", watch);
 }
 
 /* "Read More" — only appears if the text actually overflows 3 lines,

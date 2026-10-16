@@ -19,6 +19,7 @@ async function create(req, res) {
   if (Number(raw.price) !== item.price) return send(res,409,{error:'The price has changed. Refresh the booking page before continuing.',price:item.price});
   const whatsapp = String(raw.phone || '').replace(/\D/g,'').slice(-10);
   if (!/^[6-9]\d{9}$/.test(whatsapp)) return send(res,400,{error:'Please enter a valid WhatsApp number.'});
+  require('./visitorLeadsController').link(req, { phone: req.userPhone, name: raw.name });
   raw.phone = req.userPhone;
   raw.puja = item.name;
   raw.price = item.price;

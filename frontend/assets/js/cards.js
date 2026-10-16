@@ -137,6 +137,7 @@ function renderCards(container, list, type, cat) {
   list.forEach((p, i) => {
     if (cat && cat !== "All" && p.cat !== cat && !(cat === "Finance" && p.cat === "Wealth") && !(cat === "Wealth" && p.cat === "Finance")) return;
     if (type === "puja" && p.language && p.language !== currentLang) return;
+    if ((type === "puja" || type === "pkg") && typeof pujaEnded === "function" && pujaEnded(p)) return;   // finished pujas disappear automatically
     const card = document.createElement("article");
     card.className = "card";
     card.innerHTML = cardHTML(p, i, type);
@@ -231,9 +232,10 @@ function buildFaqList(container, items) {
   items.forEach(f => {
     const item = document.createElement("div");
     item.className = "faq";
-    item.innerHTML = `<div class="faq-q-text" style="padding:20px 24px 10px 24px; font-size:1.02rem; font-weight:600; color:var(--ink);"></div><div class="faq-a" style="display:block;"><p style="padding:0 24px 22px; color:rgba(0,0,0,0.7); line-height:1.6; font-size:0.96rem; margin:0;"></p></div>`;
+    item.innerHTML = `<div class="faq-q-text" style="padding:20px 24px 10px 24px; font-size:1.02rem; font-weight:600; color:var(--ink);"></div><div class="faq-a" style="display:block;"><div class="faq-a-body" style="padding:0 24px 22px; color:rgba(0,0,0,0.7); line-height:1.6; font-size:0.96rem; margin:0;"></div></div>`;
     item.querySelector(".faq-q-text").textContent = f.q;
-    item.querySelector(".faq-a p").textContent = f.a;
+    const answer = item.querySelector(".faq-a-body");
+    if (typeof ssSetRich === "function" && /\n/.test(String(f.a || ""))) ssSetRich(answer, f.a); else answer.textContent = f.a;   // keeps paragraphs / points typed in admin
     container.appendChild(item);
   });
 }

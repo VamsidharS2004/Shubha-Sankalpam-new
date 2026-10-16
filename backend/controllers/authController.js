@@ -134,6 +134,7 @@ async function verifyOtp(req, res) {
     user.email = storedEmail;
   }
   
+  require('./visitorLeadsController').link(req, { phone: p, name: user && user.name });
   const token = createSession(p);
   analyticsModel.recordLogin(p, (user && user.name) || "Devotee", token);
   send(res, 200, { token, user });

@@ -97,14 +97,32 @@ function serveStaticAsset(req, res, filePath) {
   });
 }
 
-const PUBLIC_CDN_CACHE = "max-age=60, stale-while-revalidate=86400";
+/* Vercel's CDN keeps each catalog for 60 s, then keeps serving the previous copy instantly (for up to
+   7 days) while it refreshes in the background — so a visitor never waits for a cold server. */
+const PUBLIC_CDN_CACHE = "max-age=5";
+
+/* A freshly started (cold) server only has the copy of the catalog that was deployed, which can be old.
+   Wait briefly for the real data from the database so the first visitor is not shown outdated pujas;
+   if the database is slow, answer with what we have after COLD_WAIT_MS and finish the refresh in the background. */
+const COLD_WAIT_MS = 2500;
+const WARM_WAIT_MS = 700; // a warm server never makes a visitor wait long, even if the database is slow
+async function refreshCatalog(filePath) {
+  const { ensureInitialSync } = require("./utils/cmsSync");
+  const sync = ensureInitialSync().catch(err => console.warn("[CMS] Background refresh failed:", err.message));
+  /* Always wait (bounded) for a due refresh, so a puja published on another server instance is never missed.
+     Within the short sync window this resolves instantly. */
+  const seen = (global.__catalogServed ||= {});
+  const cold = !(global.__cmsCache && global.__cmsCache[filePath]) && !seen[filePath];
+  seen[filePath] = true;
+  await Promise.race([sync, new Promise(resolve => setTimeout(resolve, cold ? COLD_WAIT_MS : WARM_WAIT_MS))]);
+}
 
 function sendCatalog(req, res, source, type) {
   const etag = '"' + require("crypto").createHash("sha256").update(source).digest("hex") + '"';
   // Browsers always revalidate, but Vercel's CDN may keep a copy for 60 s and
   // serve a stale copy while refreshing in the background. This stops every
   // page view from waiting on the server function; admin edits appear within ~1 min.
-  const headers = { "Cache-Control": "public, max-age=30, stale-while-revalidate=600", "Vercel-CDN-Cache-Control": PUBLIC_CDN_CACHE, "ETag": etag };
+  const headers = { "Cache-Control": "public, max-age=0, must-revalidate", "Vercel-CDN-Cache-Control": PUBLIC_CDN_CACHE, "ETag": etag };
   if (req.headers["if-none-match"] === etag) { res.writeHead(304, headers); return res.end(); }
   return send(res, 200, source, type, headers);
 }
@@ -127,8 +145,11 @@ const requestHandler = async (req, res) => {
     if (/^\/(?:admin|api)(?:[\/.]|$)/.test(url.pathname)) res.setHeader("X-Robots-Tag", "noindex, nofollow");
 
     /* Health check for uptime monitors */
-    if (req.method === "GET" && url.pathname === "/api/health")
+    if (req.method === "GET" && url.pathname === "/api/health") {
+      // An uptime monitor pinging this keeps the server warm AND the pujas up to date (see LOADING-FIX notes).
+      await refreshCatalog(path.join(__dirname, "../frontend/content/pujas.js"));
       return send(res, 200, { ok: true, time: new Date().toISOString() });
+    }
 
     /* 1. API */
     if (await handleApi(req, res, url)) return;
@@ -173,25 +194,30 @@ const requestHandler = async (req, res) => {
 
     /* 2.8 Dynamic JS content (Vercel Fix) */
     if (url.pathname.startsWith('/content/') && url.pathname.endsWith('.js')) {
-      const { safeRead, ensureInitialSync } = require('./utils/cmsSync');
-      ensureInitialSync().catch(err => console.warn("[CMS] Background refresh failed:", err.message));
+      const { safeRead } = require('./utils/cmsSync');
+      const catalogFile = name => path.join(__dirname, "../frontend/content/" + name);
       if (url.pathname === '/content/site-settings.js') {
         require('./controllers/siteSettingsController').refreshSettings();
         const data=safeRead(path.join(FRONTEND_DIR,'content/site-settings.js'),'SITE');
         return sendCatalog(req,res,`const SITE = ${JSON.stringify(data)};`, 'application/javascript');
       }
       if (url.pathname === '/content/pujas.js') {
-        const filePath = path.join(__dirname, "../frontend/content/pujas.js");
-        const data = safeRead(filePath, "pujas");
+        const filePath = catalogFile("pujas.js");
+        await refreshCatalog(filePath);
+        // drafts and not-yet-live (scheduled) pujas never leave the server
+        const data = require("./utils/pujaVisibility").filterPublic(safeRead(filePath, "pujas"));
         return sendCatalog(req, res, `const pujas = ${JSON.stringify(data)};\nif (typeof module !== "undefined") module.exports = { pujas };`, "application/javascript");
       }
       if (url.pathname === '/content/packages.js') {
-        const filePath = path.join(__dirname, "../frontend/content/packages.js");
-        const data = safeRead(filePath, "packages");
+        const filePath = catalogFile("packages.js");
+        await refreshCatalog(filePath);
+        // drafts and not-yet-live (scheduled) packages never leave the server
+        const data = require("./utils/pujaVisibility").filterPublic(safeRead(filePath, "packages"));
         return sendCatalog(req, res, `const packages = ${JSON.stringify(data)};\nif (typeof module !== "undefined") module.exports = { packages };`, "application/javascript");
       }
       if (url.pathname === '/content/temples.js') {
-        const filePath = path.join(__dirname, "../frontend/content/temples.js");
+        const filePath = catalogFile("temples.js");
+        await refreshCatalog(filePath);
         const data = safeRead(filePath, "TEMPLES");
         return sendCatalog(req, res, `const TEMPLES = ${JSON.stringify(data)};\nif (typeof module !== "undefined") module.exports = { TEMPLES };`, "application/javascript");
       }
@@ -212,9 +238,19 @@ const requestHandler = async (req, res) => {
     }
     if (!filePath.startsWith(FRONTEND_DIR)) return send(res, 403, { error: "Forbidden" });
     if (!filePath.endsWith(".html")) return serveStaticAsset(req, res, filePath);
+    const isHome = path.basename(filePath) === "home.html";
+    if (isHome) await refreshCatalog(path.join(__dirname, "../frontend/content/pujas.js"));
     fs.readFile(filePath, (err, data) => {
         if (!err && filePath.endsWith('.html')) {
             let htmlStr = data.toString('utf8');
+            if (isHome) {
+              /* Always show the CURRENT first hero from the very first paint (no old puja flashing before the real one),
+                 even if the page file was built earlier. Cheap text edit; falls back to the file as-is on any problem. */
+              try {
+                const { bakeHomeHero } = require("../scripts/hero-bake");
+                htmlStr = bakeHomeHero(htmlStr, path.join(__dirname, ".."), () => null, require("./utils/cmsSync").safeRead(path.join(__dirname, "../frontend/content/pujas.js"), "pujas"));
+              } catch (e) { console.warn("[Hero] live bake skipped:", e.message); }
+            }
             htmlStr = htmlStr.replace(/(src|href)="([^"]+)\?v=(client-\d+|[0-9]+)"/g, (match, attr, assetPath) => {
                 try {
                     if (assetPath.startsWith("content/")) {

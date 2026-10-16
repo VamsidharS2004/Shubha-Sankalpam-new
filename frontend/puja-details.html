@@ -58,19 +58,19 @@ html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <noscript></noscript>
-<link rel="stylesheet" href="assets/css/global.css?v=20261011-nav-lang">
-<link rel="stylesheet" href="assets/css/navbar.css?v=20261011-nav-lang">
-<link rel="stylesheet" href="assets/css/puja-details.css?v=20261011-nav-lang">
-<link rel="stylesheet" href="assets/css/animations.css?v=20261011-nav-lang">
-<link rel="stylesheet" href="assets/css/responsive.css?v=20261011-nav-lang">  <!-- always last -->
+<link rel="stylesheet" href="assets/css/global.css?v=20261016-drafts2">
+<link rel="stylesheet" href="assets/css/navbar.css?v=20261016-drafts2">
+<link rel="stylesheet" href="assets/css/puja-details.css?v=20261016-drafts2">
+<link rel="stylesheet" href="assets/css/animations.css?v=20261016-drafts2">
+<link rel="stylesheet" href="assets/css/responsive.css?v=20261016-drafts2">  <!-- always last -->
 <title>Shubha Sankalpam | Puja Details</title>
 <meta name="description" content="Everything about this puja — benefits, procedure, temple, timings, and how to book — performed by verified Vedic purohits.">
 
   <!-- Favicon -->
-<link rel="stylesheet" href="assets/css/content-layout.css?v=20261011-nav-lang">
+<link rel="stylesheet" href="assets/css/content-layout.css?v=20261016-drafts2">
 
 </head>
-<body>
+<body class="pd-page">
 <style>.pd-content{visibility:hidden}.ss-details-ready .pd-content{visibility:visible}.ss-details-ready #pdLoading{display:none}#pdLoading{padding:100px 24px;text-align:center;color:#781529}#pdLoading span{display:inline-block;width:32px;height:32px;border:3px solid #ead9c1;border-top-color:#781529;border-radius:50%;animation:pd-pulse 1s infinite}</style>
 <div id="pdLoading" hidden></div>
 <div id="site-header"><!-- ss-header:start (generated from navbar.js) -->
@@ -144,7 +144,7 @@ html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i
       </div>
 
       <h1 id="pdTitle" class="pd-hero-title"></h1>
-      <p id="pdDescription" class="pd-text pd-description" hidden></p>
+      <div id="pdDescription" class="pd-text pd-description" hidden></div>
       
       <div class="pd-hero-meta">
         <div class="pd-meta-item"><span class="ic">📅</span> <b id="pdDate"></b></div>
@@ -232,7 +232,7 @@ html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i
       <section id="sec-about" class="pd-section">
         <h2 class="pd-section-title" data-i18n="h_about">About Puja</h2>
         <div class="pd-section-content">
-          <p id="pdAbout" class="pd-text"></p>
+          <div id="pdAbout" class="pd-text"></div>
           <button id="pdReadMore" style="display:none;"></button>
           <div id="pdInfoTable" style="display:none;"></div>
         </div>
@@ -290,7 +290,7 @@ html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i
     <div class="pd-sb-inner">
       <div class="pd-sb-left">
         <div class="pd-sb-icon">
-          <img loading="lazy" src="assets/images/favicon-48.webp" alt="Logo" style="width: 100%; height: 100%; object-fit: contain;">
+          <img src="data:image/webp;base64,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" alt="Shubha Sankalpam logo" width="48" height="48" decoding="sync" style="width: 100%; height: 100%; object-fit: contain;"><!-- logo is inlined: it can never be missing or late on a slow phone -->
         </div>
         <div class="pd-sb-text">
           <h4 id="pdStickyName"></h4>
@@ -311,22 +311,23 @@ html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i
 <div id="site-footer"></div>
 
 <!-- ============ CONTENT ============ -->
-<script defer src="content/site-settings.js?v=20261011-nav-lang"></script>
-<script defer src="content/pujas.js?v=20261011-nav-lang"></script>
-<script defer src="content/packages.js?v=20261011-nav-lang"></script>
-<script defer src="content/puja-detail-defaults.js?v=20261011-nav-lang"></script>
-<script defer src="content/trust-highlights.js?v=20261011-nav-lang"></script>
-<script defer src="content/faq.js?v=20261011-nav-lang"></script>
+<script defer src="content/site-settings.js?v=20261016-drafts2"></script>
+<script defer src="content/pujas.js?v=20261016-drafts2"></script>
+<script defer src="content/packages.js?v=20261016-drafts2"></script>
+<script defer src="content/puja-detail-defaults.js?v=20261016-drafts2"></script>
+<script defer src="content/trust-highlights.js?v=20261016-drafts2"></script>
+<script defer src="content/faq.js?v=20261016-drafts2"></script>
 
 <!-- ============ SITE CODE ============ -->
-<script defer src="assets/js/main.js?v=20261011-nav-lang"></script>
-<script defer src="assets/js/language.js?v=20261011-nav-lang"></script>
-<script defer src="assets/js/navbar.js?v=20261011-nav-lang"></script>
-<script defer src="assets/js/animations.js?v=20261011-nav-lang"></script>
-<script defer src="assets/js/cards.js?v=20261011-nav-lang"></script>
-<script defer src="assets/js/pages/details.js?v=20261011-nav-lang"></script>
+<script defer src="assets/js/main.js?v=20261016-drafts2"></script>
+<script defer src="assets/js/language.js?v=20261016-drafts2"></script>
+<script defer src="assets/js/navbar.js?v=20261016-drafts2"></script>
+<script defer src="assets/js/animations.js?v=20261016-drafts2"></script>
+<script defer src="assets/js/cards.js?v=20261016-drafts2"></script>
+<script defer src="assets/js/rich-text.js?v=20261016-drafts2"></script>
+<script defer src="assets/js/pages/details.js?v=20261016-drafts2"></script>
 
-  <script defer src="assets/js/cms-renderer.js?v=20261011-nav-lang"></script>
-<script defer src="assets/js/analytics-tracker.js?v=20261011-nav-lang"></script>
+  <script defer src="assets/js/cms-renderer.js?v=20261016-drafts2"></script>
+<script defer src="assets/js/analytics-tracker.js?v=20261016-drafts2"></script>
 </body>
 </html>

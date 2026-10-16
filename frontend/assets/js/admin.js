@@ -31,7 +31,7 @@ async function optimizeCmsImage(file) {
         const maxWidth = 1920;
         const maxHeight = 1080;
         const scale = Math.min(1, maxWidth / bitmap.width, maxHeight / bitmap.height);
-        if (scale === 1 && file.size < 512 * 1024) return file;
+        if (scale === 1 && file.size < 120 * 1024) return file;   // already tiny
 
         const canvas = document.createElement("canvas");
         canvas.width = Math.max(1, Math.round(bitmap.width * scale));
@@ -47,6 +47,7 @@ async function optimizeCmsImage(file) {
             const smaller = await new Promise(resolve => canvas.toBlob(resolve, "image/webp", 0.68));
             if (smaller && smaller.size < blob.size) blob = smaller;
         }
+        if (scale === 1 && blob.size >= file.size) return file;   // never make a photo bigger
         return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".webp", {
             type: "image/webp",
             lastModified: file.lastModified
@@ -119,6 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (notesInp) notesInp.value = "";
                 const btnSave = document.getElementById("btnSaveBooking");
                 if (btnSave) btnSave.textContent = "Create Booking";
+                if (typeof window.prepareNewPhoneBooking === "function") window.prepareNewPhoneBooking();   // phone / customer-care booking form
             }
             openDrawer(drawerId);
         });
@@ -126,7 +128,13 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll('.close-drawer').forEach(btn => {
         btn.addEventListener('click', closeAllDrawers);
     });
-    document.getElementById('drawerOverlay')?.addEventListener('click', closeAllDrawers);
+    // Clicking outside the panel must NOT close it (it used to wipe whatever was typed). Use the Close button.
+    document.getElementById('drawerOverlay')?.addEventListener('click', function () {
+        const open = document.querySelector('.drawer.active');
+        if (open && open.id === 'drawer-edit-puja') return;          // puja editor: never close by outside click
+        if (open && typeof drawerHasInput === 'function' && drawerHasInput(open)) return;
+        closeAllDrawers();
+    });
     
     // Filter Buttons UI
     document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -338,6 +346,11 @@ function openDrawer(drawerId) {
         drawer.classList.add('active');
         overlay.classList.add('active');
     }
+}
+
+function drawerHasInput(drawer) {
+    return Array.from(drawer.querySelectorAll('input[type=text],input[type=number],input[type=tel],input[type=email],textarea'))
+        .some(el => el.value && el.value.trim() && !el.readOnly && !el.disabled);
 }
 
 function closeAllDrawers() {
@@ -665,11 +678,13 @@ function editBooking(id) {
     if(b.puja) { const pujaSel = document.getElementById('newBookingPujaId'); for(let i=0; i<pujaSel.options.length; i++) { if(pujaSel.options[i].text === b.puja || pujaSel.options[i].value === b.puja) pujaSel.selectedIndex = i; } } document.getElementById('newBookingPrice').value = b.price || '';
     document.getElementById("newBookingNotes").value = b.notes || "";
     document.getElementById("btnSaveBooking").textContent = "Save Changes";
+    if (typeof window.showLegacyBookingFields === "function") window.showLegacyBookingFields();
     openDrawer('drawer-new-booking');
 }
 
 async function createManualBooking() {
     const oldId = document.getElementById("editBookingOldId") ? document.getElementById("editBookingOldId").value : "";
+    if (!oldId && typeof window.savePhoneBooking === "function") return window.savePhoneBooking();   // new booking = phone / customer-care form
     const payload = {
         pujaId: document.getElementById("newBookingPujaId").value,
         packageId: document.getElementById("newBookingPackageId").value,
@@ -755,7 +770,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btnSaveDevotee) btnSaveDevotee.addEventListener("click", createDevotee);
 
     const btnSavePuja = document.getElementById("btnSavePuja") || document.getElementById("savePujaBtn"); // note: we added savePackageBtn instead of btnSavePackage in html, I'll match whatever I put in html
-    if (btnSavePuja) btnSavePuja.addEventListener("click", savePuja);
+    if (btnSavePuja) btnSavePuja.addEventListener("click", () => savePuja());
     
     const btnNewPuja = document.getElementById("btnNewPuja");
     const langSelect = document.getElementById("editPujaLang");
@@ -780,7 +795,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btnNewPuja) btnNewPuja.addEventListener("click", () => openEditPuja(-1));
 
     const savePackageBtn = document.getElementById("savePackageBtn");
-    if (savePackageBtn) savePackageBtn.addEventListener("click", savePackage);
+    if (savePackageBtn) savePackageBtn.addEventListener("click", () => savePackage());
     const btnNewPackage = document.getElementById("btnNewPackage");
     if (btnNewPackage) btnNewPackage.addEventListener("click", () => openEditPackage(-1));
 
@@ -806,6 +821,58 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // CMS Logic
 let allPujas = [];
+Object.defineProperty(window, 'allPujas', { get: () => allPujas, configurable: true });
+
+function pujaState(p) {
+    const d = (p && p.detail) || {};
+    if (d.status === 'draft') return 'draft';
+    if (d.status === 'scheduled' && !(Date.parse(d.publishAt) <= Date.now())) return 'scheduled';
+    const m = Date.parse(p && p.muhurat);
+    if (Number.isFinite(m) && m < Date.now()) return 'ended';
+    return 'live';
+}
+function pujaBadge(p, st) {
+    const d = (p && p.detail) || {};
+    const label = { live: 'Live', draft: 'Draft (private)', scheduled: 'Scheduled', ended: 'Ended' }[st];
+    let extra = '';
+    if (st === 'scheduled' && d.publishAt) extra = '<div class="text-muted" style="font-size:.72rem">goes live ' + esc(new Date(d.publishAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })) + '</div>';
+    if (st === 'ended') extra = '<div class="text-muted" style="font-size:.72rem">hidden from website</div>';
+    return '<span class="st-badge st-' + st + '">' + label + '</span>' + extra;
+}
+window.pujaState = pujaState;
+
+function slugId(name, lang) {
+    const base = String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    return (base || ('puja-' + Date.now().toString(36))) + '-' + (lang || 'en');
+}
+
+async function duplicatePuja(index) {
+    const src = allPujas[index];
+    if (!src) return;
+    const copy = structuredClone(src);
+    let id = String(src.id).replace(/-copy(-\d+)?$/, '') + '-copy', n = 1;
+    while (allPujas.some(o => String(o.id) === id)) id = String(src.id).replace(/-copy(-\d+)?$/, '') + '-copy-' + (++n);
+    copy.id = id;
+    delete copy.base_id;
+    copy.name = (src.name || '') + ' (copy)';
+    copy[`name_${copy.language || 'en'}`] = copy.name;
+    copy.detail = Object.assign({}, copy.detail || {}, { status: 'draft' });
+    delete copy.detail.publishAt;
+    copy.show_in_hero = false;
+    copy.muhurat = '';
+    copy.date = '';
+    try {
+        const res = await fetch('/api/admin/pujas?key=' + encodeURIComponent(KEY), {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pujas: allPujas.concat([copy]), revision: pujasRevision })
+        });
+        const out = await res.json();
+        if (!res.ok) throw new Error(out.error || 'Could not duplicate');
+        await loadPujas();
+        const idx = allPujas.findIndex(o => String(o.id) === id);
+        if (idx >= 0) openEditPuja(idx);
+    } catch (e) { alert(e.message); }
+}
 
 async function loadPujas() {
     try {
@@ -828,30 +895,43 @@ async function loadPujas() {
             document.getElementById("pujasEmptyState").style.display = "none";
             tbody.closest('table').style.display = "table";
             
+            const filter = window.__pujaFilter || 'all';
             allPujas.forEach((p, idx) => {
+                const st = pujaState(p);
+                if (filter !== 'all' && st !== filter) return;
                 const tr = document.createElement("tr");
+                const when = p.date || (p.muhurat ? String(p.muhurat).slice(0, 10) : '');
                 tr.innerHTML = `
                     <td>
-                        <div><strong>${esc(p.name)}</strong> ${p.show_in_hero ? '<span style="font-size:10px; background:var(--gold); color:#000; padding:2px 6px; border-radius:4px; margin-left:4px;">Hero</span>' : ''}</div>
+                        <div><strong>${esc(p.name || '(no title yet)')}</strong> ${p.show_in_hero ? '<span style="font-size:10px; background:var(--gold); color:#000; padding:2px 6px; border-radius:4px; margin-left:4px;">Hero</span>' : ''}</div>
                         <div class="text-muted" style="font-size:0.8rem">ID: ${esc(p.id)}</div>
                     </td>
+                    <td>${pujaBadge(p, st)}</td>
+                    <td>${esc(when)}</td>
                     <td>${p.language === 'te' ? 'Telugu' : (p.language === 'hi' ? 'Hindi' : 'English')}</td>
                     <td>₹${p.price}</td>
-                    <td>
+                    <td style="white-space:nowrap">
                         <button class="btn" style="padding: 4px 8px" onclick="openEditPuja(${idx})"><i class="ph ph-pencil"></i> Edit</button>
+                        <button class="btn" style="padding: 4px 8px" title="Make a new private draft copy of this puja" onclick="duplicatePuja(${idx})"><i class="ph ph-copy"></i> Duplicate</button>
                         <button class="btn" style="padding: 4px 8px; color: var(--red);" onclick="deletePuja(${idx})"><i class="ph ph-trash"></i></button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
+            if (!tbody.children.length) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = '<td colspan="6" class="text-muted" style="text-align:center;padding:18px">No pujas in this view.</td>';
+                tbody.appendChild(tr);
+            }
         }
+        if (window.ssPujaUI && window.ssPujaUI.afterList) window.ssPujaUI.afterList();
     } catch (e) {
         console.error("Error loading pujas:", e);
     }
 }
 
 async function deletePuja(index) {
-    if(!confirm('Remove this puja from the active catalog? Its record will be retained in database history.'))return;
+    if(!confirm('Delete this puja permanently from the dashboard and the website?\n\nTip: if you only want to hide it, leave it as it is. Pujas whose date has passed already disappear from the website by themselves and stay here so you can Duplicate them.'))return;
     const record=allPujas[index];
     if(!record)return;
     try{
@@ -866,6 +946,7 @@ function openEditPuja(index) {
     const p = index >= 0 ? allPujas[index] : { id: "", name: "", desc: "", name_te: "", desc_te: "", name_hi: "", desc_hi: "", price: 1500, cat: "All", image: "", temple: "", date: "", muhurat: "", detail: {}, packages: [], media: [] };
     
     document.getElementById("editPujaTitle").textContent = index >= 0 ? "Edit Puja" : "New Puja";
+    if (index < 0 && p.detail) p.detail.status = "draft";
 
     const fieldsToReset = ["editPujaImage", "editPujaNameEn", "editPujaCat", "editPujaLang", "editPujaDate", "editPujaAboutEn", "editPujaTemple", "editor-procedure"];
     fieldsToReset.forEach(id => {
@@ -941,9 +1022,15 @@ function openEditPuja(index) {
     if (p.gallery) p.gallery.forEach(g => addDynamicRow('gallery', g));
     
     openDrawer('drawer-edit-puja');
+    if (window.ssPujaUI && window.ssPujaUI.afterOpen) window.ssPujaUI.afterOpen(index, p);
 }
 
-async function savePuja() {
+async function savePuja(opts) {
+    opts = opts || {};
+    const silent = opts.silent === true;
+    const visEl = document.getElementById("pujaVisibility");
+    const vis = visEl ? visEl.value : "public";
+    const isDraft = vis === "draft";
 
     // Validation
     let hasErrors = false;
@@ -960,13 +1047,19 @@ async function savePuja() {
         }
     }
 
-    checkField("editPujaImage", "Upload Image");
     checkField("editPujaNameEn", "Puja Title");
-    checkField("editPujaCat", "Category");
-    checkField("editPujaLang", "Language");
-    checkField("editPujaDate", "Date");
-    checkField("editPujaAboutEn", "About Puja");
-    checkField("editPujaTemple", "Temple Name");
+    if (!isDraft) {
+        checkField("editPujaImage", "Upload Image");
+        checkField("editPujaCat", "Category");
+        checkField("editPujaLang", "Language");
+        checkField("editPujaDate", "Date");
+        checkField("editPujaMuhurat", "Puja date & time (pick the date and time)");
+        checkField("editPujaAboutEn", "About Puja");
+        checkField("editPujaTemple", "Temple Name");
+        if (vis === "scheduled" && !(window.ssPujaUI && window.ssPujaUI.publishAtISO())) {
+            hasErrors = true; errorMessages.push("Go-live date & time is required for a scheduled puja.");
+        }
+    }
 
     // Procedure Validation
     const procRows = document.getElementById("editor-procedure") ? document.getElementById("editor-procedure").children : [];
@@ -981,7 +1074,7 @@ async function savePuja() {
     }
     
     const procContainer = document.getElementById("editor-procedure");
-    if (!hasProcedure) {
+    if (!hasProcedure && !isDraft) {
         hasErrors = true;
         errorMessages.push("Puja Procedure is required.");
         if (procContainer) procContainer.style.border = "2px solid red";
@@ -990,13 +1083,20 @@ async function savePuja() {
     }
 
     if (hasErrors) {
-        alert("Please complete the required fields before saving.\n\n" + errorMessages.join("\n"));
+        if (silent) return { ok: false };
+        alert("To make a puja " + (vis === "scheduled" ? "Scheduled" : "Public") + ", please complete these first (or choose Private draft to save it unfinished):\n\n" + errorMessages.join("\n"));
         return;
     }
+    const fail = (m) => { if (silent) return { ok: false, error: m }; alert(m); return; };
 
     const index = parseInt(document.getElementById("editPujaIndex").value, 10);
-    const id = document.getElementById("editPujaId").value.trim();
-    if (!id) return alert("URL Slug (ID) is required.");
+    let id = document.getElementById("editPujaId").value.trim();
+    if (!id) {
+        id = slugId(document.getElementById("editPujaNameEn").value, document.getElementById("editPujaLang").value);
+        let k = 1, base = id;
+        while (allPujas.some((o, i) => i !== index && String(o.id) === id)) id = base + '-' + (++k);
+        document.getElementById("editPujaId").value = id;
+    }
     
     // Check if user selected an image but forgot to click Upload
     const imageUploadFields = [
@@ -1007,16 +1107,17 @@ async function savePuja() {
         const input = document.getElementById(fileId);
         return input && input.files && input.files.length > 0;
     });
-    if (pendingImage) {
+    if (pendingImage && !silent) {
         return alert(`You selected a ${pendingImage[1]} file. Click its Upload button before saving the puja.`);
     }
     
     const p = index >= 0 ? structuredClone(allPujas[index]) : { packages: [{id: "individual", label: "Individual", price: parseInt(document.getElementById("editPujaPrice").value, 10), persons: 1}], media: [{type: "image", url: "default.jpg"}] };
     
-    if(index >= 0 && String(allPujas[index].id)!==id) return alert('Existing puja IDs cannot change because bookings refer to them. Create a new puja instead.');
-    if(allPujas.some((other,i)=>i!==index && String(other.id)===id)) return alert('This puja ID already exists. Choose a unique ID.');
+    if(index >= 0 && String(allPujas[index].id)!==id) return fail('Existing puja IDs cannot change because bookings refer to them. Create a new puja instead.');
+    if(allPujas.some((other,i)=>i!==index && String(other.id)===id)) return fail('This puja ID already exists. Choose a unique ID.');
     p.id = id;
     p.price = parseInt(document.getElementById("editPujaPrice").value, 10) || 0;
+    if (p.packages && p.packages[0] && p.packages[0].id === "individual" && index < 0) p.packages[0].price = p.price;
     
     p.cat = document.getElementById("editPujaCat").value;
     p.language = document.getElementById("editPujaLang").value;
@@ -1030,6 +1131,11 @@ async function savePuja() {
     if (desktopHeroImage) p.detail.desktopHeroImage = desktopHeroImage;
     else delete p.detail.desktopHeroImage;
     delete p.detail.mobileHeroImage;
+    if (!p.detail) p.detail = {};
+    if (isDraft) p.detail.status = "draft";
+    else if (vis === "scheduled") { p.detail.status = "scheduled"; p.detail.publishAt = window.ssPujaUI.publishAtISO(); }
+    else { delete p.detail.status; delete p.detail.publishAt; }
+    if (isDraft) delete p.detail.publishAt;
     p.date = document.getElementById("editPujaDate").value.trim();
     p.muhurat = document.getElementById("editPujaMuhurat").value.trim();
     
@@ -1127,6 +1233,7 @@ async function savePuja() {
     const proposedPujas=allPujas.slice();
     if(index===-1)proposedPujas.push(p);else proposedPujas[index]=p;
     
+    if (opts.buildOnly) return { p, index };
     try {
         const res = await fetch("/api/admin/pujas?key=" + encodeURIComponent(KEY), {
             method: "PUT",
@@ -1134,17 +1241,26 @@ async function savePuja() {
             body: JSON.stringify({ pujas: proposedPujas, revision: pujasRevision })
         });
         
+        const out = await res.json().catch(() => ({}));
         if (!res.ok) {
-            const err = await res.json();
-            alert(err.error || "Failed to save puja");
+            if (silent) return { ok: false, error: out.error || "Failed to save" };
+            alert(out.error || "Failed to save puja");
             return;
         }
-        
+        if (out.revision) pujasRevision = out.revision;
+        allPujas = proposedPujas;
+        if (silent) {
+            // keep the drawer open; a brand-new draft now exists on the server at the last position
+            if (index === -1) document.getElementById("editPujaIndex").value = String(allPujas.length - 1);
+            return { ok: true };
+        }
+        if (window.ssPujaUI && window.ssPujaUI.clearLocal) window.ssPujaUI.clearLocal();
         closeAllDrawers();
         loadPujas();
-        alert("Saved successfully!");
+        alert(isDraft ? "Saved as a private draft. It is not on the website." : vis === "scheduled" ? "Saved. It will go live automatically at the time you chose." : "Saved. The puja is live on the website.");
     } catch (e) {
         console.error(e);
+        if (silent) return { ok: false, error: String(e && e.message || e) };
         alert("Error saving puja");
     }
 }
@@ -1251,6 +1367,7 @@ function addDynamicRow(type, data = null) {
 
 // ================== Packages CMS ==================
 let allPackages = [];
+Object.defineProperty(window, 'allPackages', { get: () => allPackages, configurable: true });
 
 async function loadPackages() {
     packageSaving=true;
@@ -1275,31 +1392,70 @@ async function loadPackages() {
             document.getElementById("packagesEmptyState").style.display = "none";
             tbody.closest('table').style.display = "table";
             
+            const pkgFilter = window.__packageFilter || 'all';
             allPackages.forEach((p, idx) => {
+                const st = pujaState(p);
+                if (pkgFilter !== 'all' && st !== pkgFilter) return;
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
                     <td>
-                        <div><strong>${esc(p.name)}</strong></div>
+                        <div><strong>${esc(p.name || p.name_te || p.name_hi || '(no name yet)')}</strong></div>
                         <div class="text-muted" style="font-size:0.8rem">Badge: ${esc(p.badge || '—')}</div>
                     </td>
+                    <td>${pujaBadge(p, st)}</td>
                     <td>${esc(p.name_te || '—')}</td>
                     <td>${esc(p.name_hi || '—')}</td>
                     <td>₹${p.price}</td>
-                    <td>
+                    <td style="white-space:nowrap">
                         <button class="btn" style="padding: 4px 8px" onclick="openEditPackage(${idx})"><i class="ph ph-pencil"></i> Edit</button>
+                        <button class="btn" style="padding: 4px 8px" title="Make a new private draft copy of this package" onclick="duplicatePackage(${idx})"><i class="ph ph-copy"></i> Duplicate</button>
                         <button class="btn" style="padding: 4px 8px; color: var(--red);" onclick="deletePackage(${idx})"><i class="ph ph-trash"></i></button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
+            if (!tbody.children.length) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = '<td colspan="6" class="text-muted" style="text-align:center;padding:18px">No packages in this view.</td>';
+                tbody.appendChild(tr);
+            }
         }
+    if (window.ssPackageUI && window.ssPackageUI.afterList) window.ssPackageUI.afterList();
     } catch (e) {
         console.error("Error loading packages:", e);
+    } finally {
+        // the save button stays locked only while the list is loading
+        packageSaving = false;
+        if (saveButton) saveButton.disabled = false;
     }
 }
 
+async function duplicatePackage(index) {
+    const src = allPackages[index];
+    if (!src) return;
+    const copy = structuredClone(src);
+    copy.id = 'pkg_' + crypto.randomUUID();
+    copy.name = (src.name || '') + (src.name ? ' (copy)' : '');
+    if (copy.name_te) copy.name_te += ' (copy)';
+    if (copy.name_hi) copy.name_hi += ' (copy)';
+    copy.detail = Object.assign({}, copy.detail || {}, { status: 'draft' });
+    delete copy.detail.publishAt;
+    copy.muhurat = '';
+    try {
+        const res = await fetch('/api/admin/packages?key=' + encodeURIComponent(KEY), {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ packages: allPackages.concat([copy]), revision: packagesRevision })
+        });
+        const out = await res.json();
+        if (!res.ok) throw new Error(out.error || 'Could not duplicate');
+        await loadPackages();
+        const idx = allPackages.findIndex(o => String(o.id) === copy.id);
+        if (idx >= 0) openEditPackage(idx);
+    } catch (e) { alert(e.message); }
+}
+
 async function deletePackage(index) {
-    if(!confirm('Remove this package from the active catalog? Its record will be retained in database history.'))return;
+    if(!confirm('Delete this package permanently from the dashboard and the website?\n\nTip: packages whose date has passed already leave the website by themselves and stay here so you can Duplicate them.'))return;
     const record=allPackages[index];
     if(!record)return;
     try{
@@ -1311,25 +1467,91 @@ async function deletePackage(index) {
 }
 
 const packageDetailFields = { benefits: ['t','d'], procedure: ['t','d'], receive: ['r'], faqs: ['q','a'], gallery: ['url'] };
+function togglePackageLangs(lang) {
+    window.__pkgLang = lang;
+    ['en','te','hi'].forEach(l => { const el = document.getElementById('pkg-lang-' + l); if (el) el.style.display = l === lang ? 'block' : 'none'; });
+    document.querySelectorAll('#drawer-edit-package .pkg-lf').forEach(el => { el.style.display = el.dataset.lang === lang ? '' : 'none'; });
+}
+window.togglePackageLangs = togglePackageLangs;
 function addPackageDetailRow(type, data = {}) {
+    const lang0 = window.__pkgLang || (document.getElementById('editPackageLangToggle') || {}).value || 'en';
     const row = document.createElement('div');
-    row.style.cssText = 'padding:12px 0;border-bottom:1px solid var(--border);display:grid;gap:8px;';
-    row.packageOriginal = typeof data === 'object' ? structuredClone(data) : {};
+    row.style.cssText = 'display:flex; gap:8px; align-items:flex-start; margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:8px;';
+    row.packageOriginal = (data && typeof data === 'object') ? structuredClone(data) : {};
+    const body = document.createElement('div');
+    body.style.cssText = 'flex:1; display:flex; flex-direction:column; gap:4px; min-width:0;';
+    const holders = {};
+    const holder = lang => (holders[lang] = holders[lang] || (() => {
+        const d = document.createElement('div');
+        d.className = 'pkg-lf'; d.dataset.lang = lang;
+        d.style.cssText = 'display:' + (lang === lang0 ? 'flex' : 'none') + '; flex-direction:column; gap:4px;';
+        body.append(d); return d;
+    })());
+    const ph = {
+        benefits: { t: 'Benefit title', d: 'Describe this benefit' },
+        procedure: { t: 'Procedure step title', d: 'Describe this ritual step for this package only' },
+        receive: { r: 'Item description' },
+        faqs: { q: 'Question', a: 'Answer' },
+        gallery: { url: 'assets/images/packages/...' }
+    }[type];
+    const inputStyle = 'padding:8px; border:1px solid var(--border); border-radius:4px; font-family:inherit; width:100%; box-sizing:border-box;';
     for (const field of packageDetailFields[type]) {
         for (const lang of type === 'gallery' ? ['en'] : ['en','te','hi']) {
             const key = field === 'url' ? 'url' : field + (lang === 'en' ? '' : '_' + lang);
-            const label = document.createElement('label');
-            label.textContent = ({t:'Title',d:'Description',r:'Included item',q:'Question',a:'Answer',url:'Image URL'})[field] + (type === 'gallery' ? '' : ' (' + lang.toUpperCase() + ')');
-            const input = document.createElement(field === 'd' || field === 'a' ? 'textarea' : 'input');
+            const long = field === 'd' || field === 'a';
+            const input = document.createElement(long ? 'textarea' : 'input');
+            if (long) input.rows = 2; else input.type = 'text';
             input.dataset.key = key;
-            input.value = type === 'gallery' ? (typeof data === 'string' ? data : '') : (data[key] || '');
-            row.append(label,input);
+            input.placeholder = ph[field] + (type === 'gallery' ? '' : ' (' + ({ en: 'English', te: 'Telugu', hi: 'Hindi' })[lang] + ')');
+            input.className = field === 'url' ? 'dyn-g' : '';
+            input.style.cssText = inputStyle + ((field === 't' || field === 'q') ? 'font-weight:600;' : '');
+            input.value = type === 'gallery' ? (typeof data === 'string' ? data : '') : ((data && data[key]) || '');
+            (type === 'gallery' ? body : holder(lang)).append(input);
         }
     }
+    if (type === 'gallery') {
+        const id = 'pgal_' + Math.random().toString(36).slice(2, 9);
+        const urlInput = body.querySelector('[data-key="url"]');
+        urlInput.id = 'txt_' + id;
+        const text = urlInput.value;
+        const w = document.createElement('div');
+        w.className = 'img-upload-widget';
+        w.style.cssText = 'width:100%; background:#f9f9f9; padding:8px; border-radius:4px; border:1px dashed var(--line); margin-top:4px; box-sizing:border-box;';
+        w.innerHTML = '<img id="prev_' + id + '" class="img-preview" alt="" style="display:none; max-width:80px; max-height:50px; object-fit:cover; border-radius:4px; margin-bottom:8px; border:1px solid var(--line);">' +
+            '<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;"><input type="file" id="file_' + id + '" accept="image/jpeg,image/png,image/webp" style="flex:1; min-width:0; font-size:0.8rem;">' +
+            '<button type="button" class="btn btn-primary" id="btn_' + id + '" style="padding:4px 10px; font-size:0.8rem;">Upload</button></div>';
+        body.append(w);
+        const prev = w.querySelector('img');
+        const show = v => { prev.src = v ? (/^(https?:)?\//.test(v) ? v : '/' + v) : ''; prev.style.display = v ? 'block' : 'none'; };
+        show(text);
+        urlInput.addEventListener('input', () => show(urlInput.value.trim()));
+        const upBtn = w.querySelector('button'), fileInput = w.querySelector('input[type=file]');
+        upBtn.addEventListener('click', async () => {
+            if (!fileInput.files || !fileInput.files.length) return alert('Please select an image file first.');
+            upBtn.textContent = 'Optimizing...'; upBtn.disabled = true;
+            try {
+                const optimized = await optimizeCmsImage(fileInput.files[0]);
+                const fd = new FormData();
+                fd.append('file', optimized, optimized.name);
+                fd.append('entity_type', 'packages');
+                upBtn.textContent = 'Uploading...';
+                const res = await fetch('/api/admin/upload?key=' + encodeURIComponent(KEY), { method: 'POST', body: fd });
+                if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Upload failed'); }
+                const result = await res.json();
+                urlInput.value = result.url || result.path;
+                show(urlInput.value);
+                urlInput.dispatchEvent(new Event('input', { bubbles: true }));
+                alert('Gallery Image uploaded successfully!');
+            } catch (e) { alert('Error uploading image: ' + e.message); console.error(e); }
+            finally { upBtn.textContent = 'Upload'; upBtn.disabled = false; }
+        });
+    }
     const remove = document.createElement('button');
-    remove.type='button'; remove.className='btn'; remove.textContent='Remove';
-    remove.addEventListener('click',()=>row.remove()); row.append(remove);
-    document.getElementById('package-editor-'+type).append(row);
+    remove.type = 'button'; remove.className = 'btn'; remove.style.cssText = 'color:var(--red); padding:8px;';
+    remove.innerHTML = '<i class="ph ph-trash"></i>'; remove.title = 'Remove';
+    remove.addEventListener('click', () => { row.remove(); document.getElementById('drawer-edit-package').dispatchEvent(new Event('change', { bubbles: true })); });
+    row.append(body, remove);
+    document.getElementById('package-editor-' + type).append(row);
 }
 function readPackageDetailRows(type) {
     return Array.from(document.getElementById('package-editor-'+type).children).map(row=>{
@@ -1343,6 +1565,7 @@ function openEditPackage(index) {
     const p = index >= 0 ? allPackages[index] : { id: "pkg_" + Date.now(), name: "", desc: "", name_te: "", desc_te: "", name_hi: "", desc_hi: "", price: 299, badge: "Monthly", image: "", temple: "", date: "", muhurat: "", detail: {}, packages: [] };
     
     document.getElementById("packageDrawerTitle").textContent = index >= 0 ? "Edit Package" : "New Package";
+    const pkgLeft = document.getElementById('editPackageId'); if (pkgLeft) delete pkgLeft.dataset.manual;
     document.getElementById("editPackageIndex").value = index;
     
     document.getElementById("editPackageId").value = p.id || ("pkg_" + Date.now());
@@ -1377,6 +1600,11 @@ function openEditPackage(index) {
     const image=document.getElementById('editPackageImage').value;
     if(preview){preview.src=image ? (image.startsWith('http') || image.startsWith('/') ? image : '/'+image) : '';preview.style.display=image?'block':'none';}
     const file=document.getElementById('filePackageImage');if(file)file.value='';
+    const setImg=(textId,prevId,val)=>{const t=document.getElementById(textId);if(t)t.value=val||'';const pv=document.getElementById(prevId);if(pv){pv.src=val?(/^(https?:)?\//.test(val)?val:'/'+val):'';pv.style.display=val?'block':'none';}};
+    setImg('editPackageDesktopHeroImage','prevPackageDesktopHeroImage',det.desktopHeroImage);
+    setImg('editPackageTempleImage','prevPackageTempleImage',det.templeImage);
+    const tdn=document.getElementById('editPackageTempleDetailsName');if(tdn)tdn.value=det.templeDetailsName||'';
+    ['filePackageDesktopHeroImage','filePackageTempleImage'].forEach(i=>{const f=document.getElementById(i);if(f)f.value='';});
     for(const field of ['duration','tradition','forWhom'])for(const lang of ['en','te','hi'])
         document.getElementById('package-'+field+'-'+lang).value=det[field+(lang==='en'?'':'_'+lang)] || '';
     for(const type of Object.keys(packageDetailFields)){
@@ -1384,19 +1612,27 @@ function openEditPackage(index) {
         (type==='gallery' ? (p.gallery || det.gallery || []) : (det[type] || [])).forEach(data=>addPackageDetailRow(type,data));
     }
     openDrawer('drawer-edit-package');
+    if (window.ssPackageUI && window.ssPackageUI.afterOpen) window.ssPackageUI.afterOpen(index, p);
 }
 
-async function savePackage() {
-    if(packageSaving)return;
+async function savePackage(opts) {
+    opts = opts || {};
+    const silent = opts.silent === true;
+    const say = m => { if (silent) return { ok: false, error: m }; alert(m); };
+    if(packageSaving)return silent ? { ok: false, error: 'busy' } : undefined;
     const drawer=document.getElementById('drawer-edit-package');
-    if(drawer.querySelector('.img-upload-widget button:disabled'))return alert('Please wait for the image upload to finish.');
+    const visEl = document.getElementById('packageVisibility');
+    const vis = visEl ? visEl.value : 'public';
+    const isDraft = vis === 'draft';
+    if(drawer.querySelector('.img-upload-widget button:disabled'))return say('Please wait for the image upload to finish.');
     const index = parseInt(document.getElementById("editPackageIndex").value, 10);
     
     const p = index >= 0 ? structuredClone(allPackages[index]) : { detail: {}, packages: [] };
     p.id = index >= 0 ? allPackages[index].id : (document.getElementById('editPackageId').value.trim() || 'pkg_'+crypto.randomUUID());
     
     p.price = Number(document.getElementById("editPackagePrice").value);
-    if(!Number.isFinite(p.price) || p.price<0)return alert('Enter a valid package price.');
+    if(!isDraft && (!Number.isFinite(p.price) || p.price<0))return say('Enter a valid package price.');
+    if(!Number.isFinite(p.price) || p.price<0)p.price=0;
     p.badge = document.getElementById("editPackageBadge").value.trim();
     p.image = document.getElementById("editPackageImage").value.trim();
     p.media = p.image;
@@ -1421,7 +1657,16 @@ async function savePackage() {
     p.detail.about_te = document.getElementById("editPackageAboutTe").value.trim();
     p.detail.about_hi = document.getElementById("editPackageAboutHi").value.trim();
     
-    if(![p.name,p.name_te,p.name_hi].some(Boolean))return alert('Enter a package name in at least one language.');
+    const val=id=>{const e=document.getElementById(id);return e&&typeof e.value==='string'?e.value.trim():'';};
+    if(val('editPackageDesktopHeroImage'))p.detail.desktopHeroImage=val('editPackageDesktopHeroImage');else delete p.detail.desktopHeroImage;
+    if(val('editPackageTempleImage'))p.detail.templeImage=val('editPackageTempleImage');else delete p.detail.templeImage;
+    if(val('editPackageTempleDetailsName'))p.detail.templeDetailsName=val('editPackageTempleDetailsName');else delete p.detail.templeDetailsName;
+    if(![p.name,p.name_te,p.name_hi].some(Boolean))return say('Enter a package name in at least one language.');
+    if(vis==='scheduled' && !(window.ssPackageUI && window.ssPackageUI.publishAtISO()))return say('Choose the go-live date and time for a scheduled package.');
+    if(isDraft)p.detail.status='draft';
+    else if(vis==='scheduled'){p.detail.status='scheduled';p.detail.publishAt=window.ssPackageUI.publishAtISO();}
+    else{delete p.detail.status;delete p.detail.publishAt;}
+    if(isDraft)delete p.detail.publishAt;
     for(const field of ['duration','tradition','forWhom'])for(const lang of ['en','te','hi'])
         p.detail[field+(lang==='en'?'':'_'+lang)]=document.getElementById('package-'+field+'-'+lang).value.trim();
     for(const type of Object.keys(packageDetailFields))p.detail[type]=readPackageDetailRows(type);
@@ -1438,17 +1683,25 @@ async function savePackage() {
             body: JSON.stringify({ packages: proposedPackages, revision: packagesRevision })
         });
         
+        const out = await res.json().catch(() => ({}));
         if (!res.ok) {
-            const err = await res.json();
-            alert(err.error || "Failed to save package");
+            if (silent) return { ok: false, error: out.error || 'Failed to save' };
+            alert(out.error || "Failed to save package");
             return;
         }
-        
+        if (out.revision) packagesRevision = out.revision;
+        allPackages = proposedPackages;
+        if (silent) {
+            if (index === -1) document.getElementById("editPackageIndex").value = String(allPackages.length - 1);
+            return { ok: true };
+        }
+        if (window.ssPackageUI && window.ssPackageUI.clearLocal) window.ssPackageUI.clearLocal();
         closeAllDrawers();
         loadPackages();
-        alert("Saved successfully!");
+        alert(isDraft ? "Saved as a private draft. It is not on the website." : vis === "scheduled" ? "Saved. It will go live automatically at the time you chose." : "Saved. The package is live on the website.");
     } catch (e) {
         console.error(e);
+        if (silent) return { ok: false, error: String(e && e.message || e) };
         alert("Error saving package");
     } finally { packageSaving=false;saveButton.disabled=false; }
 }

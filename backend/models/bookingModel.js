@@ -577,10 +577,47 @@ async function claimBooking(bookingId, orderId) {
   return !error && data && data.length > 0;
 }
 
+/* ---- helpers for admin "phone / customer care" bookings ---- */
+const likeEscape = v => String(v).replace(/[\\%_]/g, c => '\\' + c);
+
+/* Full row (including notes) of one booking, or null. */
+async function findFullById(id) {
+  if (!supabase) {
+    const b = readLocalBookings().find(x => x.id === id);
+    return b ? { id: b.id, phone: b.devotee_phone, price: b.price, status: b.status, payment_status: b.payment_status, notes: b.notes || "", name: b.name || "" } : null;
+  }
+  const { data, error } = await supabase.from("bookings").select("id, devotee_phone, price, status, payment_status, notes, booking_names ( name )").eq("id", id).single();
+  if (error || !data) return null;
+  return { id: data.id, phone: data.devotee_phone, price: data.price, status: data.status, payment_status: data.payment_status, notes: data.notes || "", name: data.booking_names?.[0]?.name || "" };
+}
+
+/* Notes + status of every booking for one customer phone (used to spot duplicate bookings). */
+async function notesForPhone(phone) {
+  const p = clean(phone, 20);
+  if (!supabase) return readLocalBookings().filter(b => b.devotee_phone === p).map(b => ({ id: b.id, status: b.status, notes: b.notes || "" }));
+  const { data, error } = await supabase.from("bookings").select("id, status, notes").eq("devotee_phone", p).limit(1000);
+  if (error) throw new Error("Could not check existing bookings; please try again.");
+  return (data || []).map(b => ({ id: b.id, status: b.status, notes: b.notes || "" }));
+}
+
+/* First booking whose notes contain this exact line (e.g. "PaymentRef: 123456789012"), or null. */
+async function findByNoteLine(line) {
+  const wanted = String(line).trim();
+  if (!supabase) {
+    const b = readLocalBookings().find(x => String(x.notes || "").split(/\r?\n/).some(l => l.trim() === wanted));
+    return b ? { id: b.id, shortId: getShortId(b.notes, b.id) } : null;
+  }
+  const { data, error } = await supabase.from("bookings").select("id, notes").ilike("notes", "%" + likeEscape(wanted) + "%").limit(20);
+  if (error) throw new Error("Could not check payment reference; please try again.");
+  const hit = (data || []).find(x => String(x.notes || "").split(/\r?\n/).some(l => l.trim() === wanted));
+  return hit ? { id: hit.id, shortId: getShortId(hit.notes, hit.id) } : null;
+}
+
 module.exports = {
   createManualBooking,
   all, getUserBookings,
   updateBookingVideo, updateBooking, deleteBooking,
   findById, attachOrder, findByOrderId, markPaid, setStatus,
-  getShortId, findPendingDuplicate, claimBooking, backfillSnapshots, withArchiveSnapshots
+  getShortId, findPendingDuplicate, claimBooking, backfillSnapshots, withArchiveSnapshots,
+  findFullById, notesForPhone, findByNoteLine
 };

@@ -247,3 +247,81 @@ ROUND 26: Bookings downloads tidied into ONE 'Download' dropdown (Excel / CSV / 
 ROUND 27: Home banner previous/next arrows are now centred vertically on the banner picture (positioned by home.js, so they follow every slide and screen size) and restyled (dark circle, white border) so they stand out on light images. Removed the fixed-top override in responsive.css. Still hidden on phones (swipe + dots).
 
 ROUND 28: Slider arrows (and the lone dot) are hidden when only one puja is in the banner. Arrow placement is coalesced to one layout read per frame. Speed check: single CSS bundle, deferred scripts, preloads and cache headers were already in place; no image, hero or layout changes were made.
+
+ROUND 29 - Manual (phone / customer care) bookings
+- Admin > Bookings > New Booking is now a phone-booking form: puja/package, price (auto-filled), puja date/time, devotee names (up to 10), gotram (or "not known"), customer mobile, sankalpam, payment received (method + UPI transaction ID, amount).
+- POST /api/admin/bookings/phone saves it for the customer's +91 number, so it appears in their account like a website booking; View details and the Excel/CSV exports show the entered details.
+- Guards: payment reference can't be reused; same phone + puja + date asks for confirmation.
+- WhatsApp confirmation is sent only when payment is marked received (template AISENSY_MANUAL_TEMPLATE, else AISENSY_SUCCESS_TEMPLATE, else payment_success). "Resend WhatsApp confirmation" button in View details.
+- Not tested against real AiSensy (no API key in the sandbox).
+- New files: backend/controllers/phoneBookingController.js, frontend/assets/js/admin-phone-booking.js
+- admin.js cache tag bumped (v=20261015-phone-booking): browsers cache JS for a day, an old admin.js made the New Booking button use the old save and show 'Name, phone, and price are required'. Hard refresh (Ctrl+F5) once after deploying.
+- Round 29b: WhatsApp failures now show AiSensy's actual reason in the admin toast / resend button (and in the server log), instead of a generic message.
+
+ROUND 30 - Client call requests (admin drafts / scheduling / past pujas / first-load speed)
+ADMIN > PUJAS
+- The editor no longer closes when you click outside it (use the Close button). Nothing typed is lost: it is kept on this device as you type and offered back ("Restore my work") the next time; a leftover is also shown at the top of the Pujas list ("Continue editing").
+- Top bar of the editor: Private (draft) / Public / Schedule. Draft needs only a title. Public / Schedule need the required fields and show what is missing. Schedule goes live automatically at the chosen India time (stored in detail.status / detail.publishAt, no database change).
+- Private drafts auto-save to the server about 15 s after you stop typing (and when you press Close), so an internet drop or accidental exit loses nothing. Offline: kept on the device and sent when the connection returns. Drafts are never shown on the website. Delete removes a draft.
+- Date and time are pickers (calendar + hour / minute / AM-PM lists) for puja date & time, go-live time, and the package date & time. "Date shown to visitors" is filled in automatically from the picked date (still editable).
+- Fields are explained in plain words (numbered sections, helper text, "* required to publish").
+- Description / About text: blank line = paragraph, "-" = bullet, "#" = heading. The website now shows these exactly as typed (rich-text.js; also used for FAQ answers, benefits, procedure) and the editor has a live preview box under each text area.
+- Past pujas: when the puja date/time passes, the puja disappears from the home page, hero banner and puja lists by itself, shows "booking closed" if opened by link, and stays in the admin with an "Ended" badge, date and description. New Duplicate button makes a private draft copy to edit and re-publish. Status filter (All / Live / Drafts / Scheduled / Ended) and Status + Date columns added.
+WEBSITE
+- Book Now bottom bar on the puja page shows the Shubha Sankalpam logo again (inlined in the page, cannot fail to load).
+FIRST-LOAD SPEED (cause: Vercel function cold start serving a stale catalog, plus images resized for the first time on first view)
+- Cold start now waits (max 2.5 s) for the fresh catalog instead of serving the old copy, and the build pulls the latest catalog from Supabase before baking the home page.
+- Catalog files are cached on the CDN for 60 s and may be served stale for up to 7 days while refreshed in the background (stale-while-revalidate), so visitors rarely hit a cold function.
+- Phone/tablet image sizes are created at upload / save time (warm-up), not by the first visitor.
+- /api/health also warms the catalog. OPTIONAL but recommended: a free uptime pinger (UptimeRobot, 5-minute interval) on https://www.shubhasankalpam.com/api/health keeps the function warm.
+- OPTIONAL: set VERCEL_DEPLOY_HOOK_URL in Vercel so the home page is re-baked automatically after each admin save.
+- Not changed: Vercel function region vs Supabase region. If both are in the same region cold starts are faster (Vercel > Settings > Functions > Region).
+AFTER DEPLOYING: hard refresh the admin once (Ctrl+F5); asset tags are bumped to v=20261016-drafts.
+(Delete frontend/assets/images/favicon-48.webp from the project: it is no longer used.)
+
+ROUND 31 - Packages now have the same editor as pujas
+- Admin > Packages: same top bar (Private draft / Public / Schedule with go-live date & time pickers), autosave of drafts to the server + on-device copy with "Restore my work" and the leftover notice on the list, no close on outside click, Close button, live text previews (paragraphs, "-" bullets, "#" headings) for description and About in English / Telugu / Hindi, date & time pickers, clearer labels.
+- Packages list: Status badge, status filter (All / Live / Drafts / Scheduled / Ended), Duplicate (private draft copy). Public / Scheduled need a name and a price; a draft needs only a name.
+- Website: draft and not-yet-live packages are never sent to visitors; a package whose date & time has passed leaves the Packages list by itself and stays in the admin.
+- Fixed: the package Save button stayed disabled after the list loaded (it is now re-enabled when loading finishes).
+- One editor script (admin-puja.js) now drives both forms. Asset tags bumped to v=20261016-drafts2. Hard refresh (Ctrl+F5) after deploying.
+Round 31b: The package editor now has the same layout and fields as the puja editor (800px panel, numbered sections): Page link, Base Price, Basic details (Editing Language, Badge, Image + upload, Laptop Hero + upload, Temple Name, Temple Image + upload, Full Temple Name, Date text, Date & time picker), Title / Description / Tradition / Duration / For Whom / About with live previews, and Extra sections (Benefits, Procedure, What You Will Receive, FAQs, Gallery with upload) using the same row style and "+ Add" buttons. A package keeps English, Telugu and Hindi in one record: "Editing Language" switches which language's fields (and which language of each extra-section row) you see. Category and "show in banner slider" are puja-only and not shown for packages.
+
+ROUND 32 - Puja / package details page on phones (client call 16 Oct, 7 pm)
+- The tab row (About Puja / Benefits ...) now sticks directly under the header: the gap (page text showing through above the tabs) is gone, the row is full width with a solid background. It follows the real header height (--header-h), so it stays attached on every phone.
+- The bottom Book Now bar (logo, name, price) now shows ONLY while the Book Now button inside the page is out of view; while that button is on screen the bar hides, so they no longer overlap. It appears as soon as the page button scrolls away (or before it has been reached).
+- (Revised after the client's screen recording) The phone bottom menu (Home / Puja / Packages / Account) stays visible on this page. The Book Now bar sits just above it and is a sticky element at the end of the page content: it follows you down, and at the bottom of the page it rests in the empty space between the gallery and the footer instead of covering the footer (it is layered under the header and the bottom menu). The WhatsApp button sits above the bar only while the bar is shown.
+- The Book Now bar's logo is built into the page (cannot show a broken-image "?"). If a phone still shows "?", the old page file is cached: deploy the new zip and hard refresh.
+- Files: responsive.css (the old "always visible / fixed position" overrides removed; new block at the end), puja-details.html (body class pd-page), pages/details.js (observer).
+
+ROUND 33 (2026-10-16) - New puja not live after "Save & publish"; visitor leads + 12-month retention
+1. Cause: the /content catalogs were cached by Vercel's CDN (60s fresh + up to 7 days "stale while revalidate") and by the
+   browser (30s), and each server instance re-read the database only every 30s. Now: CDN 5s, no stale serving, browser always
+   revalidates (cheap 304), every catalog request waits briefly for a due refresh, instance refresh window 4s.
+   A saved puja is visible on the next reload (a few seconds at most on other server instances).
+   Note: a puja is only shown in the language(s) it was saved in (each language is its own record).
+2. Visitor leads: run backend/migrations/20261016_visitor_leads.sql ONCE in Supabase (adds events.source + ss_visitor_leads).
+   Tracker records the first source (utm_source/campaign, Instagram/Facebook, referrer). Login and booking link the browser to
+   name + phone. Admin > Analytics > "Visitor leads": pujas viewed (x times), source, first/last visit, Booked?, filter
+   "Not booked yet", search, CSV export. Period list now includes 6 and 12 months.
+3. Retention: 365 days; older events and leads are purged automatically (at most every 6 hours). Visible for the full 12 months.
+
+ROUND 34 (2026-10-16) - Home banner glitch on open/refresh (older puja flashes, blank frame, then the real first hero)
+Cause: frontend/home.html still contained an OLD puja's text (the build only replaced the photo), and pages/home.js then rewrote
+the banner and loaded the next photo, so you saw: old puja -> blank -> real first hero. Also autoplay could slide into a photo that
+had not loaded yet (blank frame).
+Fix: (1) scripts/hero-bake.js now builds the first live hero's headline, description, temple, date, Book Now link, alt text and
+data-puja-id into home.html (both public build and local), so first paint is already correct. (2) pages/home.js only changes values
+that differ; if the page was built with an older hero it downloads the new photo first, then swaps photo + text together.
+(3) Other slides' photos load as soon as the first photo is ready; autoplay, arrows and swipe never move to a slide whose photo is
+not loaded. (4) Dates are shown in IST so built and live text always match.
+After a hero change in admin: the page itself refreshes on the next build/deploy (set VERCEL_DEPLOY_HOOK_URL so it rebuilds
+automatically ~1-2 minutes after Save & publish); until then visitors see the old hero for a moment, then one clean swap - never blank.
+Tests: tests/hero-bake.test.js. Run `npm run build` after changing heroes locally.
+
+ROUND 34b (2026-10-16) - Same glitch still seen on localhost
+The second video (localhost:3000) showed the OLD puja's photo with the new puja's text: the home.html on disk was built earlier and
+the page was never rebuilt for the new hero. Fix: the server (npm start / localhost) now bakes the CURRENT first hero into home.html
+on every request from its live catalog, so localhost is always correct from the first paint even without running `npm run build`.
+(On Vercel the page still comes from the build; set VERCEL_DEPLOY_HOOK_URL so it rebuilds after Save & publish.)
+After unzipping on your computer, restart the local server (Ctrl+C, then npm start) and hard refresh once.

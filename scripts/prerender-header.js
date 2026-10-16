@@ -27,7 +27,7 @@ const vm = require("node:vm");
 const { bakeHomeHero } = require("./hero-bake");
 
 const FRONTEND = path.resolve(__dirname, "../frontend");
-const VERSION = "20261011-nav-lang";
+const VERSION = "20261016-drafts2";
 const SKIP = new Set(["404.html", "google09a10f499bc60551.html", "admin.html", "booking_backup.html", "index.html", "vedamandir.html", "video-player.html"]);
 
 /* ---- load SITE + headerHTML() exactly as the browser would ---- */
