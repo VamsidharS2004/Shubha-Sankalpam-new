@@ -1282,3 +1282,13 @@ html.ss-zoom-lock,html.ss-zoom-lock body{overflow:hidden}
 .rich-text .rt-list.rt-symbols { list-style: none; padding-left: .2em; }
 .rich-text .rt-list.rt-symbols li { padding-left: 0; }
 .rich-text strong { font-weight: 800; color: var(--ink, #2a1a14); }
+
+/* Remembered photo, title, price and countdown (see the hint script in puja-details.html): shown right away, in the places the finished page uses, instead of the gray placeholder.
+   Only the parts that are filled in later (description, date/duration row) stay hidden; the rest of the page is hidden until details.js has built it. */
+html.pd-booting.pd-hinted .pd-skel{display:none}
+html.pd-booting.pd-hinted .pd-content > .pd-hero-section:not(.pd-skel){visibility:visible}
+html.pd-booting.pd-hinted .pd-hero-meta,html.pd-booting.pd-hinted #pdDescription{visibility:hidden}
+html.pd-booting.pd-hinted .pd-hero-right{visibility:hidden}
+@media (min-width:901px){html.pd-booting.pd-hinted.pd-hint-card .pd-hero-right{visibility:visible}}   /* on phones the card sits lower, below text that is not there yet - showing it early would make it jump */
+html.pd-booting #pdBook{pointer-events:none}
+.pd-slide[data-hint]{background-size:var(--media-fit,cover);background-position:center;background-repeat:no-repeat}   /* the small card-size photo (already downloaded) shows until the sharper one arrives */

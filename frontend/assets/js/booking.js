@@ -91,6 +91,7 @@ $id("bkPriceBase").textContent = formattedPrice;
 $id("bkPriceBreakdown").textContent = formattedPrice;
 $id("bkTotalFinal").textContent = formattedPrice;
 $id("bkTotalStrike").textContent = "₹" + (item.price + 675).toLocaleString("en-IN"); /* fake strikethrough showing saved fees */
+document.documentElement.classList.remove("bk-booting");   /* summary is complete: show it */
 }
 showPrice();
 const priceReady = api('/api/catalog/item?ref='+encodeURIComponent((item && item.id) || ref)).then(out=>{

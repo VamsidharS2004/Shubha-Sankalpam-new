@@ -3,7 +3,10 @@
    ships with the server are then always the latest published ones - not whatever was last saved in git.
    Never fails the build: if the database is unreachable the files already in the project are used. */
 (async () => {
-  const stop = setTimeout(() => { console.warn("[sync-catalog] database too slow - using the saved catalog"); process.exit(0); }, 20000);
+  /* Exiting while the network connection is still closing crashes Node on Windows ("Assertion failed:
+     UV_HANDLE_CLOSING"), which stopped the whole build. So always give it a moment before exiting. */
+  const leave = () => setTimeout(() => process.exit(0), 300);
+  const stop = setTimeout(() => { console.warn("[sync-catalog] database too slow - using the saved catalog"); leave(); }, 20000);
   try {
     const { syncFromSupabase } = require("../backend/utils/cmsSync");
     await syncFromSupabase();
@@ -12,5 +15,5 @@
     console.warn("[sync-catalog] skipped:", e.message);
   }
   clearTimeout(stop);
-  process.exit(0);
+  leave();
 })();

@@ -8,8 +8,8 @@ const analyticsModel = require("../models/analyticsModel");
 
 async function getMe(req, res) {
   const p = normalizePhone(req.userPhone);
-  const user = await userModel.findOrCreate(p);
-  const bookings = await bookingModel.getUserBookings(p);
+  // the profile and the bookings do not depend on each other: ask for both at once (one round trip instead of two)
+  const [user, bookings] = await Promise.all([userModel.findOrCreate(p), bookingModel.getUserBookings(p)]);
   send(res, 200, { user, bookings });
 }
 

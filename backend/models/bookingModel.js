@@ -252,7 +252,7 @@ async function getUserBookings(phone) {
   if (!supabase) {
     const p = clean(phone, 20);
     return readLocalBookings()
-      .filter(b => b.devotee_phone === p)
+      .filter(b => b.devotee_phone === p && !/^cancelled by user$/i.test(String(b.status || "")))
       .map(b => ({
         id: b.id, shortId: getShortId(b.notes, b.id),
         price     : b.price,
@@ -278,7 +278,7 @@ async function getUserBookings(phone) {
     .eq("devotee_phone", p)
     .order("created_at", { ascending: false }).order("id", { ascending: true }));
 
-  return withArchiveSnapshots(data.map(b => ({
+  return withArchiveSnapshots(data.filter(b => !/^cancelled by user$/i.test(String(b.status || ""))).map(b => ({
     id: b.id, shortId: getShortId(b.notes, b.id),
     price     : b.price,
     status    : b.status,

@@ -40,7 +40,11 @@ test('home.js only touches the banner when something differs and never slides in
   const src = fs.readFileSync(path.join(__dirname, '../frontend/assets/js/pages/home.js'), 'utf8');
   assert.match(src, /dataset\.pujaId === String\(firstPuja\.id\)/);
   assert.match(src, /probe\.decode/);
-  assert.match(src, /slideReady\(\(currentSlide \+ 1\) % n\)/);
+  assert.match(src, /whenSlideReady\(\(currentSlide \+ 1\) % n/);          // automatic slide waits for the next photo
+  assert.match(src, /img\.decode\(\)\.then\(go, go\)/);                   // ...and for it to be decoded (no blank first frame)
+  assert.match(src, /\}, 10000\);/);                                        // 10 s per slide, long enough to read
+  assert.match(src, /Date\.now\(\) - lastTouch < 25000/);                   // never moves right after the visitor used the banner
+  assert.match(src, /hero\.matches\(":hover, :focus-within"\)/);
   assert.match(src, /function stepSlide/);
 });
 
@@ -51,4 +55,14 @@ test('the server bakes the current hero into home.html on every request, using i
   const root = fixture([]);
   const html = bakeHomeHero(PAGE, root, () => null, [live('z9', 'Live from memory')]);
   assert.match(html, /data-puja-id="z9"/);
+});
+
+test('safeguards stay in place: live-check script, checklist and short catalog cache', () => {
+  const root = path.join(__dirname, '..');
+  assert.ok(fs.existsSync(path.join(root, 'scripts/check-live.js')));
+  assert.ok(fs.existsSync(path.join(root, 'RELIABILITY-CHECKLIST.md')));
+  assert.equal(JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).scripts['check:live'], 'node scripts/check-live.js');
+  const vercel = JSON.parse(fs.readFileSync(path.join(root, 'vercel.json'), 'utf8'));
+  const rule = vercel.headers.find(h => h.source === '/content/(.*)');
+  assert.ok(rule && !/stale-while-revalidate|max-age=([1-9]\d{2,})/.test(rule.headers[0].value), 'catalog must not be cached for long');
 });

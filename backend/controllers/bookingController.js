@@ -211,8 +211,21 @@ async function adminDeleteBooking(req,res) {
   return send(res,409,{error:'Booking records are retained for history. Permanent deletion is disabled.'});
 }
 
-async function deleteMyBooking(req,res) {
-  return send(res,409,{error:'Booking records are retained for history. Permanent deletion is disabled.'});
+/* A customer may remove a booking that is still waiting for payment. The record is never erased: it is marked
+   "Cancelled by user" (hidden from their account, kept for history and visible to the admin). Paid bookings stay. */
+async function deleteMyBooking(req, res, url) {
+  const id = url && url.searchParams.get("id");
+  if (!id) return send(res, 400, { error: "Missing booking id." });
+  const b = await bookingModel.findFullById(id);
+  if (!b || String(b.phone) !== String(req.userPhone)) return send(res, 404, { error: "Booking not found." });
+  const status = String(b.status || "").toLowerCase().trim();
+  const pay = String(b.payment_status || "").toLowerCase();
+  if (status === "cancelled by user") return send(res, 200, { ok: true, status: "Cancelled by user" });
+  const waiting = /^(pending|payment-pending|failed|cancelled|canceled)$/.test(status) && !/paid|captured|success|verification|claimed/.test(pay);
+  if (!waiting) return send(res, 409, { error: "Only bookings that are still waiting for payment can be removed. Paid bookings are kept for your records." });
+  const ok = await bookingModel.updateBooking(id, { status: "Cancelled by user" });
+  if (!ok) return send(res, 500, { error: "Could not remove the booking. Please try again." });
+  send(res, 200, { ok: true, status: "Cancelled by user" });
 }
 
 async function recoverBooking(req, res, url) {

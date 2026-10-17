@@ -1117,3 +1117,7 @@
 /* Only one puja in the banner: no previous/next arrows and no lone dot. The dots keep their space so nothing moves. */
 .hero-landing:not(.hero-multi) .hero-arrow { display: none !important; }
 .hero-landing:not(.hero-multi) .hero-slider-dots { visibility: hidden; }
+
+/* Never a white frame while the hero photo downloads: the photo's box is a warm tone until the image paints over it. */
+.hero-landing, .hero-image-wrap, .hero-image-wrap picture, .hero-image-wrap .hero-img { background-color: #f3e6d3; }
+@media (max-width: 767px) { .hero-landing { background-color: #fffaf2; } }

@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
 test('direct My Bookings routing initializes state before accessing it',()=>{
  const source=read('frontend/assets/js/pages/account.js');const panels=['profile','bookings'].map(name=>({id:'panel-'+name,style:{},setAttribute(){},focus(){}}));
- const context={initLayout(){},authToken:'test',location:{replace(){}},document:{body:{classList:{add(){}}},documentElement:{classList:{remove(){}}},querySelectorAll:selector=>selector==='.account-panel'?panels:[]},$id:id=>panels.find(p=>p.id===id),window:{location:{search:'?panel=bookings&tab=ongoing'},innerWidth:1000},URLSearchParams,setTimeout(){}};
+ const context={initLayout(){},authToken:'test',location:{replace(){}},document:{body:{classList:{add(){}}},documentElement:{removeAttribute(){},classList:{add(){},remove(){}}},querySelectorAll:selector=>selector==='.account-panel'?panels:[]},$id:id=>panels.find(p=>p.id===id),window:{location:{search:'?panel=bookings&tab=ongoing'},innerWidth:1000},URLSearchParams,setTimeout(){}};
  vm.createContext(context);vm.runInContext(source.slice(0,source.indexOf('// Initialize the correct tab styling')),context);
  assert.equal(panels[0].style.display,'none');assert.equal(panels[1].style.display,'');
 });

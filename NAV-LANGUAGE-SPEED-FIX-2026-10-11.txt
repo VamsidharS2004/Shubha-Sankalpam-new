@@ -325,3 +325,117 @@ the page was never rebuilt for the new hero. Fix: the server (npm start / localh
 on every request from its live catalog, so localhost is always correct from the first paint even without running `npm run build`.
 (On Vercel the page still comes from the build; set VERCEL_DEPLOY_HOOK_URL so it rebuilds after Save & publish.)
 After unzipping on your computer, restart the local server (Ctrl+C, then npm start) and hard refresh once.
+
+ROUND 35 (2026-10-16) - Safeguards so today's problems do not return
+Added: scripts/check-live.js (npm run check:live -- <site url>) - verifies short catalog cache, home page first hero == catalog first hero,
+photos reachable, catalog speed. RELIABILITY-CHECKLIST.md - one-time setup (Vercel Deploy Hook, uptime ping, Supabase migrations) and the
+30-second after-publish check. New tests fail if long catalog caching or the baked first hero is removed.
+
+ROUND 36 (2026-10-17) - Client feedback from WhatsApp (4 items)
+1. Privacy Policy (and Terms): the "Contents" list is removed; Grievance Officer name is now "Linga Reddy" (was a placeholder).
+2. Account > My Bookings: "Delete" on a booking that is waiting for payment now works. The record is NOT erased - it is marked
+   "Cancelled by user", hidden from the customer's account and still visible to the admin for history. Paid / payment-verifying
+   bookings cannot be removed (clear message). If a payment still arrives later, the booking shows again as paid.
+3. Account picture letter: ignores titles (Mr./Mrs./Ms./Dr./Sri/Smt/Shri/శ్రీ/శ్రీమతి) - "Mr. Konduru sai goutham" now shows "K" (was "M").
+4. Account page "loading in layers": the page waited for all scripts (including the puja catalog) before showing anything, then filled
+   in piece by piece. Now the banner/menu show immediately, the saved profile is painted before first paint, the profile request starts
+   at once in parallel, first-time visitors see calm placeholders, and bookings show placeholders instead of popping in.
+Tests: tests/account-fixes.test.js.
+
+ROUND 37 (2026-10-17) - Client feedback, second pass (3 items)
+1. Privacy Policy: the "Last updated on ..." line is removed (and the sentence that mentioned a "Last Updated" date was reworded).
+   Terms and Refund pages still show their own dates - say if those should go too.
+2. "Loading layer by layer" (analysed from the screen recording): site text (field labels, headings, search box) was hidden until the
+   LAST page script finished, then appeared all at once while other parts were already visible. Fixes:
+   - Telugu text is now written into the HTML at build time (scripts/prerender-header.js: bakeTelugu), so headings, tabs and the
+     search box are real words on the very first frame. Other languages are still hidden until translated.
+   - A tiny inline script (ss-early) fills the saved site text (labels etc.) as soon as the page body is read, for returning visitors,
+     instead of waiting for every script. Without a saved copy it behaves as before.
+   - Account > Devotee Information: email / gotram / language no longer start as "Add email address / Not provided / English (Default)";
+     they are painted from the saved profile on the first frame (first visit: calm placeholder).
+3. Account picture letter: Telugu names are written family-name first, so a name of 3+ words after the title uses the 2nd word:
+   "Mr. Konduru sai goutham" -> "S" (shorter names use the 1st word: "Mr. Ramesh Kumar" -> "R").
+Tests: tests/account-fixes.test.js (privacy line, baked Telugu, early script, blank fields, letter rule).
+
+ROUND 38 (2026-10-17) - Bell icon, pending bookings, speed, white frames
+1. Bell showed "2 unfinished bookings" while My Bookings > Pending was empty. Cause: the bell and the account page used two different
+   rules. The account page hides a pending booking while its puja is off the website; the bell did not. Now ONE shared rule
+   (main.js: ssNormStatus / ssBookingListed / ssPendingBookings) drives both:
+   - puja disabled (draft / scheduled / ended / deleted) -> its pending booking AND the bell disappear;
+   - puja enabled again -> they come back (the booking itself is never changed);
+   - paid, finished and customer-removed bookings never count; if the catalog fails to load nothing is hidden.
+2. Bell is instant: painted from the saved profile on the first frame, then confirmed with the server only if the saved copy is older
+   than 20 s (so far fewer /api/me calls on every page). Adding or clearing the bell never flickers. Any booking/payment change
+   clears the saved copy so the bell is never stale.
+3. Bell -> My Bookings and Profile -> My Bookings: the panel from the link is shown by the page's own head (no hidden-then-appear
+   gap), the menu/tab highlight is correct on frame one, and the 50 ms wait + slow smooth scroll on phones is gone (switch ~20 ms).
+4. White frames: the hero photo box is a warm tone while the photo downloads (was white on a slow connection).
+   Telugu text baked in and early text script (Round 37) remove the blank headings/labels.
+5. Speed: /api/me asks for the profile and bookings at the same time (one database round trip instead of two).
+6. Future-proofing: scripts/check-live.js now also fails if the puja catalog gets heavy (over 150 KB compressed), the home page HTML is
+   over 150 KB, or an uploaded puja photo is over 900 KB. Card photos already load lazily, so more pujas do not mean more
+   downloads at the start.
+Tests: tests/account-fixes.test.js (shared rule incl. disable/enable, bell, routing, hero tone).
+
+ROUND 39 - SPEED (photos and catalog)
+- Measured on localhost: page TTFB ~20ms, but /content/pujas.js ~840ms because the catalog sync wait hit its cap on every request, and the main photo only started downloading after scripts built the slide (~1.1s).
+- Photos: cards.js remembers the first photos (ss_img_hints); the page head now preloads the exact same resized picture before any script runs (puja list, package list, puja details).
+- Catalog wait lowered to 300ms when warm. Server-Timing header on catalog responses shows the wait.
+- check:live now also times each phone-size photo (fails if over 2.5s or 150KB).
+- Open: set Vercel function region to match the Supabase region (needs the Supabase region).
+
+ROUND 40 - NO GRAY / WHITE FRAMES, NOTHING LOADS TWICE (2026-10-17)
+What the video showed (home -> Puja tab -> hero Book Now -> puja page -> booking):
+ a) the old page cross-faded into the new one (washed-out frame), b) the puja page then showed a gray placeholder, then the real page
+ (it looked like the page loaded twice), c) the booking page first showed "Puja Title" and Rs 0.
+Fixes (all verified with a slow-network, slow-CPU recording of the real clicks; the old page now stays on screen until the new one paints):
+1. No cross-fade between pages (head block in every page, scripts/prerender-header.js). The old page is replaced in one step.
+2. Puja page opens with the photo, caption, breadcrumb, title, price, live countdown and the Book Now card already in their FINAL places
+   (the card text is static). Only the description / date row fill in afterwards, below the title, so nothing visible moves.
+   - What is shown comes from localStorage ss_img_hints {byId, meta:{id:{l,t,p,m}}}: language, title, price, muhurat time.
+   - cards.js saves it for every card shown (puja list, package list, home) and home.js saves the banner pujas, so Book Now on the banner is
+     smooth even as the first click of a visit. A puja whose image is a site file (assets/...) is remembered too; a theme name is not a photo.
+   - The small card-size photo (already downloaded for the card) shows underneath until the sharper one arrives.
+   - On phones the card is not shown early (it sits lower, below text that is not there yet) - photo + title only, rest appears underneath.
+   - The countdown/card is shown early only when a future muhurat time is known; otherwise the old behaviour (card appears with the page).
+3. Booking page never shows "Puja Title" / Rs 0: those spots stay hidden until real values (or the remembered title/price) are in.
+4. Chrome/Edge load puja pages ahead of the click (Speculation Rules prerender + the first 3 puja links); such a page is NOT counted as a visit
+   until the visitor really opens it (analytics-tracker.js, details.js use ssAfterActivation).
+5. A first-ever visit straight to a puja link (nothing remembered yet) still shows the quiet placeholder - there is nothing to show yet.
+Rules so it never comes back (tests/account-fixes.test.js):
+ - no animation on ::view-transition-old/new(root); prerender rule present on all main pages;
+ - the paint script runs after its elements and before the deferred scripts, and fills photo/title/price/caption/breadcrumb/countdown;
+ - the hint is saved for every card and banner puja; wrong language / wrong puja is never shown;
+ - booking placeholders stay hidden until real values are in.
+Open: Supabase region vs Vercel function region (biggest remaining cost of the very first load); first-ever direct visits could get the same
+instant look from a small build-time file of puja titles/prices (not done: it would show build-time prices for a moment).
+
+ROUND 41 - FIRST-VISIT SPEED (from the Lighthouse screenshots)
+- Puja page / booking page: the build now bakes every live Telugu puja's title, price, muhurat and photo into the page
+  (window.__ssBaked, written by scripts/prerender-header.js after sync-catalog). A first-time visitor therefore gets the
+  photo preloaded (it is found in the HTML, not after pujas.js + details.js) and the title/price painted at once.
+  Measured locally (throttled mobile, first visit): puja photo requested at ~230 ms and is the LCP at ~1.1 s; CLS 0.003.
+  Returning visitors still use their own remembered hints first. If the admin edits a puja, details.js corrects the page as before.
+- Telugu font is preloaded for every Telugu visitor (before: only after the first visit finished loading).
+- NOT fixed: the home page layout shift (~0.15) on a very slow first visit, when the 140 KB Telugu font arrives after the
+  first paint and two text lines become one. It disappears on repeat visits (font cached + preloaded). Needs real-device
+  measurement on the deployed site before deciding on a bigger change.
+- Localhost Lighthouse (no HTTP/2, no CDN, no cache headers) is much slower than the deployed site; judge with PageSpeed Insights on the live URL.
+
+ROUND 42 - HOME BANNER (from the 10:33 video)
+- The banner slid to the next puja every 6 s, so the puja details (title, text, temple, date, Book Now) vanished while being read,
+  and the new slide's first frame could be blank (photo downloaded but not yet decoded).
+- Now: 10 s per slide; no automatic slide while the pointer/keyboard focus is in the banner, for 25 s after any click/touch/key/scroll
+  on it, or when the banner is scrolled out of view; the next photo must be downloaded AND decoded before a slide starts.
+- Cache version bumped to 20261017-slide1 so browsers fetch the new home.js.
+
+ROUND 43 - BOOKING DETAILS + FIRST-LOAD SPEED (10:48 / 10:51 videos)
+- Account > My Bookings > "Your Booking Details" opens payment.html?...&view=details. The page was built showing the Scan & Pay card
+  (QR, UPI id, "Preparing payment...") until payment.js ran, so it flashed before the details. Now an inline script marks the page
+  as a details view and the card stays hidden until the details are drawn (6 s safety release). The real payment flow is unchanged.
+- Lighthouse (home, mobile) showed Style & Layout as the biggest cost. animations.js measured and changed each section one by one,
+  forcing the browser to redo the page layout again and again; it now measures first, then changes (and scans once per frame).
+  Sections far below the banner (why us, temples, gallery, testimonials, FAQ) get content-visibility:auto, so they are laid out only
+  when scrolled near. Local test, same machine, same throttling: blocking time 280 ms -> 150 ms, score 76 -> 81.
+- Cache version 20261017-speed2.
+- Not changed (needs the live site to judge): hero photo download time depends on Supabase image resizing and the visitor's network.

@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node backend/server.js",
     "build": "node scripts/sync-catalog.js && node scripts/prerender-header.js && node scripts/build-static.js",
-    "test": "node --test --test-concurrency=1 tests/*.test.js"
+    "test": "node --test --test-concurrency=1 tests/*.test.js",
+    "check:live": "node scripts/check-live.js",
+    "move-old-images": "node scripts/move-old-images.js"
   },
   "keywords": [],
   "author": "",

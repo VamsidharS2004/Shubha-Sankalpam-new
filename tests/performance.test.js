@@ -24,5 +24,7 @@ test('static build preserves body markup and CSS rule order',()=>{
  }
  const html=fs.readFileSync(path.join(root,'public-build/home.html'),'utf8');
  assert.equal((html.match(/href="\/assets\/css\/bundles\//g)||[]).length,1);
- for(const name of ['admin.html','content','backend','.env'])assert.equal(fs.existsSync(path.join(root,'public-build',name)),false);
+ for(const name of ['admin.html','backend','.env'])assert.equal(fs.existsSync(path.join(root,'public-build',name)),false);
+ /* public-build/content now holds only the fixed text files (faq, why-us...) served from the CDN; the catalogs an admin edits stay dynamic server routes */
+ for(const name of ['pujas.js','packages.js','temples.js','site-settings.js'])assert.equal(fs.existsSync(path.join(root,'public-build/content',name)),false,name);
 });

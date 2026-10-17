@@ -58,3 +58,5 @@ pre-razorpay-commit-backup/
 
 # Frontend lighthouse tmp
 frontend/lighthouse_tmp/
+
+public-build/

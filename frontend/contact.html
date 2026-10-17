@@ -12,21 +12,39 @@ d.classList.add("ss-i18n-pending");
 function release(){d.classList.remove("ss-i18n-pending");}
 document.addEventListener("DOMContentLoaded",function(){if(!window.__ssI18nOwner)release();});
 setTimeout(release,2500);
+/* Returning visitors: ask for the photos at the top of this page right away (remembered from the last visit by cards.js),
+   so they download in parallel with the scripts and the catalog instead of after the cards are built. Same sizes as cards.js asks for. */
+try{var H=JSON.parse(localStorage.getItem("ss_img_hints")||"null")||{};if(H){var P=location.pathname,L=[],S="(max-width: 767px) 92vw, 420px",HID="";
+var O="/storage/v1/object/public/",R="/storage/v1/render/image/public/",Q=String.fromCharCode(63),A=String.fromCharCode(38);
+var ssSet=function(x){var b=x.split(Q)[0].replace(O,R);return [480,800,1200,1600].map(function(w){return b+Q+"width="+w+A+"resize=contain"+A+"quality=70 "+w+"w";}).join(", ");};
+var ssOk=function(x){return typeof x==="string"&&x.indexOf(O)>-1&&x.indexOf("https://")===0;};
+if(P.slice(-10)==="/puja.html")L=H.puja||[];else if(P.slice(-13)==="/package.html")L=H.pkg||[];
+else if(P.indexOf("/puja-details/")===0){HID=decodeURIComponent(P.slice(14).split("/")[0]);var u=H.byId&&H.byId[HID];if(u){L=[u];S="(max-width: 900px) 100vw, 60vw";}}
+else if(P.slice(-13)==="/booking.html"){HID=new URLSearchParams(location.search).get("id")||"";}
+/* The title, price and photo of the puja the visitor just clicked (remembered by cards.js): the puja and booking pages paint these at once
+   instead of a gray placeholder. Only used when remembered in the language now shown. */
+var M=HID&&H.meta&&H.meta[HID],U2=HID&&H.byId&&H.byId[HID];
+/* First visit (nothing remembered yet): the build bakes the live pujas' Telugu title, price and photo into the puja and booking pages. */
+var BK=window.__ssBaked;if(!(M&&M.t)&&HID&&BK&&BK[HID]&&d.lang==="te"){M={t:BK[HID].t,p:BK[HID].p,m:BK[HID].m,l:"te"};U2=BK[HID].i;}
+if(!L.length&&P.indexOf("/puja-details/")===0&&ssOk(U2)){L=[U2];S="(max-width: 900px) 100vw, 60vw";}
+if(M&&M.t&&M.l===d.lang){window.__ssHint={t:M.t,p:M.p,m:M.m||0,i:typeof U2==="string"?U2:"",s:ssOk(U2)?ssSet(U2):"",z:S};}
+L.slice(0,3).forEach(function(x,i){if(!ssOk(x))return;
+var k=document.createElement("link");k.rel="preload";k.as="image";k.setAttribute("imagesrcset",ssSet(x));k.setAttribute("imagesizes",S);if(i===0)k.setAttribute("fetchpriority","high");document.head.appendChild(k);});}}catch(e){}
 /* Returning visitors: start reading the Telugu font from cache right away so
    Telugu text (and the language pill) never flashes in a fallback font. */
-try{if(localStorage.getItem("ss_fonts_ok")){var k=document.createElement("link");k.rel="preload";k.as="font";k.type="font/woff2";k.crossOrigin="anonymous";k.href="assets/fonts/anek-telugu-telugu-wght-normal.woff2";document.head.appendChild(k);}}catch(e){}
+try{if(localStorage.getItem("ss_fonts_ok")||d.lang==="te"){var k=document.createElement("link");k.rel="preload";k.as="font";k.type="font/woff2";k.crossOrigin="anonymous";k.href="assets/fonts/anek-telugu-telugu-wght-normal.woff2";document.head.appendChild(k);}}catch(e){}
 window.addEventListener("load",function(){if(document.fonts)document.fonts.ready.then(function(){try{localStorage.setItem("ss_fonts_ok","1");}catch(e){}});});})();
 </script>
 <style>
-html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i18n-pending [data-i18n-placeholder],html.ss-i18n-pending [data-i18n-list-placeholder],html.ss-i18n-pending [data-cms-key],html.ss-i18n-pending:not([lang="te"]) [data-dynamic-hero] .hero-copy{visibility:hidden}
-/* Smooth page-to-page navigation: the nav bar stays put while the page content cross-fades (Chrome/Edge/Safari; others just navigate normally). */
+html.ss-i18n-pending:not([lang="te"]) [data-i18n],html.ss-i18n-pending:not([lang="te"]) [data-i18n-list],html.ss-i18n-pending:not([lang="te"]) [data-i18n-placeholder],html.ss-i18n-pending:not([lang="te"]) [data-i18n-list-placeholder],html.ss-i18n-pending [data-cms-key],html.ss-i18n-pending:not([lang="te"]) [data-dynamic-hero] .hero-copy{visibility:hidden}
+/* Smooth page-to-page navigation: the nav bar stays put while the new page replaces the old one in a single step - no cross-fade, because a fade shows washed-out in-between frames (Chrome/Edge/Safari; others just navigate normally). */
 @view-transition{navigation:auto}
 #site-header>header{view-transition-name:ss-header}
 #site-header>.bottom-nav{view-transition-name:ss-bottom-nav}
 ::view-transition-group(ss-header),::view-transition-group(ss-bottom-nav){animation:none}
 ::view-transition-old(ss-header),::view-transition-old(ss-bottom-nav){display:none}
 ::view-transition-new(ss-header),::view-transition-new(ss-bottom-nav){animation:none}
-::view-transition-old(root),::view-transition-new(root){animation-duration:.15s}
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
 @media (prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
 </style>
 <link rel="icon" href="/favicon.ico" sizes="48x48"><!-- tab logo -->
@@ -37,7 +55,7 @@ html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i
 <link rel="preload" href="assets/fonts/poppins-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin><!-- nav bar weight -->
 <link rel="preconnect" href="https://caxowviysinpnvvqcsog.supabase.co"><!-- admin-uploaded puja images -->
 <style>@font-face{font-family:'Poppins';font-style:normal;font-weight:400;font-display:fallback;src:url(/assets/fonts/poppins-latin-ext-400-normal.woff2) format('woff2');unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:'Poppins';font-style:normal;font-weight:400;font-display:fallback;src:url(/assets/fonts/poppins-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:'Poppins';font-style:normal;font-weight:500;font-display:fallback;src:url(/assets/fonts/poppins-latin-ext-500-normal.woff2) format('woff2');unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:'Poppins';font-style:normal;font-weight:500;font-display:fallback;src:url(/assets/fonts/poppins-latin-500-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:'Poppins';font-style:normal;font-weight:600;font-display:fallback;src:url(/assets/fonts/poppins-latin-ext-600-normal.woff2) format('woff2');unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:'Poppins';font-style:normal;font-weight:600;font-display:fallback;src:url(/assets/fonts/poppins-latin-600-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:'Poppins';font-style:normal;font-weight:700;font-display:fallback;src:url(/assets/fonts/poppins-latin-ext-700-normal.woff2) format('woff2');unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:'Poppins';font-style:normal;font-weight:700;font-display:fallback;src:url(/assets/fonts/poppins-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:'Poppins';font-style:normal;font-weight:800;font-display:fallback;src:url(/assets/fonts/poppins-latin-ext-800-normal.woff2) format('woff2');unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:'Poppins';font-style:normal;font-weight:800;font-display:fallback;src:url(/assets/fonts/poppins-latin-800-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:'Anek Telugu';font-style:normal;font-weight:100 800;font-display:fallback;src:url(/assets/fonts/anek-telugu-telugu-wght-normal.woff2) format('woff2-variations'),url(/assets/fonts/anek-telugu-telugu-wght-normal.woff2) format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0C00-0C7F,U+1CDA,U+1CF2,U+200C-200D,U+25CC}</style>
-<script type="speculationrules">{"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/api/*","/admin*","/uploads/*","/*\\?*token=*"]}}]},"eagerness":"moderate"}]}</script>
+<script type="speculationrules">{"prerender":[{"where":{"href_matches":"/puja-details/*"},"eagerness":"moderate"}],"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/api/*","/admin*","/uploads/*","/*\\?*token=*"]}}]},"eagerness":"moderate"}]}</script>
 <!-- ss-head:end -->
 <!-- ss-seo:start (generated by scripts/prerender-header.js) -->
 <link rel="canonical" href="https://www.shubhasankalpam.com/contact.html">
@@ -52,9 +70,9 @@ html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <noscript></noscript>
-  <link rel="stylesheet" href="assets/css/global.css?v=20261016-drafts2">
-  <link rel="stylesheet" href="assets/css/navbar.css?v=20261016-drafts2">
-  <link rel="stylesheet" href="assets/css/responsive.css?v=20261016-drafts2">
+  <link rel="stylesheet" href="assets/css/global.css?v=20261017-speed2">
+  <link rel="stylesheet" href="assets/css/navbar.css?v=20261017-speed2">
+  <link rel="stylesheet" href="assets/css/responsive.css?v=20261017-speed2">
   <title>Shubha Sankalpam | Contact Us</title>
   <meta name="description" content="Contact Shubha Sankalpam for puja booking help, payments, refunds and privacy requests. Email support@shubhasankalpam.com or message us on WhatsApp.">
   <style>
@@ -81,7 +99,7 @@ html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i
   </style>
 
   <!-- Favicon -->
-<link rel="stylesheet" href="assets/css/content-layout.css?v=20261016-drafts2">
+<link rel="stylesheet" href="assets/css/content-layout.css?v=20261017-speed2">
 </head>
 <body>
 
@@ -191,17 +209,26 @@ html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i
 
   <!-- ============ CONTENT (Fetched from API) ============ -->
 
-  <script defer src="content/site-settings.js?v=20261016-drafts2"></script>
+  <script defer src="content/site-settings.js?v=20261017-speed2"></script>
   <!-- ============ SITE CODE ============ -->
-  <script defer src="assets/js/main.js?v=20261016-drafts2"></script>
-  <script defer src="assets/js/language.js?v=20261016-drafts2"></script>
-  <script defer src="assets/js/navbar.js?v=20261016-drafts2"></script>
+  <script defer src="assets/js/main.js?v=20261017-speed2"></script>
+  <script defer src="assets/js/language.js?v=20261017-speed2"></script>
+  <script defer src="assets/js/navbar.js?v=20261017-speed2"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       if (typeof initLayout === "function") initLayout();
     });
   </script>
-  <script defer src="assets/js/cms-renderer.js?v=20261016-drafts2"></script>
-<script defer src="assets/js/analytics-tracker.js?v=20261016-drafts2"></script>
+  <script defer src="assets/js/cms-renderer.js?v=20261017-speed2"></script>
+<script defer src="assets/js/analytics-tracker.js?v=20261017-speed2"></script>
+<!-- ss-early:start (generated by scripts/prerender-header.js) -->
+<script>(function(){try{var d=document.documentElement;if((d.lang||"te")!=="te")return;
+var raw=localStorage.getItem("ss_cms_global_v2");if(!raw)return;var c=(JSON.parse(raw)||{}).content;if(!c)return;
+document.querySelectorAll("[data-cms-key]").forEach(function(el){var k=el.getAttribute("data-cms-key");if(!k)return;
+var p=k.split("."),pg=p[0],sk=p.slice(1).join("."),o=c[pg]&&(c[pg][sk]||c[pg][k]);if(!o||!o.translations)return;
+var v=o.translations.te||o.translations.en;if(!v||!String(v).trim())return;var a=el.getAttribute("data-cms-attr");
+if(a)el.setAttribute(a,v);else if(/<(em|strong|br|b|i|u|span|p|a)[> ]/i.test(v))el.innerHTML=v;else el.textContent=v;});
+d.classList.remove("ss-i18n-pending");}catch(e){}})();</script>
+<!-- ss-early:end -->
 </body>
 </html>

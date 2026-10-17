@@ -27,14 +27,14 @@ const vm = require("node:vm");
 const { bakeHomeHero } = require("./hero-bake");
 
 const FRONTEND = path.resolve(__dirname, "../frontend");
-const VERSION = "20261016-drafts2";
+const VERSION = "20261017-speed2";
 const SKIP = new Set(["404.html", "google09a10f499bc60551.html", "admin.html", "booking_backup.html", "index.html", "vedamandir.html", "video-player.html"]);
 
 /* ---- load SITE + headerHTML() exactly as the browser would ---- */
 function loadHeaderTemplate() {
   const ctx = {
     document: { addEventListener() {}, querySelector() { return null; } },
-    window: {}, location: { pathname: "/home.html", search: "" }, localStorage: { getItem() { return null; } },
+    window: { addEventListener() {} }, location: { pathname: "/home.html", search: "" }, localStorage: { getItem() { return null; } },
     $id: () => null, console
   };
   vm.createContext(ctx);
@@ -62,21 +62,39 @@ d.classList.add("ss-i18n-pending");
 function release(){d.classList.remove("ss-i18n-pending");}
 document.addEventListener("DOMContentLoaded",function(){if(!window.__ssI18nOwner)release();});
 setTimeout(release,2500);
+/* Returning visitors: ask for the photos at the top of this page right away (remembered from the last visit by cards.js),
+   so they download in parallel with the scripts and the catalog instead of after the cards are built. Same sizes as cards.js asks for. */
+try{var H=JSON.parse(localStorage.getItem("ss_img_hints")||"null")||{};if(H){var P=location.pathname,L=[],S="(max-width: 767px) 92vw, 420px",HID="";
+var O="/storage/v1/object/public/",R="/storage/v1/render/image/public/",Q=String.fromCharCode(63),A=String.fromCharCode(38);
+var ssSet=function(x){var b=x.split(Q)[0].replace(O,R);return [480,800,1200,1600].map(function(w){return b+Q+"width="+w+A+"resize=contain"+A+"quality=70 "+w+"w";}).join(", ");};
+var ssOk=function(x){return typeof x==="string"&&x.indexOf(O)>-1&&x.indexOf("https://")===0;};
+if(P.slice(-10)==="/puja.html")L=H.puja||[];else if(P.slice(-13)==="/package.html")L=H.pkg||[];
+else if(P.indexOf("/puja-details/")===0){HID=decodeURIComponent(P.slice(14).split("/")[0]);var u=H.byId&&H.byId[HID];if(u){L=[u];S="(max-width: 900px) 100vw, 60vw";}}
+else if(P.slice(-13)==="/booking.html"){HID=new URLSearchParams(location.search).get("id")||"";}
+/* The title, price and photo of the puja the visitor just clicked (remembered by cards.js): the puja and booking pages paint these at once
+   instead of a gray placeholder. Only used when remembered in the language now shown. */
+var M=HID&&H.meta&&H.meta[HID],U2=HID&&H.byId&&H.byId[HID];
+/* First visit (nothing remembered yet): the build bakes the live pujas' Telugu title, price and photo into the puja and booking pages. */
+var BK=window.__ssBaked;if(!(M&&M.t)&&HID&&BK&&BK[HID]&&d.lang==="te"){M={t:BK[HID].t,p:BK[HID].p,m:BK[HID].m,l:"te"};U2=BK[HID].i;}
+if(!L.length&&P.indexOf("/puja-details/")===0&&ssOk(U2)){L=[U2];S="(max-width: 900px) 100vw, 60vw";}
+if(M&&M.t&&M.l===d.lang){window.__ssHint={t:M.t,p:M.p,m:M.m||0,i:typeof U2==="string"?U2:"",s:ssOk(U2)?ssSet(U2):"",z:S};}
+L.slice(0,3).forEach(function(x,i){if(!ssOk(x))return;
+var k=document.createElement("link");k.rel="preload";k.as="image";k.setAttribute("imagesrcset",ssSet(x));k.setAttribute("imagesizes",S);if(i===0)k.setAttribute("fetchpriority","high");document.head.appendChild(k);});}}catch(e){}
 /* Returning visitors: start reading the Telugu font from cache right away so
    Telugu text (and the language pill) never flashes in a fallback font. */
-try{if(localStorage.getItem("ss_fonts_ok")){var k=document.createElement("link");k.rel="preload";k.as="font";k.type="font/woff2";k.crossOrigin="anonymous";k.href="assets/fonts/anek-telugu-telugu-wght-normal.woff2";document.head.appendChild(k);}}catch(e){}
+try{if(localStorage.getItem("ss_fonts_ok")||d.lang==="te"){var k=document.createElement("link");k.rel="preload";k.as="font";k.type="font/woff2";k.crossOrigin="anonymous";k.href="assets/fonts/anek-telugu-telugu-wght-normal.woff2";document.head.appendChild(k);}}catch(e){}
 window.addEventListener("load",function(){if(document.fonts)document.fonts.ready.then(function(){try{localStorage.setItem("ss_fonts_ok","1");}catch(e){}});});})();
 </script>
 <style>
-html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i18n-pending [data-i18n-placeholder],html.ss-i18n-pending [data-i18n-list-placeholder],html.ss-i18n-pending [data-cms-key],html.ss-i18n-pending:not([lang="te"]) [data-dynamic-hero] .hero-copy{visibility:hidden}
-/* Smooth page-to-page navigation: the nav bar stays put while the page content cross-fades (Chrome/Edge/Safari; others just navigate normally). */
+html.ss-i18n-pending:not([lang="te"]) [data-i18n],html.ss-i18n-pending:not([lang="te"]) [data-i18n-list],html.ss-i18n-pending:not([lang="te"]) [data-i18n-placeholder],html.ss-i18n-pending:not([lang="te"]) [data-i18n-list-placeholder],html.ss-i18n-pending [data-cms-key],html.ss-i18n-pending:not([lang="te"]) [data-dynamic-hero] .hero-copy{visibility:hidden}
+/* Smooth page-to-page navigation: the nav bar stays put while the new page replaces the old one in a single step - no cross-fade, because a fade shows washed-out in-between frames (Chrome/Edge/Safari; others just navigate normally). */
 @view-transition{navigation:auto}
 #site-header>header{view-transition-name:ss-header}
 #site-header>.bottom-nav{view-transition-name:ss-bottom-nav}
 ::view-transition-group(ss-header),::view-transition-group(ss-bottom-nav){animation:none}
 ::view-transition-old(ss-header),::view-transition-old(ss-bottom-nav){display:none}
 ::view-transition-new(ss-header),::view-transition-new(ss-bottom-nav){animation:none}
-::view-transition-old(root),::view-transition-new(root){animation-duration:.15s}
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
 @media (prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
 </style>
 <link rel="icon" href="/favicon.ico" sizes="48x48"><!-- tab logo -->
@@ -87,7 +105,7 @@ html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i
 <link rel="preload" href="assets/fonts/poppins-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin><!-- nav bar weight -->
 <link rel="preconnect" href="https://caxowviysinpnvvqcsog.supabase.co"><!-- admin-uploaded puja images -->
 <style>${FONTS_INLINE}</style>
-<script type="speculationrules">{"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/api/*","/admin*","/uploads/*","/*\\\\?*token=*"]}}]},"eagerness":"moderate"}]}</script>
+<script type="speculationrules">{"prerender":[{"where":{"href_matches":"/puja-details/*"},"eagerness":"moderate"}],"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/api/*","/admin*","/uploads/*","/*\\\\?*token=*"]}}]},"eagerness":"moderate"}]}</script>
 <!-- ss-head:end -->`;
 
 const OLD_LANG_SCRIPT = /<script>\s*\(function\(\)\{var l="te";try\{l=localStorage\.getItem\("ss_lang"\)\|\|"te";\}catch\(e\)\{\}document\.documentElement\.lang=\/\^\(en\|te\|hi\)\$\/\.test\(l\)\?l:"te";\}\)\(\);\s*<\/script>\s*/g;
@@ -134,6 +152,65 @@ function seoBlock(file, html) {
   return `<!-- ss-seo:start (generated by scripts/prerender-header.js) -->\n${lines.join("\n")}\n<!-- ss-seo:end -->`;
 }
 
+
+/* ---- Telugu text baked into the HTML ----
+   Telugu is the default language, so the page's own text is written in Telugu at build time.
+   The browser then paints real words on the very first frame (no blank heading that fills in later),
+   and language.js only has to confirm what is already there. Other languages are still hidden until translated. */
+function loadDictionaries() {
+  const ctx = {
+    document: { addEventListener() {}, querySelector() { return null; }, querySelectorAll() { return []; }, documentElement: { classList: { remove() {} } } },
+    window: { addEventListener() {} }, localStorage: { getItem() { return null; }, setItem() {} },
+    requestAnimationFrame() {}, setTimeout() {}, console
+  };
+  vm.createContext(ctx);
+  const src = fs.readFileSync(path.join(FRONTEND, "assets/js/language.js"), "utf8");
+  vm.runInContext(src + "\n;this.__D = DETAIL_UI; this.__L = LISTING_UI;", ctx);
+  return { detail: ctx.__D, listing: ctx.__L };
+}
+const DICT = loadDictionaries();
+const teDetail = k => (DICT.detail.te && DICT.detail.te[k]) || (DICT.detail.en && DICT.detail.en[k]);
+const teListing = k => (DICT.listing.te && DICT.listing.te[k]) || (DICT.listing.en && DICT.listing.en[k]);
+const escAttr = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+
+function bakeTelugu(html) {
+  // text elements: <tag ... data-i18n-list="key">...</tag>  /  data-i18n="key"
+  const textRe = (attr) => new RegExp(`<([a-zA-Z][a-zA-Z0-9]*)(\\s[^>]*?\\s?${attr}="([^"]+)"[^>]*)>([\\s\\S]*?)</\\1>`, "g");
+  html = html.replace(textRe("data-i18n-list"), (m, tag, attrs, key, inner) => {
+    const v = teListing(key); if (v == null || new RegExp("<" + tag + "[\\s>]", "i").test(inner)) return m;
+    return `<${tag}${attrs}>${v}</${tag}>`;
+  });
+  html = html.replace(textRe("data-i18n"), (m, tag, attrs, key, inner) => {
+    const v = teDetail(key); if (v == null || new RegExp("<" + tag + "[\\s>]", "i").test(inner)) return m;
+    return `<${tag}${attrs}>${String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;")}</${tag}>`;
+  });
+  // placeholders: set/replace the placeholder attribute on inputs that carry a key
+  html = html.replace(/<input\b[^>]*>/g, tagStr => {
+    const lk = tagStr.match(/\sdata-i18n-list-placeholder="([^"]+)"/), dk = tagStr.match(/\sdata-i18n-placeholder="([^"]+)"/);
+    const v = lk ? teListing(lk[1]) : dk ? teDetail(dk[1]) : null;
+    if (v == null) return tagStr;
+    return /\splaceholder="[^"]*"/.test(tagStr)
+      ? tagStr.replace(/\splaceholder="[^"]*"/, ` placeholder="${escAttr(v)}"`)
+      : tagStr.replace(/<input\b/, `<input placeholder="${escAttr(v)}"`);
+  });
+  return html;
+}
+
+
+/* ---- early text (Telugu visitors who already have the site text saved) ----
+   The page scripts load in a chain (catalog files first), so site text used to stay hidden until the very last one ran
+   and then everything appeared at once, section by section. This tiny inline script runs the moment the page body has
+   been read: it fills in the saved site text and shows the page. Without a saved copy it does nothing (the normal path). */
+const EARLY_BLOCK = `<!-- ss-early:start (generated by scripts/prerender-header.js) -->
+<script>(function(){try{var d=document.documentElement;if((d.lang||"te")!=="te")return;
+var raw=localStorage.getItem("ss_cms_global_v2");if(!raw)return;var c=(JSON.parse(raw)||{}).content;if(!c)return;
+document.querySelectorAll("[data-cms-key]").forEach(function(el){var k=el.getAttribute("data-cms-key");if(!k)return;
+var p=k.split("."),pg=p[0],sk=p.slice(1).join("."),o=c[pg]&&(c[pg][sk]||c[pg][k]);if(!o||!o.translations)return;
+var v=o.translations.te||o.translations.en;if(!v||!String(v).trim())return;var a=el.getAttribute("data-cms-attr");
+if(a)el.setAttribute(a,v);else if(/<(em|strong|br|b|i|u|span|p|a)[> ]/i.test(v))el.innerHTML=v;else el.textContent=v;});
+d.classList.remove("ss-i18n-pending");}catch(e){}})();</script>
+<!-- ss-early:end -->`;
+
 function processPage(file, headerHTML) {
   const full = path.join(FRONTEND, file);
   let html = fs.readFileSync(full, "utf8");
@@ -161,6 +238,8 @@ function processPage(file, headerHTML) {
     html = html.replace(/<head>\s*/, m => m + '<base href="/">\n');
   }
 
+  html = bakeHints(html, file);
+
   // 1b. search/share tags, right after the shared head block
   html = html.replace(/<!-- ss-seo:start[\s\S]*?<!-- ss-seo:end -->\n?/, "");
   html = html.replace("<!-- ss-head:end -->", m => m + "\n" + seoBlock(file, html));
@@ -177,11 +256,42 @@ function processPage(file, headerHTML) {
     html = html.replace(/<div id="site-header">[\s\S]*?<nav class="bottom-nav"[\s\S]*?<\/nav>\s*<\/div>/, markup);
   }
 
+  // 2b. Telugu text baked in (see bakeTelugu)
+  html = bakeTelugu(html);
+
+  // 2c. early text script, just before </body>
+  html = html.replace(/<!-- ss-early:start[\s\S]*?<!-- ss-early:end -->\n?/, "");
+  html = html.replace(/<\/body>/i, m => EARLY_BLOCK + "\n" + m);
+
   // 3. cache-busting version for local CSS/JS
   html = html.replace(/((?:assets|content)\/[^"?]+\.(?:css|js))\?v=[^"]+"/g, `$1?v=${VERSION}"`);
 
   if (html !== before) fs.writeFileSync(full, html);
   return html !== before;
+}
+
+/* Baked first-visit hints: id -> Telugu title, price, muhurat and photo of every live puja (see the head script). */
+function bakedPujaHints() {
+  try {
+    const ctx = {}; vm.createContext(ctx);
+    vm.runInContext(fs.readFileSync(path.join(FRONTEND, "content/pujas.js"), "utf8") + "\n;this.__p = pujas;", ctx);
+    const { state } = require("../backend/utils/pujaVisibility");
+    const out = {};
+    for (const p of ctx.__p || []) {
+      if (p.language !== "te" || state(p) !== "live") continue;
+      const t = [p.title_te, p.name_te, p.title, p.name].find(v => typeof v === "string" && v.trim());
+      if (!t) continue;
+      const i = typeof p.image === "string" && /^(https:\/\/|\/?assets\/)/.test(p.image) ? p.image : "";
+      out[p.id] = { t, p: p.price || p.basePrice || 0, m: p.muhurat ? Date.parse(p.muhurat) || 0 : 0, i };
+    }
+    return out;
+  } catch (_) { return {}; }
+}
+function bakeHints(html, file) {
+  html = html.replace(/<!-- ss-baked:start[\s\S]*?<!-- ss-baked:end -->\n?/, "");
+  if (file !== "puja-details.html" && file !== "booking.html") return html;
+  const json = JSON.stringify(bakedPujaHints()).replace(/</g, "\\u003c");
+  return html.replace("<!-- ss-head:start", () => `<!-- ss-baked:start (generated) --><script>window.__ssBaked=${json};</script><!-- ss-baked:end -->\n<!-- ss-head:start`);
 }
 
 const headerHTML = loadHeaderTemplate();

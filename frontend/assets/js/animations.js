@@ -74,39 +74,42 @@
   }, { threshold: 0.01, rootMargin: "0px 0px 700px 0px" });
 
   /* Anything already on screen when we first see it stays visible: hiding
-     it and fading it back in made the top of every page flash on load. */
-  function alreadyOnScreen(el) {
+     it and fading it back in made the top of every page flash on load.
+     All measurements are taken first and the class changes are made afterwards:
+     mixing them made the browser redo the page layout once per element. */
+  function onScreen(el) {
     var r = el.getBoundingClientRect();
     return r.top < window.innerHeight && r.bottom > 0;
   }
 
-  function tagStaggerContainer(el) {
-    if (el.dataset.revealed) return;
-    el.dataset.revealed = "1";
-    if (alreadyOnScreen(el)) return;
-    el.classList.add("reveal-stagger");
-    Array.prototype.forEach.call(el.children, function (child, i) {
-      child.style.setProperty("--reveal-i", i % 8); // cap the delay fan-out
-    });
-    io.observe(el);
-  }
-
-  function tagRevealEl(el) {
-    if (el.dataset.revealed) return;
-    // skip the hero itself — it has its own load-in animation, not scroll-reveal
-    if (el.id === "top") return;
-    el.dataset.revealed = "1";
-    if (alreadyOnScreen(el)) return;
-    el.classList.add("reveal");
-    io.observe(el);
-  }
-
   function scan(root) {
+    var staggers = [], reveals = [];
     root.querySelectorAll(STAGGER_CONTAINER_SELECTORS).forEach(function (el) {
       // only treat it as a stagger container once it actually has children
-      if (el.children.length) tagStaggerContainer(el);
+      if (el.children.length && !el.dataset.revealed) staggers.push(el);
     });
-    root.querySelectorAll(REVEAL_SELECTORS).forEach(tagRevealEl);
+    root.querySelectorAll(REVEAL_SELECTORS).forEach(function (el) {
+      // skip the hero itself — it has its own load-in animation, not scroll-reveal
+      if (!el.dataset.revealed && el.id !== "top") reveals.push(el);
+    });
+    if (!staggers.length && !reveals.length) return;
+    var staggerOn = staggers.map(onScreen), revealOn = reveals.map(onScreen);   // reads
+    staggers.forEach(function (el, n) {                                          // writes
+      el.dataset.revealed = "1";
+      if (staggerOn[n]) return;
+      el.classList.add("reveal-stagger");
+      Array.prototype.forEach.call(el.children, function (child, i) {
+        child.style.setProperty("--reveal-i", i % 8); // cap the delay fan-out
+      });
+      io.observe(el);
+    });
+    reveals.forEach(function (el, n) {
+      if (el.dataset.revealed) return;
+      el.dataset.revealed = "1";
+      if (revealOn[n]) return;
+      el.classList.add("reveal");
+      io.observe(el);
+    });
   }
 
   // initial pass, once the page's own scripts have finished running
@@ -114,12 +117,16 @@
 
   // keep watching for anything added later (async data: bookings list,
   // payment QR block, puja cards re-filtered by a tab click, etc.)
+  var scanQueued = false;
   var mo = new MutationObserver(function (mutations) {
     var needsScan = false;
     mutations.forEach(function (m) {
       if (m.addedNodes && m.addedNodes.length) needsScan = true;
     });
-    if (needsScan) scan(document.body);
+    if (needsScan && !scanQueued) {            // one scan per frame, however many changes came in
+      scanQueued = true;
+      requestAnimationFrame(function () { scanQueued = false; scan(document.body); });
+    }
   });
   mo.observe(document.body, { childList: true, subtree: true });
 })();

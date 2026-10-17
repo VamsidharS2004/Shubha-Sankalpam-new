@@ -489,3 +489,7 @@
 .testimonial-who{display:flex;flex-direction:column}
 .testimonial-who b{font-family: var(--font);font-weight:700;font-size:.95rem;color:var(--ink)}
 .testimonial-who span{font-size:.8rem;color:var(--muted)}
+
+/* Sections far below the first screen are laid out and painted only when the visitor scrolls near them.
+   This cuts the first page layout a lot; "auto" remembers each section's real height once it has been shown. */
+.cv-below{content-visibility:auto;contain-intrinsic-size:auto 640px}

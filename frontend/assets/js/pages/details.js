@@ -43,12 +43,15 @@ if (!item) {
   }
 } else {
 if (authToken && item) {
-  api('/api/me/interest', 'POST', { ref: item.id || ref }, true).catch(() => {});
-  api('/api/analytics/view', 'POST', {
-    pujaId: item.id || ref,
-    pujaName: (typeof localName === 'function' ? localName(item) : item.name) || item.name || item.title_en || ref,
-    lang: currentLang
-  }, true).catch(() => {});
+  /* when Chrome loaded this page ahead of time (prerender), count the visit only once the visitor really opens it */
+  ssAfterActivation(() => {
+    api('/api/me/interest', 'POST', { ref: item.id || ref }, true).catch(() => {});
+    api('/api/analytics/view', 'POST', {
+      pujaId: item.id || ref,
+      pujaName: (typeof localName === 'function' ? localName(item) : item.name) || item.name || item.title_en || ref,
+      lang: currentLang
+    }, true).catch(() => {});
+  });
 }
 // Keep puja-specific descriptions and procedures attached only to their own puja.
 let D = item.detail || {};
@@ -178,12 +181,13 @@ renderDetails();
 /* ---- top: carousel ---- */
 const slides = item.slides || [{ label: (item.temple || "").split(",")[0], image: item.image || item.media }];
 const slidesEl = $id("pdSlides");
-slides.forEach((s, i) => {
+const builtSlides = slides.map((s, i) => {
   const d = document.createElement("div");
   d.className = "pd-slide" + (i === 0 ? " active" : "");
   d.innerHTML = `${mediaHTML({ image: s.image, detail: item.detail }, localName(item), { eager: i === 0, sizes: "(max-width: 900px) 100vw, 60vw" })}`; // Removed pd-loc
-  slidesEl.appendChild(d);
+  return d;
 });
+slidesEl.replaceChildren(...builtSlides);   // also replaces the remembered photo painted by the head script, in a single step
 let sCur = 0;
 function pdShow(i) {
   sCur = (i + slides.length) % slides.length;

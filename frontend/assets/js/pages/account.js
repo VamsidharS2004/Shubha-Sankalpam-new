@@ -25,6 +25,7 @@ if (!authToken) {
   location.replace("login.html?next=account.html");
 } else {
   document.body.classList.add('auth-ready');
+  document.documentElement.classList.add('ss-has-token');
 }
 
 /* ---------------------------------------------------------------
@@ -53,16 +54,13 @@ function showPanel(name) {
       }
   }
   
-  setTimeout(() => {
-    selected.setAttribute("tabindex", "-1");
-    selected.focus({ preventScroll: true });
-    // If mobile, scroll to the panel to skip the top sidebar menu
-    if (window.innerWidth < 768) {
-      const headerOffset = 70; // Header height approx
-      const target = Math.max(0, selected.getBoundingClientRect().top + window.scrollY - headerOffset);
-      window.scrollTo({ top: target, behavior: "smooth" });
-    }
-  }, 50);
+  selected.setAttribute("tabindex", "-1");
+  selected.focus({ preventScroll: true });
+  // On a phone, jump (instantly - no slow smooth scroll) past the top menu to the panel
+  if (window.innerWidth < 768) {
+    const target = Math.max(0, selected.getBoundingClientRect().top + window.scrollY - 70);
+    window.scrollTo({ top: target, behavior: "auto" });
+  }
 }
 
 document.querySelectorAll(".side-item[data-panel]").forEach(btn => {
@@ -104,7 +102,7 @@ let currentBkTab = Object.hasOwn(BK_TAB_STATUSES, startTab) ? startTab : "pendin
 let allBookings = [];
 // Route only after booking state is initialized (avoid the let temporal dead zone).
 if (startPanel) showPanel(startPanel);
-document.documentElement.classList.remove('ss-account-routing');
+document.documentElement.removeAttribute('data-start-panel');
 
 // Initialize the correct tab styling on load
 if (startTab) {
@@ -119,15 +117,8 @@ document.querySelectorAll("#bkTabs .bk-tab").forEach(tab => {
   });
 });
 
-/* is this booking's puja/package still on the website? (matches by saved id first, then by name) */
-function bookingPujaStillListed(b) {
-  const name = b.puja || b.puja_name || b.pujaName || b.puja_title || "";
-  if (String(name).includes("razorpay_")) return true;
-  const lists = [typeof pujas !== "undefined" ? pujas : null, typeof packages !== "undefined" ? packages : null];
-  if (!lists.some(l => Array.isArray(l) && l.length)) return true; // catalog did not load: never hide anything
-  const snapId = b.snapshot && b.snapshot.id;
-  return lists.some(l => Array.isArray(l) && l.some(p => (snapId && p.id === snapId) || p.name === name || p.title_en === name || p.title_te === name));
-}
+/* is this booking's puja/package still on the website? (shared rule in main.js - same one the bell uses) */
+function bookingPujaStillListed(b) { return ssBookingListed(b); }
 const escapeHtml = v => String(v == null ? "" : v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 function renderBookingsList() {
@@ -268,7 +259,8 @@ function renderProfileData(me) {
 
   // Top banner
   $id("abName").textContent = name;
-  $id("abAvatar").textContent = name !== "Add your name" ? name.charAt(0).toUpperCase() : "D";
+  $id("abAvatar").textContent = name !== "Add your name" ? (window.ssInitial ? window.ssInitial(name) : name.charAt(0).toUpperCase()) : "D";
+  document.documentElement.classList.remove("ss-acct-loading");
   $id("abPhone").textContent = phone;
   
   // Profile dash info
@@ -291,20 +283,12 @@ function renderProfileData(me) {
     // Normalize backend/admin status strings into the frontend tab statuses.
     // This ensures a booking is ALWAYS visible in one of the 3 tabs,
     // regardless of which status the admin has set.
-    const s = (b.status || "").toLowerCase().trim();
-    if (s === "pending")                          b.status = "payment-pending";
-    else if (s === "confirmed" || s === "paid")   b.status = "paid";
-    else if (s === "scheduled")                   b.status = "paid";
-    else if (s === "failed" || s === "cancelled" || s === "canceled") b.status = "failed";
-    else if (s === "video-sent" || s === "completed")                  b.status = "video-sent";
-    else if (s === "payment-pending")             b.status = "payment-pending";
-    else if (s === "payment-claimed")             b.status = "payment-claimed";
-    else                                          b.status = "paid"; // unknown → Ongoing tab
+    b.status = ssNormStatus(b.status);
     return b;
   })
   // A booking still waiting for payment is removed from the list once its puja is deleted from the website.
   // Ongoing and Completed bookings stay (they use the saved name and photo).
-  .filter(b => !(BK_TAB_STATUSES.pending.includes(b.status) && !bookingPujaStillListed(b)));
+  .filter(b => b.status !== "removed" && !(BK_TAB_STATUSES.pending.includes(b.status) && !bookingPujaStillListed(b)));
   if (!startTab) {
       const pendingCount = allBookings.filter(b => BK_TAB_STATUSES["pending"].includes(b.status)).length;
       if (pendingCount === 0) {
@@ -330,7 +314,11 @@ async function loadProfile() {
   isFetchingProfile = true;
   try {
     $id("profileLoadError").hidden = true;
-    const me = await api("/api/me", "GET", undefined, true);
+    // the page asked for the profile as soon as it started (see account.html); fall back to a normal request
+    const early = window.__meP; window.__meP = null;
+    let me;
+    try { me = early ? await early : await api("/api/me", "GET", undefined, true); }
+    catch (_) { me = await api("/api/me", "GET", undefined, true); }
     renderProfileData(me);
     
     // ⚡ Save FULL profile object to cache
@@ -448,13 +436,17 @@ function renderLanguagePanel() {
 
 // Define deleteBooking globally so the inline onclick works
 window.deleteBooking = async function(id) {
-  if (!confirm("Are you sure you want to delete this pending booking?")) return;
+  if (!confirm("Remove this pending booking? Nothing has been paid for it.")) return;
   try {
-    const res = await api(`/api/bookings?id=${id}`, "DELETE");
+    const res = await api(`/api/bookings?id=${encodeURIComponent(id)}`, "DELETE");
     if (res.ok) {
       if (typeof allBookings !== 'undefined') {
         allBookings = allBookings.filter(b => b.id !== id);
       }
+      try {   // keep the saved copy in step so the removed booking does not come back on the next visit
+        const key = 'ss_profile_cache:' + authToken, saved = JSON.parse(localStorage.getItem(key) || 'null');
+        if (saved && Array.isArray(saved.bookings)) { saved.bookings = saved.bookings.filter(b => b.id !== id); localStorage.setItem(key, JSON.stringify(saved)); }
+      } catch (_) {}
       renderBookingsList();
     } else {
       alert(res.error || "Failed to delete booking.");

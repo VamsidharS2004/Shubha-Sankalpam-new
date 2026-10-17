@@ -16,21 +16,39 @@ d.classList.add("ss-i18n-pending");
 function release(){d.classList.remove("ss-i18n-pending");}
 document.addEventListener("DOMContentLoaded",function(){if(!window.__ssI18nOwner)release();});
 setTimeout(release,2500);
+/* Returning visitors: ask for the photos at the top of this page right away (remembered from the last visit by cards.js),
+   so they download in parallel with the scripts and the catalog instead of after the cards are built. Same sizes as cards.js asks for. */
+try{var H=JSON.parse(localStorage.getItem("ss_img_hints")||"null")||{};if(H){var P=location.pathname,L=[],S="(max-width: 767px) 92vw, 420px",HID="";
+var O="/storage/v1/object/public/",R="/storage/v1/render/image/public/",Q=String.fromCharCode(63),A=String.fromCharCode(38);
+var ssSet=function(x){var b=x.split(Q)[0].replace(O,R);return [480,800,1200,1600].map(function(w){return b+Q+"width="+w+A+"resize=contain"+A+"quality=70 "+w+"w";}).join(", ");};
+var ssOk=function(x){return typeof x==="string"&&x.indexOf(O)>-1&&x.indexOf("https://")===0;};
+if(P.slice(-10)==="/puja.html")L=H.puja||[];else if(P.slice(-13)==="/package.html")L=H.pkg||[];
+else if(P.indexOf("/puja-details/")===0){HID=decodeURIComponent(P.slice(14).split("/")[0]);var u=H.byId&&H.byId[HID];if(u){L=[u];S="(max-width: 900px) 100vw, 60vw";}}
+else if(P.slice(-13)==="/booking.html"){HID=new URLSearchParams(location.search).get("id")||"";}
+/* The title, price and photo of the puja the visitor just clicked (remembered by cards.js): the puja and booking pages paint these at once
+   instead of a gray placeholder. Only used when remembered in the language now shown. */
+var M=HID&&H.meta&&H.meta[HID],U2=HID&&H.byId&&H.byId[HID];
+/* First visit (nothing remembered yet): the build bakes the live pujas' Telugu title, price and photo into the puja and booking pages. */
+var BK=window.__ssBaked;if(!(M&&M.t)&&HID&&BK&&BK[HID]&&d.lang==="te"){M={t:BK[HID].t,p:BK[HID].p,m:BK[HID].m,l:"te"};U2=BK[HID].i;}
+if(!L.length&&P.indexOf("/puja-details/")===0&&ssOk(U2)){L=[U2];S="(max-width: 900px) 100vw, 60vw";}
+if(M&&M.t&&M.l===d.lang){window.__ssHint={t:M.t,p:M.p,m:M.m||0,i:typeof U2==="string"?U2:"",s:ssOk(U2)?ssSet(U2):"",z:S};}
+L.slice(0,3).forEach(function(x,i){if(!ssOk(x))return;
+var k=document.createElement("link");k.rel="preload";k.as="image";k.setAttribute("imagesrcset",ssSet(x));k.setAttribute("imagesizes",S);if(i===0)k.setAttribute("fetchpriority","high");document.head.appendChild(k);});}}catch(e){}
 /* Returning visitors: start reading the Telugu font from cache right away so
    Telugu text (and the language pill) never flashes in a fallback font. */
-try{if(localStorage.getItem("ss_fonts_ok")){var k=document.createElement("link");k.rel="preload";k.as="font";k.type="font/woff2";k.crossOrigin="anonymous";k.href="assets/fonts/anek-telugu-telugu-wght-normal.woff2";document.head.appendChild(k);}}catch(e){}
+try{if(localStorage.getItem("ss_fonts_ok")||d.lang==="te"){var k=document.createElement("link");k.rel="preload";k.as="font";k.type="font/woff2";k.crossOrigin="anonymous";k.href="assets/fonts/anek-telugu-telugu-wght-normal.woff2";document.head.appendChild(k);}}catch(e){}
 window.addEventListener("load",function(){if(document.fonts)document.fonts.ready.then(function(){try{localStorage.setItem("ss_fonts_ok","1");}catch(e){}});});})();
 </script>
 <style>
-html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i18n-pending [data-i18n-placeholder],html.ss-i18n-pending [data-i18n-list-placeholder],html.ss-i18n-pending [data-cms-key],html.ss-i18n-pending:not([lang="te"]) [data-dynamic-hero] .hero-copy{visibility:hidden}
-/* Smooth page-to-page navigation: the nav bar stays put while the page content cross-fades (Chrome/Edge/Safari; others just navigate normally). */
+html.ss-i18n-pending:not([lang="te"]) [data-i18n],html.ss-i18n-pending:not([lang="te"]) [data-i18n-list],html.ss-i18n-pending:not([lang="te"]) [data-i18n-placeholder],html.ss-i18n-pending:not([lang="te"]) [data-i18n-list-placeholder],html.ss-i18n-pending [data-cms-key],html.ss-i18n-pending:not([lang="te"]) [data-dynamic-hero] .hero-copy{visibility:hidden}
+/* Smooth page-to-page navigation: the nav bar stays put while the new page replaces the old one in a single step - no cross-fade, because a fade shows washed-out in-between frames (Chrome/Edge/Safari; others just navigate normally). */
 @view-transition{navigation:auto}
 #site-header>header{view-transition-name:ss-header}
 #site-header>.bottom-nav{view-transition-name:ss-bottom-nav}
 ::view-transition-group(ss-header),::view-transition-group(ss-bottom-nav){animation:none}
 ::view-transition-old(ss-header),::view-transition-old(ss-bottom-nav){display:none}
 ::view-transition-new(ss-header),::view-transition-new(ss-bottom-nav){animation:none}
-::view-transition-old(root),::view-transition-new(root){animation-duration:.15s}
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
 @media (prefers-reduced-motion:reduce){::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
 </style>
 <link rel="icon" href="/favicon.ico" sizes="48x48"><!-- tab logo -->
@@ -41,7 +59,7 @@ html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i
 <link rel="preload" href="assets/fonts/poppins-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin><!-- nav bar weight -->
 <link rel="preconnect" href="https://caxowviysinpnvvqcsog.supabase.co"><!-- admin-uploaded puja images -->
 <style>@font-face{font-family:'Poppins';font-style:normal;font-weight:400;font-display:fallback;src:url(/assets/fonts/poppins-latin-ext-400-normal.woff2) format('woff2');unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:'Poppins';font-style:normal;font-weight:400;font-display:fallback;src:url(/assets/fonts/poppins-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:'Poppins';font-style:normal;font-weight:500;font-display:fallback;src:url(/assets/fonts/poppins-latin-ext-500-normal.woff2) format('woff2');unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:'Poppins';font-style:normal;font-weight:500;font-display:fallback;src:url(/assets/fonts/poppins-latin-500-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:'Poppins';font-style:normal;font-weight:600;font-display:fallback;src:url(/assets/fonts/poppins-latin-ext-600-normal.woff2) format('woff2');unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:'Poppins';font-style:normal;font-weight:600;font-display:fallback;src:url(/assets/fonts/poppins-latin-600-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:'Poppins';font-style:normal;font-weight:700;font-display:fallback;src:url(/assets/fonts/poppins-latin-ext-700-normal.woff2) format('woff2');unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:'Poppins';font-style:normal;font-weight:700;font-display:fallback;src:url(/assets/fonts/poppins-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:'Poppins';font-style:normal;font-weight:800;font-display:fallback;src:url(/assets/fonts/poppins-latin-ext-800-normal.woff2) format('woff2');unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:'Poppins';font-style:normal;font-weight:800;font-display:fallback;src:url(/assets/fonts/poppins-latin-800-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:'Anek Telugu';font-style:normal;font-weight:100 800;font-display:fallback;src:url(/assets/fonts/anek-telugu-telugu-wght-normal.woff2) format('woff2-variations'),url(/assets/fonts/anek-telugu-telugu-wght-normal.woff2) format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0C00-0C7F,U+1CDA,U+1CF2,U+200C-200D,U+25CC}</style>
-<script type="speculationrules">{"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/api/*","/admin*","/uploads/*","/*\\?*token=*"]}}]},"eagerness":"moderate"}]}</script>
+<script type="speculationrules">{"prerender":[{"where":{"href_matches":"/puja-details/*"},"eagerness":"moderate"}],"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/api/*","/admin*","/uploads/*","/*\\?*token=*"]}}]},"eagerness":"moderate"}]}</script>
 <!-- ss-head:end -->
 <!-- ss-seo:start -->
 <meta name="robots" content="noindex,nofollow">
@@ -49,31 +67,95 @@ html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <noscript></noscript>
-<link rel="stylesheet" href="assets/css/global.css?v=20261016-drafts2">
-<link rel="stylesheet" href="assets/css/navbar.css?v=20261016-drafts2">
-<link rel="stylesheet" href="assets/css/account.css?v=20261016-drafts2">
-<link rel="stylesheet" href="assets/css/home.css?v=20261016-drafts2">
-<link rel="stylesheet" href="assets/css/animations.css?v=20261016-drafts2">
-<link rel="stylesheet" href="assets/css/responsive.css?v=20261016-drafts2">  <!-- always last -->
+<link rel="stylesheet" href="assets/css/global.css?v=20261017-speed2">
+<link rel="stylesheet" href="assets/css/navbar.css?v=20261017-speed2">
+<link rel="stylesheet" href="assets/css/account.css?v=20261017-speed2">
+<link rel="stylesheet" href="assets/css/home.css?v=20261017-speed2">
+<link rel="stylesheet" href="assets/css/animations.css?v=20261017-speed2">
+<link rel="stylesheet" href="assets/css/responsive.css?v=20261017-speed2">  <!-- always last -->
 <style>
-  body:not(.auth-ready) .account-banner,
-  body:not(.auth-ready) .account-grid {
+  html:not(.ss-has-token) .account-banner,
+  html:not(.ss-has-token) .account-grid {
     display: none !important;
   }
+  /* first visit with nothing saved yet: calm placeholders instead of text/boxes popping in one by one */
+  @keyframes ssShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+  html.ss-acct-loading #abName, html.ss-acct-loading #abPhone, html.ss-acct-loading #dashName, html.ss-acct-loading #dashPhone, html.ss-acct-loading #dashEmail, html.ss-acct-loading #dashLang, html.ss-acct-loading #dashGotram {
+    color: transparent !important; border-radius: 8px; min-width: 140px; min-height: 1.1em; display: inline-block;
+    background: linear-gradient(90deg, rgba(255,255,255,.10) 25%, rgba(255,255,255,.28) 50%, rgba(255,255,255,.10) 75%); background-size: 200% 100%; animation: ssShimmer 1.4s linear infinite;
+  }
+  html.ss-acct-loading #dashName, html.ss-acct-loading #dashPhone, html.ss-acct-loading #dashEmail, html.ss-acct-loading #dashLang, html.ss-acct-loading #dashGotram { background: linear-gradient(90deg, #f3e9dc 25%, #fbf5ec 50%, #f3e9dc 75%); background-size: 200% 100%; }
+  html.ss-acct-loading #abAvatar { color: transparent !important; }
+  #dashName, #dashPhone, #dashEmail, #dashLang, #dashGotram { min-height: 1.4em; }
+  .bk-skel { height: 132px; border-radius: 14px; margin-bottom: 14px; background: linear-gradient(90deg, #f3e9dc 25%, #fbf5ec 50%, #f3e9dc 75%); background-size: 200% 100%; animation: ssShimmer 1.4s linear infinite; }
+  @media (prefers-reduced-motion: reduce) { html.ss-acct-loading #abName, html.ss-acct-loading #abPhone, .bk-skel { animation: none; } }
 </style>
 <script>
   /* Instant flash-free redirect for definitely logged-out users */
   if (!localStorage.getItem("token") && !window.location.search.includes("token=")) {
     window.location.replace("login.html?next=account.html");
   }
+  /* Show the account page straight away for a logged-in visitor and start loading their profile NOW,
+     in parallel with the catalog and scripts (which used to hold the whole page back). */
+  (function () {
+    var t = null, el = document.documentElement;
+    try { t = localStorage.getItem("token"); } catch (e) {}
+    if (!t) return;
+    el.classList.add("ss-has-token");
+    var cached = null;
+    try { cached = JSON.parse(localStorage.getItem("ss_profile_cache:" + t) || "null"); } catch (e) {}
+    if (!(cached && cached.user)) el.classList.add("ss-acct-loading");
+    try {
+      window.__meP = fetch("/api/me", { headers: { Authorization: "Bearer " + t }, cache: "no-store" })
+        .then(function (r) { if (!r.ok) { var e = new Error("profile"); e.status = r.status; throw e; } return r.json(); });
+      window.__meP.catch(function () {});
+    } catch (e) {}
+    /* The letter shown in the round profile picture.
+       Skips a title (Mr. / Mrs. / Dr. / Sri ...). Telugu names are written family-name first, so for a name of three or more
+       words ("Konduru Sai Gowtham") the letter comes from the personal name (the 2nd word: S); shorter names use the 1st word. */
+    window.ssInitial = function (name) {
+      var title = /^(?:(?:mr|mrs|ms|miss|dr|prof|shri|sri|smt|shrimati|kumari|kum)\.?|\u0C36\u0C4D\u0C30\u0C40\u0C2E\u0C24\u0C3F|\u0C36\u0C4D\u0C30\u0C40)(?:\s+|$)/i;
+      var n = String(name || "").trim();
+      for (var i = 0; i < 3 && title.test(n); i++) n = n.replace(title, "");
+      var words = n.split(/\s+/).filter(Boolean);
+      if (!words.length) return "D";
+      var w = words.length >= 3 ? words[1] : words[0];
+      var first = (window.Intl && Intl.Segmenter) ? (new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(w)[Symbol.iterator]().next().value || {}).segment : Array.from(w)[0];
+      return String(first || "D").toUpperCase();
+    };
+    window.ssLangLabel = function () {
+      var l = "te"; try { l = localStorage.getItem("ss_lang") || localStorage.getItem("preferredLanguage") || "te"; } catch (e) {}
+      return { en: "English (English)", hi: "Hindi (\u0939\u093F\u0928\u094D\u0926\u0940)", te: "Telugu (\u0C24\u0C46\u0C32\u0C41\u0C17\u0C41)" }[l] || "Telugu (\u0C24\u0C46\u0C32\u0C41\u0C17\u0C41)";
+    };
+    window.ssPaintCached = function () {
+      if (!(cached && cached.user)) return;
+      var u = cached.user, set = function (id, v) { var x = document.getElementById(id); if (x && v) x.textContent = v; };
+      set("abName", u.name || "Add your name"); set("dashName", u.name || "Add your name");
+      set("abPhone", u.phone); set("dashPhone", u.phone);
+      set("dashEmail", u.email && !/@example\.com$/i.test(u.email) ? u.email : "Add email address");
+      set("dashGotram", u.gotra || "Not provided");
+      set("dashLang", window.ssLangLabel());
+      set("dashBkCount", String((cached.bookings || []).length));
+      var av = document.getElementById("abAvatar"); if (av) av.textContent = u.name ? window.ssInitial(u.name) : "D";
+    };
+  })();
 </script>
 <title data-cms-key="account.title.main">Shubha Sankalpam | My Account</title>
 <meta name="description" content="Manage your profile and view your puja booking history.">
 
   <!-- Favicon -->
-<link rel="stylesheet" href="assets/css/content-layout.css?v=20261016-drafts2">
-<style>html.ss-account-routing .account-panel{display:none!important}</style>
-<script>if(new URLSearchParams(location.search).get('panel'))document.documentElement.classList.add('ss-account-routing');</script>
+<link rel="stylesheet" href="assets/css/content-layout.css?v=20261017-speed2">
+<style>html[data-start-panel] .account-panel{display:none!important}
+html[data-start-panel="profile"] #panel-profile,
+html[data-start-panel="bookings"] #panel-bookings,
+html[data-start-panel="subscriptions"] #panel-subscriptions,
+html[data-start-panel="wallet"] #panel-wallet,
+html[data-start-panel="wishlist"] #panel-wishlist,
+html[data-start-panel="address"] #panel-address,
+html[data-start-panel="language"] #panel-language,
+html[data-start-panel="about"] #panel-about,
+html[data-start-panel="support"] #panel-support{display:block!important}</style>
+<script>(function(){var p=new URLSearchParams(location.search).get("panel");if(p&&/^(profile|bookings|subscriptions|wallet|wishlist|address|language|about|support)$/.test(p))document.documentElement.setAttribute("data-start-panel",p);})();</script>
 </head>
 <body class="account-page"><p id="profileLoadError" role="status" hidden style="padding:16px;text-align:center">Unable to load your profile. <button type="button" onclick="loadProfile()">Retry</button></p>
 <div id="site-header"><!-- ss-header:start (generated from navbar.js) -->
@@ -133,10 +215,10 @@ html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i
   <!-- NEW TOP BANNER -->
   <div class="account-banner">
     <div class="ab-left">
-      <div class="ab-avatar" id="abAvatar">D</div>
+      <div class="ab-avatar" id="abAvatar"></div>
       <div class="ab-info">
         <div class="ab-name-row">
-          <h2 id="abName">Loading profile…</h2>
+          <h2 id="abName"></h2>
           <span class="ab-badge">DEVOTEE</span>
         </div>
         <div class="ab-phone-row">
@@ -150,6 +232,7 @@ html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i
     </div>
   </div>
 
+  <script>window.ssPaintCached && window.ssPaintCached();</script>
   <div class="account-grid" id="accountLoggedIn">
     <!-- ============ SIDEBAR — each button's data-panel value must
          match a panel's id below (panel-xxx). Clicking a button shows
@@ -165,6 +248,7 @@ html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i
       <button class="side-item" data-panel="about"><span class="si">ℹ️</span> About</button>
       <button class="side-item" data-panel="support"><span class="si">🎧</span> Support</button>
     </aside>
+    <script>(function(){var p=document.documentElement.getAttribute("data-start-panel");if(!p)return;document.querySelectorAll(".side-item").forEach(function(b){b.classList.toggle("active",b.dataset.panel===p)});})();</script>
 
   <div>
     <!-- ============ PANEL: PROFILE (shown by default) ============ -->
@@ -175,7 +259,7 @@ html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i
         <div class="dash-grid">
           <div class="dash-item">
             <label data-cms-key="account.label.full_name">Full Name:</label>
-            <div id="dashName">Loading…</div>
+            <div id="dashName"></div>
           </div>
           <div class="dash-item">
             <label data-cms-key="account.label.verified_phone">Verified Phone:</label>
@@ -183,15 +267,15 @@ html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i
           </div>
           <div class="dash-item">
             <label data-cms-key="account.label.email">Email Address:</label>
-            <div id="dashEmail">Add email address</div>
+            <div id="dashEmail"></div>
           </div>
           <div class="dash-item">
             <label data-cms-key="account.label.preferred_language">Preferred Language:</label>
-            <div id="dashLang">English (Default)</div>
+            <div id="dashLang"></div>
           </div>
           <div class="dash-item">
             <label data-cms-key="account.label.gotram">Gotram:</label>
-            <div id="dashGotram">Not provided</div>
+            <div id="dashGotram"></div>
           </div>
         </div>
       </div>
@@ -202,6 +286,7 @@ html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i
         <div class="dash-stat"><span data-cms-key="account.stat.saved_addresses">SAVED ADDRESSES</span><b>0</b></div>
         <div class="dash-stat"><span>SAVED PUJAS</span><b id="dashWishlistCount">0</b></div>
       </div>
+      <script>window.ssPaintCached && window.ssPaintCached();</script>
     </div>
 
     <!-- ============ PANEL: MY BOOKINGS (real data from the backend) ============ -->
@@ -212,7 +297,8 @@ html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i
         <button class="bk-tab" data-bktab="ongoing" data-cms-key="account.tab.ongoing">Ongoing</button>
         <button class="bk-tab" data-bktab="completed" data-cms-key="account.tab.completed">Completed</button>
       </div>
-      <div class="cards" id="myBookingsList"></div>
+      <script>(function(){var t=new URLSearchParams(location.search).get("tab");if(!/^(pending|ongoing|completed)$/.test(t||""))return;document.querySelectorAll("#bkTabs .bk-tab").forEach(function(b){b.classList.toggle("active",b.dataset.bktab===t)});})();</script>
+      <div class="cards" id="myBookingsList"><div class="bk-skel"></div><div class="bk-skel"></div></div>
     </div>
 
     <!-- ============ PANEL: SUBSCRIPTIONS (honest empty state —
@@ -313,17 +399,26 @@ html.ss-i18n-pending [data-i18n],html.ss-i18n-pending [data-i18n-list],html.ss-i
 
 <div id="site-footer"></div>
 <!-- ============ CONTENT (edit these files to change text/prices/images) ============ -->
-<script defer src="content/site-settings.js?v=20261016-drafts2"></script>
-<script defer src="content/pujas.js?v=20261016-drafts2"></script>
-<script defer src="content/packages.js?v=20261016-drafts2"></script>
+<script defer src="content/site-settings.js?v=20261017-speed2"></script>
+<script defer src="content/pujas.js?v=20261017-speed2"></script>
+<script defer src="content/packages.js?v=20261017-speed2"></script>
 
 <!-- ============ SITE CODE (do not need to edit for content changes) ============ -->
-<script defer src="assets/js/main.js?v=20261016-drafts2"></script>
-<script defer src="assets/js/navbar.js?v=20261016-drafts2"></script>
-<script defer src="assets/js/animations.js?v=20261016-drafts2"></script>
-<script defer src="assets/js/cards.js?v=20261016-drafts2"></script>
-<script defer src="assets/js/language.js?v=20261016-drafts2"></script>
-<script defer src="assets/js/pages/account.js?v=20261016-drafts2"></script>
+<script defer src="assets/js/main.js?v=20261017-speed2"></script>
+<script defer src="assets/js/navbar.js?v=20261017-speed2"></script>
+<script defer src="assets/js/animations.js?v=20261017-speed2"></script>
+<script defer src="assets/js/cards.js?v=20261017-speed2"></script>
+<script defer src="assets/js/language.js?v=20261017-speed2"></script>
+<script defer src="assets/js/pages/account.js?v=20261017-speed2"></script>
 
-<script defer src="assets/js/analytics-tracker.js?v=20261016-drafts2"></script>
+<script defer src="assets/js/analytics-tracker.js?v=20261017-speed2"></script>
+<!-- ss-early:start (generated by scripts/prerender-header.js) -->
+<script>(function(){try{var d=document.documentElement;if((d.lang||"te")!=="te")return;
+var raw=localStorage.getItem("ss_cms_global_v2");if(!raw)return;var c=(JSON.parse(raw)||{}).content;if(!c)return;
+document.querySelectorAll("[data-cms-key]").forEach(function(el){var k=el.getAttribute("data-cms-key");if(!k)return;
+var p=k.split("."),pg=p[0],sk=p.slice(1).join("."),o=c[pg]&&(c[pg][sk]||c[pg][k]);if(!o||!o.translations)return;
+var v=o.translations.te||o.translations.en;if(!v||!String(v).trim())return;var a=el.getAttribute("data-cms-attr");
+if(a)el.setAttribute(a,v);else if(/<(em|strong|br|b|i|u|span|p|a)[> ]/i.test(v))el.innerHTML=v;else el.textContent=v;});
+d.classList.remove("ss-i18n-pending");}catch(e){}})();</script>
+<!-- ss-early:end -->
 </body></html>

@@ -35,5 +35,7 @@
   fetch('/api/analytics/event',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:true}).catch(()=>{});
  }
  const ready=()=>{track('page_view');if(window.currentPuja)track('puja_view',window.currentPuja);};
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
+ /* a page Chrome loaded ahead of time is only counted when the visitor actually opens it */
+ const start=()=>{if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();};
+ if(document.prerendering)document.addEventListener('prerenderingchange',start,{once:true});else start();
 })();

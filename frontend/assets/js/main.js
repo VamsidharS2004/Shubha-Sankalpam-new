@@ -49,7 +49,42 @@ async function api(path, method = "GET", body = undefined, silent = false) {
     error.status = res.status;
     throw error;
   }
+  // anything that changes bookings/payments makes the saved profile (and the bell) stale
+  if (method !== "GET" && /^\/api\/(bookings|payments|subscriptions)/.test(path)) { try { localStorage.removeItem("ss_profile_cache:" + authToken); } catch (e) {} }
   return res.json();
+}
+
+
+/* ---- bookings: ONE shared rule for "which bookings are pending / still on the website" ----
+   Used by the account page list AND the floating bell, so they can never disagree.
+   A booking waiting for payment is hidden while its puja/package is not on the website (disabled, scheduled, ended, deleted)
+   and shows again as soon as the puja is enabled again - the booking itself is never touched. */
+function ssNormStatus(status) {
+  const s = String(status || "").toLowerCase().trim();
+  if (s === "cancelled by user") return "removed"; // the customer deleted it: never listed
+  if (s === "pending" || s === "payment-pending") return "payment-pending";
+  if (s === "confirmed" || s === "paid" || s === "scheduled") return "paid";
+  if (s === "failed" || s === "cancelled" || s === "canceled") return "failed";
+  if (s === "video-sent" || s === "completed") return "video-sent";
+  if (s === "payment-claimed") return "payment-claimed";
+  return "paid"; // unknown -> Ongoing
+}
+function ssBookingListed(b) {
+  const name = b.puja || b.puja_name || b.pujaName || b.puja_title || "";
+  if (String(name).includes("razorpay_")) return true;
+  const lists = [typeof pujas !== "undefined" ? pujas : null, typeof packages !== "undefined" ? packages : null];
+  if (!lists.some(l => Array.isArray(l) && l.length)) return true; // catalog did not load: never hide anything
+  const snapId = b.snapshot && b.snapshot.id;
+  return lists.some(l => Array.isArray(l) && l.some(p =>
+    (snapId && p.id === snapId) ||
+    p.name === name || p.name_te === name || p.title_en === name || p.title_te === name || p.title_hi === name || p.name_en === name || p.name_hi === name));
+}
+function ssPendingBookings(bookings) {
+  return (bookings || []).filter(b => {
+    if (/cancelled by user/i.test(String(b.status || ""))) return false; // removed by the customer
+    const t = ssNormStatus(b.status);
+    return (t === "payment-pending" || t === "failed") && ssBookingListed(b);
+  });
 }
 
 /* which puja/package does a "ref" like "puja:1" point to? */
@@ -127,3 +162,37 @@ const localDate = p => {
 /* ============================================================
    TEMPLE AUDIO BELL — Removed by user request
    ============================================================ */
+
+
+/* ---- opening a puja instantly ----
+   ssAfterActivation: run something only when the visitor really sees the page (not while Chrome is loading it ahead of time). */
+function ssAfterActivation(fn) {
+  if (document.prerendering) document.addEventListener("prerenderingchange", fn, { once: true });
+  else fn();
+}
+
+/* Once the page is idle, ask Chrome/Edge to load the first few puja pages (the hero's Book Now and the first cards) in the background,
+   so clicking them opens the finished page at once. Other browsers ignore this and simply load the page as before. */
+(function ssPrerenderTopPujas() {
+  try {
+    if (!HTMLScriptElement.supports || !HTMLScriptElement.supports("speculationrules")) return;
+    if (/\/puja-details\//.test(location.pathname)) return;
+    const c = navigator.connection;
+    if (c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || ""))) return;
+    const run = () => {
+      if (document.querySelector('script[data-ss-spec]')) return;
+      const seen = [];
+      document.querySelectorAll('a[href*="puja-details/"]').forEach(a => {
+        const u = new URL(a.getAttribute("href"), location.href);
+        if (u.origin === location.origin && !seen.includes(u.pathname) && seen.length < 3) seen.push(u.pathname);
+      });
+      if (!seen.length) return;
+      const s = document.createElement("script");
+      s.type = "speculationrules";
+      s.setAttribute("data-ss-spec", "1");
+      s.textContent = JSON.stringify({ prerender: [{ urls: seen, eagerness: "eager" }] });
+      document.head.appendChild(s);
+    };
+    window.addEventListener("load", () => setTimeout(run, 1200), { once: true });
+  } catch (_) {}
+})();

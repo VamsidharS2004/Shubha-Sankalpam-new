@@ -228,12 +228,18 @@ function slideReady(i) {
   return !img || (img.complete && img.naturalWidth > 0);
 }
 function whenSlideReady(i, then) {
-  if (slideReady(i)) return then();
   const img = heroSlider.querySelectorAll('.hero-slide')[i].querySelector('.hero-img');
-  img.loading = 'eager';
   let fired = false;
   const go = () => { if (!fired) { fired = true; then(); } };
-  img.addEventListener('load', go, { once: true });
+  /* Downloaded is not enough: the photo must also be decoded, or its first frame on screen is blank. */
+  const decoded = () => {
+    if (!img || typeof img.decode !== "function") return go();
+    img.decode().then(go, go);
+    setTimeout(go, 1200);
+  };
+  if (slideReady(i)) return decoded();
+  img.loading = 'eager';
+  img.addEventListener('load', decoded, { once: true });
   img.addEventListener('error', go, { once: true });
   setTimeout(go, 2500);
 }
@@ -260,6 +266,7 @@ function renderHeroEmpty() {
   showHeroSlider();
   renderSlider();
   goToSlide(0);
+  if (typeof rememberPujaHints === "function") rememberPujaHints(topPujas);
 }
 
 /* Shows the slider and hides the empty-state banner. */
@@ -283,6 +290,7 @@ if (heroSlider && heroDots && typeof pujas !== "undefined") {
     renderSlider();
     goToSlide(Math.min(currentSlide, topPujas.length - 1));
     warmHeroImages();
+    if (typeof rememberPujaHints === "function") rememberPujaHints(topPujas);   // so Book Now on the banner opens its puja page without a placeholder
   }
 
   /* Keep the previous / next arrows vertically centred on the banner picture, a little inside its left and right edges. */
@@ -335,12 +343,24 @@ if (heroSlider && heroDots && typeof pujas !== "undefined") {
   }, {passive:true});
   heroSlider.addEventListener('touchend', () => { isDragging = false; });
   
+  /* Automatic sliding: slow enough to read the puja details, and it never moves while someone is reading or has just used the banner. */
+  let lastTouch = 0;
+  const poke = () => { lastTouch = Date.now(); };
+  const hero = heroSlider.closest(".hero-landing") || heroSlider;
+  ["pointerdown", "touchstart", "keydown", "wheel"].forEach(ev => hero.addEventListener(ev, poke, { passive: true }));
+  const heroPrevBtn = $id("heroPrev"), heroNextBtn = $id("heroNext");
+  [heroPrevBtn, heroNextBtn, heroDots].forEach(el => el && el.addEventListener("click", poke));
+  let sliding = false;
   setInterval(() => {
-    if (!document.hidden && !heroSlider.matches(":hover, :focus-within") && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      const n = heroSlider.querySelectorAll('.hero-slide').length;
-      if (n > 1 && slideReady((currentSlide + 1) % n)) goToSlide(currentSlide + 1, true);   // never slide into a photo that has not loaded yet
-    }
-  }, 6000);
+    if (sliding || document.hidden || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (hero.matches(":hover, :focus-within") || Date.now() - lastTouch < 25000) return;
+    const r = hero.getBoundingClientRect();
+    if (r.bottom < 120 || r.top > innerHeight * 0.8) return;                 // banner scrolled away: nothing to rotate
+    const n = heroSlider.querySelectorAll('.hero-slide').length;
+    if (n < 2) return;
+    sliding = true;
+    whenSlideReady((currentSlide + 1) % n, () => { goToSlide(currentSlide + 1, true); setTimeout(() => { sliding = false; }, 800); });   // never slide into a photo that is not ready
+  }, 10000);
 }
 wireTabs("tabs", $id("pujaCards"), pujas, "puja");
 buildFaqList($id("faqList"), FAQS[currentLang] || FAQS.en);

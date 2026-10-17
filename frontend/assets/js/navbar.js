@@ -295,10 +295,32 @@ async function checkAbandonedBooking() {
   const page = pageName();
   if (page === "payment.html" || page === "booking.html" || page === "account.html") return;
 
+  const key = "ss_profile_cache:" + authToken;
+  let cached = null;
+  try { cached = JSON.parse(localStorage.getItem(key) || "null"); } catch (_) {}
+  // 1) show (or clear) the bell straight away from the saved profile - no waiting for the network
+  paintAbandonedBell(cached);
+  // 2) fresh enough? done. Otherwise confirm with the server and update the bell (adds or removes it).
+  if (cached && Date.now() - (cached.cachedAt || 0) < 20000) return;
   try {
     const me = await api("/api/me", "GET", undefined, true);
-    const pendings = (me.bookings || []).filter(b => b.status === "Pending" || b.status === "payment-pending" || b.status === "failed");
-    if (pendings.length > 0) {
+    try { localStorage.setItem(key, JSON.stringify({ ...me, cachedAt: Date.now() })); } catch (_) {}
+    paintAbandonedBell(me);
+  } catch (e) {
+    console.error("Failed to check abandoned bookings:", e);
+  }
+}
+window.addEventListener("pageshow", e => { if (e.persisted) checkAbandonedBooking(); });
+
+/* the red bell: only exists while there is at least one pending booking that is also visible in My Bookings */
+function paintAbandonedBell(me) {
+  const old = document.querySelector(".abandoned-fab");
+  const pendings = ssPendingBookings(me && me.bookings);
+  if (!pendings.length) { if (old) old.remove(); return; }
+  const sig = pendings.map(b => b.id).join(",") + "|" + ((typeof currentLang !== "undefined" && currentLang) || "");
+  if (old && old.dataset.sig === sig) return; // nothing changed: leave the bell alone (no flicker)
+  if (old) old.remove();
+  {
       // Get language for translation
       const lang = (typeof currentLang !== 'undefined' ? currentLang : null) || localStorage.getItem("ss_lang") || "en";
       const isTe = lang === "te";
@@ -363,6 +385,7 @@ async function checkAbandonedBooking() {
       const widget = document.createElement("a");
       widget.className = "abandoned-fab";
       widget.href = targetUrl;
+      widget.dataset.sig = sig;
       
       // Inject responsive styles for the widget
       if (!document.getElementById("abandoned-style")) {
@@ -411,9 +434,6 @@ async function checkAbandonedBooking() {
       `;
       
       document.body.appendChild(widget);
-    }
-  } catch (e) {
-    console.error("Failed to check abandoned bookings:", e);
   }
 }
 

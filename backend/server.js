@@ -105,8 +105,8 @@ const PUBLIC_CDN_CACHE = "max-age=5";
    Wait briefly for the real data from the database so the first visitor is not shown outdated pujas;
    if the database is slow, answer with what we have after COLD_WAIT_MS and finish the refresh in the background. */
 const COLD_WAIT_MS = 2500;
-const WARM_WAIT_MS = 700; // a warm server never makes a visitor wait long, even if the database is slow
-async function refreshCatalog(filePath) {
+const WARM_WAIT_MS = 300; // a warm server never makes a visitor wait long (a quick database answer is used; a slow one is picked up on the next request)
+async function refreshCatalog(filePath, res) {
   const { ensureInitialSync } = require("./utils/cmsSync");
   const sync = ensureInitialSync().catch(err => console.warn("[CMS] Background refresh failed:", err.message));
   /* Always wait (bounded) for a due refresh, so a puja published on another server instance is never missed.
@@ -114,7 +114,11 @@ async function refreshCatalog(filePath) {
   const seen = (global.__catalogServed ||= {});
   const cold = !(global.__cmsCache && global.__cmsCache[filePath]) && !seen[filePath];
   seen[filePath] = true;
-  await Promise.race([sync, new Promise(resolve => setTimeout(resolve, cold ? COLD_WAIT_MS : WARM_WAIT_MS))]);
+  const started = Date.now();
+  let timedOut = false;
+  await Promise.race([sync.then(() => {}), new Promise(resolve => setTimeout(() => { timedOut = true; resolve(); }, cold ? COLD_WAIT_MS : WARM_WAIT_MS))]);
+  // Visible in the browser's DevTools (Network > Timing) and read by `npm run check:live`: how long this page waited for the database.
+  if (res && !res.headersSent) res.setHeader("Server-Timing", `catalog-wait;dur=${Date.now() - started};desc="${cold ? "cold" : "warm"}${timedOut ? "-gave-up" : ""}"`);
 }
 
 function sendCatalog(req, res, source, type) {
@@ -203,21 +207,21 @@ const requestHandler = async (req, res) => {
       }
       if (url.pathname === '/content/pujas.js') {
         const filePath = catalogFile("pujas.js");
-        await refreshCatalog(filePath);
+        await refreshCatalog(filePath, res);
         // drafts and not-yet-live (scheduled) pujas never leave the server
         const data = require("./utils/pujaVisibility").filterPublic(safeRead(filePath, "pujas"));
         return sendCatalog(req, res, `const pujas = ${JSON.stringify(data)};\nif (typeof module !== "undefined") module.exports = { pujas };`, "application/javascript");
       }
       if (url.pathname === '/content/packages.js') {
         const filePath = catalogFile("packages.js");
-        await refreshCatalog(filePath);
+        await refreshCatalog(filePath, res);
         // drafts and not-yet-live (scheduled) packages never leave the server
         const data = require("./utils/pujaVisibility").filterPublic(safeRead(filePath, "packages"));
         return sendCatalog(req, res, `const packages = ${JSON.stringify(data)};\nif (typeof module !== "undefined") module.exports = { packages };`, "application/javascript");
       }
       if (url.pathname === '/content/temples.js') {
         const filePath = catalogFile("temples.js");
-        await refreshCatalog(filePath);
+        await refreshCatalog(filePath, res);
         const data = safeRead(filePath, "TEMPLES");
         return sendCatalog(req, res, `const TEMPLES = ${JSON.stringify(data)};\nif (typeof module !== "undefined") module.exports = { TEMPLES };`, "application/javascript");
       }

@@ -131,9 +131,39 @@ function cardHTML(p, i, type) {
     </div>`;
 }
 
+/* Remember which photos the top of each list (and each puja page) uses. On the NEXT visit the page's own head asks for
+   those photos immediately, in parallel with the scripts and the catalog, instead of waiting for the cards to be built. */
+/* What the next page needs to paint at once (title, price, photo, muhurat time) is remembered per puja, in the language shown.
+   The puja and booking pages read it before any script has run, so the visitor never sees a gray placeholder or a half-empty page. */
+function pujaHint(p) {
+  const img = typeof p.image === "string" && /^(https:\/\/|\/?assets\/)/.test(p.image) ? p.image : "";   // a real picture (Supabase or a file of the site); a theme name is not one
+  const m = p.muhurat ? Date.parse(p.muhurat) || 0 : 0;
+  return { id: p.id, image: img, t: localName(p), p: p.price || p.basePrice || 0, m };
+}
+function saveHints(shown, type) {
+  try {
+    const h = JSON.parse(localStorage.getItem("ss_img_hints") || "null") || {};
+    h.byId = h.byId || {};
+    h.meta = h.meta || {};
+    if (type) h[type] = shown.filter(x => /^https:\/\//.test(x.image)).slice(0, 3).map(x => x.image);
+    shown.forEach(x => {
+      if (x.id == null || !x.t) return;
+      if (x.image) h.byId[x.id] = x.image; else delete h.byId[x.id];
+      h.meta[x.id] = { l: currentLang, t: x.t, p: x.p, m: x.m || 0 };
+    });
+    const ids = Object.keys(h.meta);
+    if (ids.length > 80) ids.slice(0, ids.length - 80).forEach(k => { delete h.byId[k]; delete h.meta[k]; });
+    localStorage.setItem("ss_img_hints", JSON.stringify(h));
+  } catch (_) {}
+}
+function rememberImageHints(type, shown) { saveHints(shown, type); }
+/* the home page hero pujas are remembered too, so "Book Now" on the banner opens its puja page just as smoothly */
+function rememberPujaHints(list) { try { saveHints((list || []).map(pujaHint)); } catch (_) {} }
+
 function renderCards(container, list, type, cat) {
   container.innerHTML = "";
   let renderedCount = 0;
+  const shown = [];
   list.forEach((p, i) => {
     if (cat && cat !== "All" && p.cat !== cat && !(cat === "Finance" && p.cat === "Wealth") && !(cat === "Wealth" && p.cat === "Finance")) return;
     if (type === "puja" && p.language && p.language !== currentLang) return;
@@ -149,7 +179,9 @@ function renderCards(container, list, type, cat) {
     }
     container.appendChild(card);
     renderedCount++;
+    shown.push(pujaHint(p));
   });
+  if (shown.length && (!cat || cat === "All")) rememberImageHints(type, shown);
   if (renderedCount === 0) {
     const empty = document.createElement("div");
     empty.className = "empty-state";
