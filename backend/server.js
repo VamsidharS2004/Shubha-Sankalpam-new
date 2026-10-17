@@ -272,7 +272,11 @@ const requestHandler = async (req, res) => {
       if (filePath.match(/\.(png|jpg|jpeg|webp|avif|gif|svg|ico|css|js|json|wav|woff2?)$/)) {
           cacheHeader = { "Cache-Control": "public, max-age=31536000, immutable" };
       }
-      send(res, 200, data, MIME[path.extname(filePath)] || "application/octet-stream", cacheHeader);
+      /* The home page is the same for every visitor (language is chosen in the browser), so Vercel's CDN may keep a
+         copy for 30 s and refresh it in the background for 2 more minutes: nearly every visit is answered from the
+         edge instead of waking the server function. Browsers still re-check every time (max-age=0). */
+      if (isHome) cacheHeader = { "Cache-Control": "public, max-age=0, s-maxage=30, stale-while-revalidate=120" };
+      send(res, 200, data, filePath.endsWith(".html") ? "text/html; charset=utf-8" : (MIME[path.extname(filePath)] || "application/octet-stream"), cacheHeader);
     });
   } catch (e) {
     send(res, e.status || 400, { error: e.message || "Bad request" });

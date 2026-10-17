@@ -42,3 +42,4 @@ Problems fixed on 2026-10-16 and what now prevents each one.
 | Telugu font preloaded for `lang=te` on first visit | `npm test` (account-fixes) |
 | Home banner: 10 s per slide, pauses on hover/interaction, waits for decoded photo | `npm test` (hero-bake) |
 | Booking details open without the Scan & Pay card; first-load layout work kept low | `npm test` (account-fixes) |
+| Round 44 | Home HTML CDN cache 30s+swr, Poppins swap, smaller bg-pattern | tests/speed-round44.test.js |

@@ -439,3 +439,11 @@ ROUND 43 - BOOKING DETAILS + FIRST-LOAD SPEED (10:48 / 10:51 videos)
   when scrolled near. Local test, same machine, same throttling: blocking time 280 ms -> 150 ms, score 76 -> 81.
 - Cache version 20261017-speed2.
 - Not changed (needs the live site to judge): hero photo download time depends on Supabase image resizing and the visitor's network.
+
+ROUND 44 (2026-10-17) - live PageSpeed report (mobile 83, LCP 4.1 s) follow-up
+- Home page HTML now carries Cache-Control "public, max-age=0, s-maxage=30, stale-while-revalidate=120" (was no-store), so Vercel's CDN can answer most visits without waking the server function.
+- Poppins fonts: font-display swap (PageSpeed "Font display" audit).
+- bg-pattern.webp recompressed 41 KB -> 22 KB (sits under a 55% white layer, no visible change).
+- Cache version 20261017-speed3. Tests: 91.
+- NOT measured: effect on the live score. Re-run PageSpeed after deploy; the first run after deploy may be a cold edge cache.
+- HTML responses from the server now send Content-Type text/html; charset=utf-8 (the <meta charset> tag is far down the head, so without the header the browser may have to re-read the page).
