@@ -30,7 +30,7 @@ function bakedDate(p) {
 /* When no puja is currently live in the hero (all ended / hidden / none chosen), the page must not keep showing
    the puja that was baked into the file earlier. The slider is hidden and the plain welcome banner is shown from
    the first paint. Both functions are safe to run again and undo each other. */
-const SLIDER_OPEN = /<div class="hero-slider" id="heroSlider"( style="display:none(?:;|\s)*!important")?>/;
+const SLIDER_OPEN = /<div class="hero-slider" id="heroSlider"( style="display:none(?:;|\s)*(?:!important)?;?")?>/;
 const BANNER_OPEN = /<div id="heroEmptyBanner" style="display:(none|flex);/;
 function showNoHero(html) {
   return html.replace(SLIDER_OPEN, '<div class="hero-slider" id="heroSlider" style="display:none !important">')

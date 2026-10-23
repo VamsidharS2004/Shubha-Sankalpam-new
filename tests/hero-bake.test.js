@@ -80,3 +80,13 @@ test('when no puja is live in the hero, the old baked puja is hidden and the wel
   assert.match(back, /id="heroEmptyBanner" style="display:none;/);
   assert.match(back, /data-puja-id="ok"/);
 });
+
+test('a page baked by the earlier version (display:none without !important) is repaired too', () => {
+  const OLD = PAGE.replace('<div class="hero-slide', '<div class="hero-slider" id="heroSlider" style="display:none"><div class="hero-slide') + '<div id="heroEmptyBanner" style="display:flex; position:relative;">b</div>';
+  const none = fixture([live('old', 'Ended', { muhurat: '2020-01-01T06:00:00+05:30', show_in_hero: true })]);
+  assert.match(bakeHomeHero(OLD, none, () => null), /id="heroSlider" style="display:none !important"/);
+  const some = fixture([live('ok', 'Current', { show_in_hero: true })]);
+  const back = bakeHomeHero(OLD, some, () => null);
+  assert.match(back, /id="heroSlider">/);
+  assert.match(back, /id="heroEmptyBanner" style="display:none;/);
+});
