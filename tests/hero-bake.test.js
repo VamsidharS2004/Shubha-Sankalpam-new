@@ -71,7 +71,7 @@ test('when no puja is live in the hero, the old baked puja is hidden and the wel
   const PAGE2 = PAGE.replace('<div class="hero-slide', '<div class="hero-slider" id="heroSlider"><div class="hero-slide') + '<div id="heroEmptyBanner" style="display:none; position:relative;">b</div>';
   const none = fixture([live('old', 'Ended', { muhurat: '2020-01-01T06:00:00+05:30', show_in_hero: true })]);
   const hidden = bakeHomeHero(PAGE2, none, () => null);
-  assert.match(hidden, /id="heroSlider" style="display:none"/);
+  assert.match(hidden, /id="heroSlider" style="display:none !important"/);
   assert.match(hidden, /id="heroEmptyBanner" style="display:flex;/);
   assert.equal(bakeHomeHero(hidden, none, () => null), hidden, 'running twice changes nothing');
   const some = fixture([live('ok', 'Current', { show_in_hero: true })]);

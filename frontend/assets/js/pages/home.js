@@ -264,9 +264,10 @@ function renderHeroEmpty() {
   topPujas = pujas.filter(p => !pujaEnded(p) && (p.show_in_hero === true || (p.detail && p.detail.show_in_hero === true))).slice(0, 3);
   if (!topPujas.length) {
     /* nothing is live in the hero (every hero puja has ended or none is chosen): never keep showing an old puja */
-    heroSlider.style.display = "none";
-    if (heroDots) heroDots.style.display = "none";
-    ["heroPrev", "heroNext"].forEach(id => { const el = $id(id); if (el) el.style.display = "none"; });
+    /* "important" is needed: the stylesheets force the slider to display with !important */
+    heroSlider.style.setProperty("display", "none", "important");
+    if (heroDots) heroDots.style.setProperty("display", "none", "important");
+    ["heroPrev", "heroNext"].forEach(id => { const el = $id(id); if (el) el.style.setProperty("display", "none", "important"); });
     const emptyBanner = $id("heroEmptyBanner");
     if (emptyBanner) emptyBanner.style.display = "flex";
     return;
