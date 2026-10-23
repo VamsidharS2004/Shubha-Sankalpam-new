@@ -66,3 +66,17 @@ test('safeguards stay in place: live-check script, checklist and short catalog c
   const rule = vercel.headers.find(h => h.source === '/content/(.*)');
   assert.ok(rule && !/stale-while-revalidate|max-age=([1-9]\d{2,})/.test(rule.headers[0].value), 'catalog must not be cached for long');
 });
+
+test('when no puja is live in the hero, the old baked puja is hidden and the welcome banner shows (and comes back later)', () => {
+  const PAGE2 = PAGE.replace('<div class="hero-slide', '<div class="hero-slider" id="heroSlider"><div class="hero-slide') + '<div id="heroEmptyBanner" style="display:none; position:relative;">b</div>';
+  const none = fixture([live('old', 'Ended', { muhurat: '2020-01-01T06:00:00+05:30', show_in_hero: true })]);
+  const hidden = bakeHomeHero(PAGE2, none, () => null);
+  assert.match(hidden, /id="heroSlider" style="display:none"/);
+  assert.match(hidden, /id="heroEmptyBanner" style="display:flex;/);
+  assert.equal(bakeHomeHero(hidden, none, () => null), hidden, 'running twice changes nothing');
+  const some = fixture([live('ok', 'Current', { show_in_hero: true })]);
+  const back = bakeHomeHero(hidden, some, () => null);
+  assert.match(back, /id="heroSlider">/);
+  assert.match(back, /id="heroEmptyBanner" style="display:none;/);
+  assert.match(back, /data-puja-id="ok"/);
+});

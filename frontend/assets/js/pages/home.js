@@ -262,7 +262,15 @@ function getHeroPujas(lang, max) {
 function renderHeroEmpty() {
   if (!heroSlider) return;
   topPujas = pujas.filter(p => !pujaEnded(p) && (p.show_in_hero === true || (p.detail && p.detail.show_in_hero === true))).slice(0, 3);
-  if (!topPujas.length) return;
+  if (!topPujas.length) {
+    /* nothing is live in the hero (every hero puja has ended or none is chosen): never keep showing an old puja */
+    heroSlider.style.display = "none";
+    if (heroDots) heroDots.style.display = "none";
+    ["heroPrev", "heroNext"].forEach(id => { const el = $id(id); if (el) el.style.display = "none"; });
+    const emptyBanner = $id("heroEmptyBanner");
+    if (emptyBanner) emptyBanner.style.display = "flex";
+    return;
+  }
   showHeroSlider();
   renderSlider();
   goToSlide(0);

@@ -26,6 +26,21 @@ function bakedDate(p) {
   catch (_) { return p.date || ''; }
 }
 
+
+/* When no puja is currently live in the hero (all ended / hidden / none chosen), the page must not keep showing
+   the puja that was baked into the file earlier. The slider is hidden and the plain welcome banner is shown from
+   the first paint. Both functions are safe to run again and undo each other. */
+const SLIDER_OPEN = /<div class="hero-slider" id="heroSlider"( style="display:none")?>/;
+const BANNER_OPEN = /<div id="heroEmptyBanner" style="display:(none|flex);/;
+function showNoHero(html) {
+  return html.replace(SLIDER_OPEN, '<div class="hero-slider" id="heroSlider" style="display:none">')
+    .replace(BANNER_OPEN, '<div id="heroEmptyBanner" style="display:flex;');
+}
+function showHero(html) {
+  return html.replace(SLIDER_OPEN, '<div class="hero-slider" id="heroSlider">')
+    .replace(BANNER_OPEN, '<div id="heroEmptyBanner" style="display:none;');
+}
+
 function bakeHomeHero(html, root, probe = probeSizeSync, pujaList = null) {
   try {
     const ctx = {}; vm.createContext(ctx);
@@ -36,7 +51,9 @@ function bakeHomeHero(html, root, probe = probeSizeSync, pujaList = null) {
     const list = (ctx.__p || []).filter(p => state(p) === 'live');
     const isHero = p => p.show_in_hero === true || (p.detail && p.detail.show_in_hero === true);
     const first = list.find(p => p.language === 'te' && isHero(p)) || list.find(isHero);
-    if (!first || !first.image) return html;
+    if (!first) return showNoHero(html);
+    html = showHero(html);
+    if (!first.image) return html;
     const shared = field => (first.detail && first.detail[field]) ||
       ((list.find(c => c !== first && first.base_id && c.base_id === first.base_id && c.detail && c.detail[field]) || {}).detail || {})[field] || '';
     const desktop = shared('desktopHeroImage');

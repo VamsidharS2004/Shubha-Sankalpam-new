@@ -187,7 +187,7 @@ html.ss-i18n-pending:not([lang="te"]) [data-i18n],html.ss-i18n-pending:not([lang
 
 <section class="hero-landing" id="top">
   <!-- First hero slide is present in the HTML so the hero never starts as a blank frame. -->
-  <div class="hero-slider" id="heroSlider">
+  <div class="hero-slider" id="heroSlider" style="display:none">
     <div class="hero-slide hero-slide-overlay active" data-slide="0" data-dynamic-hero>
       <div class="hero-image-wrap">
         <picture>
@@ -211,16 +211,16 @@ html.ss-i18n-pending:not([lang="te"]) [data-i18n],html.ss-i18n-pending:not([lang
   </div>
 
   <!-- Shown by JS when no show_in_hero puja matches the current language -->
-  <div id="heroEmptyBanner" style="display:none; position:relative; width:100%; min-height:520px; background:linear-gradient(135deg,#1A0B0E 0%,#2d1218 50%,#1A0B0E 100%); align-items:center; justify-content:center; text-align:center; padding:80px 24px;">
+  <div id="heroEmptyBanner" style="display:flex; position:relative; width:100%; min-height:520px; background:linear-gradient(135deg,#1A0B0E 0%,#2d1218 50%,#1A0B0E 100%); align-items:center; justify-content:center; text-align:center; padding:80px 24px;">
     <div style="max-width:600px; margin:auto;">
       <div style="font-size:2.5rem; margin-bottom:12px;">🪔</div>
       <h1 id="heroEmptyTitle" style="color:#fff; font-size:clamp(1.6rem,4vw,2.6rem); font-weight:700; line-height:1.25; margin-bottom:16px;">
-        <span style="color:var(--gold,#C9A227)">Divine</span> Puja Services
+        <span style="color:var(--gold,#C9A227)">శుభ సంకల్పం</span> – పవిత్ర పూజా సేవలు
       </h1>
       <p id="heroEmptyDesc" style="color:rgba(255,255,255,0.75); font-size:1.05rem; line-height:1.6; margin-bottom:28px;">
-        Authentic Vedic rituals performed by experienced purohits at sacred temples across India.
+        అనుభవజ్ఞులైన పురోహితులచే పవిత్ర క్షేత్రాలలో వేద పూజలు.
       </p>
-      <a href="puja.html" id="heroEmptyBtn" class="btn hero-btn-primary" style="display:inline-block;">View All Pujas &rarr;</a>
+      <a href="puja.html" id="heroEmptyBtn" class="btn hero-btn-primary" style="display:inline-block;">అన్ని పూజలు చూడండి &rarr;</a>
     </div>
   </div>
 
