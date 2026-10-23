@@ -37,6 +37,10 @@ const SITE = {
   // your QR code (usually your business name)
   UPI_NAME: "Shubha Sankalpam",
 
+  // Meta (Facebook / Instagram) Pixel ID - digits only, from Meta Events Manager.
+  // Leave empty to keep the Pixel switched off. Easier: set it in Admin > Site Settings.
+  META_PIXEL_ID: "",
+
   // Your social media pages — shown in the footer "Follow us" row.
   // Leave any of these as "#" if you don't have that platform yet.
   SOCIAL: {

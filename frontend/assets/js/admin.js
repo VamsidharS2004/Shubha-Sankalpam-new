@@ -2449,7 +2449,7 @@ function startAnalyticsAutoRefresh() {
 
 // Durable site settings; success is displayed only after the database commits.
 let siteSettingsRevision=null;
-const settingsFields=[['BRAND','Brand name'],['DOMAIN','Domain'],['WHATSAPP','WhatsApp number (country code + number)'],['CALL','Phone number'],['SUPPORT_EMAIL','Support email'],['LOGO','Header logo URL or assets/ path'],['FOOTER_LOGO','Footer logo URL or assets/ path'],['DEFAULT_LANGUAGE','Default language'],['UPI_ID','UPI ID'],['UPI_NAME','UPI display name'],['ADDRESS','Contact address'],['BUSINESS_HOURS','Support hours (include timezone)'],['FOOTER_DESCRIPTION','Footer description'],['facebook','Facebook URL'],['instagram','Instagram URL'],['youtube','YouTube URL'],['threads','Threads URL'],['x','X URL']];
+const settingsFields=[['BRAND','Brand name'],['DOMAIN','Domain'],['WHATSAPP','WhatsApp number (country code + number)'],['CALL','Phone number'],['SUPPORT_EMAIL','Support email'],['LOGO','Header logo URL or assets/ path'],['FOOTER_LOGO','Footer logo URL or assets/ path'],['DEFAULT_LANGUAGE','Default language'],['UPI_ID','UPI ID'],['UPI_NAME','UPI display name'],['META_PIXEL_ID','Meta Pixel ID (digits only, from Meta Events Manager; leave empty to turn the Pixel off)'],['ADDRESS','Contact address'],['BUSINESS_HOURS','Support hours (include timezone)'],['FOOTER_DESCRIPTION','Footer description'],['facebook','Facebook URL'],['instagram','Instagram URL'],['youtube','YouTube URL'],['threads','Threads URL'],['x','X URL']];
 async function loadSiteSettings(){
  const status=document.getElementById('siteSettingsStatus');status.textContent='Loading settings…';
  try{

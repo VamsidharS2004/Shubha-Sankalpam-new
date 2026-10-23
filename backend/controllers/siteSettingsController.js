@@ -11,6 +11,8 @@ function validateSettings(input){
     if(value.length>300||/[<>"'`]/.test(value))throw new Error('Invalid '+key+'.');
     out[key]=value;
   }
+  out.META_PIXEL_ID=String(input.META_PIXEL_ID??base.META_PIXEL_ID??'').replace(/\s/g,'');
+  if(out.META_PIXEL_ID&&!/^\d{8,20}$/.test(out.META_PIXEL_ID))throw new Error('Meta Pixel ID must be only digits (8 to 20), for example 123456789012345.');
   if(!out.BRAND)throw new Error('Brand name is required.');
   if(!/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(out.DOMAIN))throw new Error('Enter the domain without https://.');
   out.WHATSAPP=out.WHATSAPP.replace(/\D/g,'');

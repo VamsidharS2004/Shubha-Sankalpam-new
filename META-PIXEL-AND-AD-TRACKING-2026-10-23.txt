@@ -1,0 +1,53 @@
+META PIXEL + AD CLICK TRACKING  (2026-10-23)
+=============================================
+
+WHY (client call, 18 Oct)
+  Meta only learns who is likely to BOOK if the website tells it when a booking happens.
+  Also: an ad was run and the admin analytics showed no clicks. Cause found in the old code: the visit
+  "source" was saved but the admin report never counted it (Traffic sources only listed the referrer
+  website, and Instagram/Facebook ad clicks usually have no referrer).
+
+WHAT WAS ADDED
+  1. Meta Pixel (frontend/assets/js/analytics-tracker.js)
+     - Off until a Pixel ID is saved: Admin > Site Settings > "Meta Pixel ID" (digits only). No redeploy needed.
+     - Loads after the page has finished loading (does not slow the first paint).
+     - Events:  PageView (every page) | ViewContent (puja page) | InitiateCheckout (booking form opened)
+                Lead (booking created) | Purchase (payment step done)
+       Lead and Purchase are sent once per booking (event id = booking id) and survive the booking -> payment page change.
+     - Purchase fires when the devotee taps "I have paid" (UPI QR) or when Razorpay verifies the payment.
+       The UPI tap is NOT verified by the admin yet, so Purchase can be slightly higher than real payments.
+       In Ads Manager choose Lead (booking created) as the goal if you want bookings, Purchase for payments.
+     - autoConfig is OFF: Meta cannot read form fields (names, phone numbers) or button text on its own.
+     - Nothing is sent for visitors with Do Not Track. Nothing is requested from Facebook while no ID is saved.
+     - Note: Meta receives the page address with each event, so booking/payment events carry the booking id in the
+       address (same as any shop checkout). No name or phone number is sent.
+  2. Where each visit came from (same tracker file)
+     - Instagram, Facebook, Messenger, WhatsApp, Google, Direct ... worked out once per visit and sent with every event.
+     - "Ad click" = arrived with Meta's click id (fbclid) or utm_medium=paid/cpc/ads.
+     - A new ad click in the same tab, or a returning visitor, is counted as a new click (the old code remembered only the first source ever).
+  3. Admin > Analytics > "Ads & social traffic (Instagram / Facebook)"
+     - Cards: ad clicks, visits from Instagram / Facebook, ad visitors who viewed a puja / opened booking form / created a booking / reached payment.
+     - Tables: source, ad campaign + ad name, pujas viewed by ad visitors, ad clicks per day, latest 100 ad clicks (time, source, landing page, puja, device, how far they got).
+     - Included in "Export CSV".
+
+DO THIS BEFORE / WHEN PUBLISHING
+  1. Supabase SQL editor: run  backend/migrations/20261023_ad_tracking.sql  (safe to re-run). Without it the site keeps working
+     and old tracking continues, but ad clicks cannot be told apart; the admin panel shows a yellow reminder.
+  2. Publish (npm run build, npm test, deploy).
+  3. When the client gives the Pixel ID: Admin > Site Settings > Meta Pixel ID > Save. Reload the site.
+     Check in Meta Events Manager > Test events (or the "Meta Pixel Helper" Chrome extension).
+  4. In Meta Ads Manager, on each ad: Tracking > URL parameters, paste:
+       utm_source={{site_source_name}}&utm_medium=paid&utm_campaign={{campaign.name}}&utm_content={{ad.name}}
+     Then the campaign and ad name show in the admin table. (Clicks are still counted without it, shown as "Meta ads".)
+
+OTHER AD PLATFORMS (YouTube / Google Ads, X, TikTok, Bing)
+  - Counted as ad clicks automatically through their own click ids (gclid, twclid, ttclid, msclkid).
+  - To see the campaign name, add to the ad's destination link: ?utm_source=youtube&utm_medium=paid&utm_campaign=NAME
+    (utm_source=x for X). Whatever is typed in utm_source appears as the source name in the admin table.
+  - The Meta Pixel itself only reports to Meta. Google / X need their own tags (not built).
+
+NOT DONE (possible next step)
+  - Meta Conversions API (server-to-server booking events). It needs an access token from the client's Meta account
+    and would let a Purchase be sent only when the admin confirms the payment. Not built, cannot be tested without their account.
+
+TESTS: tests/meta-pixel-ads.test.js (12 tests). Whole suite: 104 passing.

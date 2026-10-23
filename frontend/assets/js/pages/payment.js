@@ -356,6 +356,8 @@ async function startQrFlow() {
   $id("paidBtn").addEventListener("click", async () => {
     try { await api("/api/bookings/claim", "POST", { id: bookingId }); }
     catch (e) { /* non-fatal */ }
+    /* ad tracking: the devotee says the payment is done (Meta: Purchase) - once per booking */
+    if (window.ssTrack && typeof item !== "undefined" && item) window.ssTrack("payment_done", item, bookingId);
 
     if (isPackage) {
       /* Load Razorpay script for subscription modal even in QR flow,
@@ -425,6 +427,8 @@ async function startRazorpayFlow(keyId) {
             razorpay_signature:  response.razorpay_signature,
             bookingId
           });
+          /* ad tracking: verified online payment (Meta: Purchase) - same once-per-booking key as the "I have paid" button */
+          if (window.ssTrack && typeof item !== "undefined" && item) window.ssTrack("payment_done", item, bookingId);
 
           // A completed booking must not be reused when the devotee goes back.
           try {

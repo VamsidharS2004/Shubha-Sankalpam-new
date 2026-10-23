@@ -95,7 +95,10 @@ document.documentElement.classList.remove("bk-booting");   /* summary is complet
 }
 showPrice();
 const priceReady = api('/api/catalog/item?ref='+encodeURIComponent((item && item.id) || ref)).then(out=>{
-  item=out.item; showPrice(); return true;
+  item=out.item; showPrice();
+  /* ad tracking: this devotee opened the booking form (Meta: InitiateCheckout) */
+  if (window.ssTrack) window.ssTrack('checkout_start', item, 'bk' + item.id);
+  return true;
 }).catch(e=>{alert(e.message); return false;});
 api('/api/me/interest','POST',{ref:(item && item.id) || ref}).catch(()=>{});
 /* pre-fill phone from the profile */
@@ -252,6 +255,8 @@ $id("payBtn").addEventListener("click", async () => {
       : await api("/api/bookings", "POST", payload);
     submittedBooking = { id: out.id, fingerprint };
     saveBookingDraft();
+    /* ad tracking: the booking exists now (Meta: Lead) - sent once per booking */
+    if (window.ssTrack) window.ssTrack('booking_created', item, out.id);
     
     // Direct user to the unified payment page (payment.js will handle Razorpay/QR and AutoPay logic)
     window.location.href = 'payment.html?bookingId=' + encodeURIComponent(out.id) + '&shortId=' + encodeURIComponent(out.shortId || '') + '&id=' + encodeURIComponent(ref) + '&start=1';

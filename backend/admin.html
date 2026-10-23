@@ -356,6 +356,26 @@
 </div>
 <p id="reportStatus" role="status" aria-live="polite">Choose Analytics to load the report.</p>
 <div id="reportMetrics" class="analytics-metrics"></div>
+<div class="analytics-panel" id="adsPanel" style="margin-top:20px">
+<h2>Ads &amp; social traffic (Instagram, Facebook, YouTube, Google, X ...)</h2>
+<p class="analytics-note">Every visit is tagged with where the person came from. An <b>ad click</b> is a visit that arrived through an ad link (Meta, Google / YouTube, X, TikTok, Bing ...). Counts are visits (browser sessions) in the selected period.</p>
+<div id="adsMigration" class="analytics-note" style="display:none;color:#ffb347"></div>
+<div id="adsMetrics" class="analytics-metrics"></div>
+<div class="analytics-panels">
+<div class="analytics-panel"><h2>Where visitors came from</h2><div class="scroll-table" id="adsChannels"></div></div>
+<div class="analytics-panel"><h2>Ad campaigns</h2><div class="scroll-table" id="adsCampaigns"></div></div>
+<div class="analytics-panel"><h2>Pujas viewed by ad visitors</h2><div class="scroll-table" id="adsPujas"></div></div>
+<div class="analytics-panel"><h2>Ad clicks per day (IST)</h2><div class="scroll-table" id="adsDaily"></div></div>
+</div>
+<div class="analytics-panel" style="margin-top:16px"><h2>Latest ad clicks</h2><p class="analytics-note">The most recent 100 ad visits with the page they landed on and how far they got.</p><div class="scroll-table" id="adsRecent"></div></div>
+<details style="margin-top:12px"><summary style="cursor:pointer"><b>How to see the exact ad and campaign here</b></summary>
+<p class="analytics-note">Other platforms (YouTube / Google Ads, X ...): add <code>?utm_source=youtube&amp;utm_medium=paid&amp;utm_campaign=YOUR-CAMPAIGN</code> to the ad's destination link (use <code>utm_source=x</code> for X). The name you type in utm_source is what shows in the table. Google, X, TikTok and Bing clicks are counted as ad clicks even without it.</p>
+<p class="analytics-note"><b>Meta (Facebook / Instagram):</b></p>
+<p class="analytics-note">In Meta Ads Manager open your ad, go to <b>Tracking &rarr; URL parameters</b> and paste this line. Meta fills in the placement (Facebook / Instagram), the campaign name and the ad name by itself:</p>
+<p><code id="adsUtm" style="user-select:all;word-break:break-all">utm_source={{site_source_name}}&amp;utm_medium=paid&amp;utm_campaign={{campaign.name}}&amp;utm_content={{ad.name}}</code></p>
+<p class="analytics-note">Without it, clicks from Meta ads are still counted (Meta adds its own click id), but they may show as &ldquo;Meta ads&rdquo; without the campaign name.</p>
+</details>
+</div>
 <div class="analytics-panel"><h2>New devotee accounts</h2><p class="analytics-note">Accounts created in the selected period. Registration time is shown in IST.</p><div class="scroll-table" id="reportDevotees"></div></div>
 <p class="analytics-note">Dates use IST. Paid booking value sums bookings marked paid, grouped by booking creation date; it does not deduct refunds or calculate Razorpay settlements. Pending and failed counts use the current status. Traffic totals may be lower when tracking is blocked or Do Not Track is enabled.</p>
 <div class="analytics-panel"><h2>Daily page views</h2><div class="analytics-bars" id="reportTrafficChart" aria-label="Daily page views; exact values appear in the daily report below"></div></div>
@@ -1179,7 +1199,7 @@
         </div>
     </aside>
 
-    <script src="/content/pujas.js"></script><script src="/content/packages.js"></script><script defer src="/assets/js/admin.js?v=20261016-drafts2"></script>
+    <script src="/content/pujas.js"></script><script src="/content/packages.js"></script><script defer src="/assets/js/admin.js?v=20261023-meta"></script>
 <style>
 .dl-menu{position:relative;display:inline-block}
 .dl-menu-list{position:absolute;left:0;top:calc(100% + 6px);z-index:60;min-width:300px;background:var(--bg-panel);border:1px solid var(--border-light);border-radius:10px;padding:6px;box-shadow:0 12px 30px rgba(0,0,0,.45)}
@@ -1209,7 +1229,7 @@
 <script defer src="/assets/js/rich-text.js?v=20261016-drafts2"></script>
 <script defer src="/assets/js/admin-puja.js?v=20261016-drafts2"></script>
 <script defer src="/assets/js/admin-phone-booking.js?v=20261015-phone2"></script>
-<script defer src="/assets/js/admin-analytics.js?v=20261016-leads"></script>
+<script defer src="/assets/js/admin-analytics.js?v=20261023-meta"></script>
 <script defer src="/assets/js/booking-form-ui.js?v=20261003-form-v2"></script>
 <script defer src="/assets/js/admin-booking-form.js?v=20261003-form-v2"></script>
 
