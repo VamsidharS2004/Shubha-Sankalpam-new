@@ -19,12 +19,24 @@ const packages = [
     "image": "assets/images/packages/shiva.jpg",
     "gallery": [],
     "detail": {
+      "faqs": [],
       "about": "Keep Lord Shiva's blessings flowing through the year: every Masa Shivaratri, a Rudrabhishekam is performed with your sankalpam at a sacred Shiva kshetra, and the video reaches you each month.",
-      "mantra": "OM NAMAH SHIVAYA",
+      "status": "draft",
+      "forWhom": "",
+      "gallery": [],
+      "receive": [],
       "about_hi": "पूरे साल भगवान शिव का आशीर्वाद पाते रहें: हर मास शिवरात्रि पर, किसी पवित्र शिव क्षेत्र में आपके संकल्प के साथ रुद्राभिषेक किया जाता है और इसका वीडियो हर महीने आप तक पहुँचाया जाता है।",
       "about_te": "సంవత్సరం పొడవునా శివయ్య అనుగ్రహాన్ని పొందండి: ప్రతి 'మాస శివరాత్రి' నాడు ఒక పవిత్ర శివక్షేత్రంలో మీ సంకల్పంతో రుద్రాభిషేకం నిర్వహించబడుతుంది మరియు ఆ కార్యక్రమ వీడియో మీకు ప్రతి నెలా పంపబడుతుంది.",
-      "mantra_hi": "ॐ नमः शिवाय",
-      "mantra_te": "ఓం నమః శివాయ"
+      "benefits": [],
+      "duration": "",
+      "procedure": [],
+      "tradition": "",
+      "forWhom_hi": "",
+      "forWhom_te": "",
+      "duration_hi": "",
+      "duration_te": "",
+      "tradition_hi": "",
+      "tradition_te": ""
     }
   }
 ];
