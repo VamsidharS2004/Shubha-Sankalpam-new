@@ -147,7 +147,7 @@ function renderFooter() {
 
     <div class="footer-divider">
       <div class="line"></div>
-      <img class="lotus-icon" src="assets/images/footer_flower.png" alt="Decorative Flower" style="height:32px; width:auto; object-fit:contain;">
+      <img class="lotus-icon" src="assets/images/footer_flower.png" alt="Decorative Flower" loading="lazy" decoding="async" style="height:32px; width:auto; object-fit:contain;">
       <div class="line"></div>
     </div>
 
@@ -210,7 +210,7 @@ function renderFooter() {
     
     <div class="footer-divider-bottom">
       <div class="line"></div>
-      <img class="lotus-icon" src="assets/images/footer_flower.png" alt="Decorative Flower" style="height:32px; width:auto; object-fit:contain;">
+      <img class="lotus-icon" src="assets/images/footer_flower.png" alt="Decorative Flower" loading="lazy" decoding="async" style="height:32px; width:auto; object-fit:contain;">
       <div class="line"></div>
     </div>
     
@@ -368,7 +368,8 @@ function paintAbandonedBell(me) {
         }
   
         displayName = matchedItem ? (matchedItem["title_" + lang] || matchedItem.title_en || matchedItem.name) : (pending.puja.includes("razorpay_order:") ? "Puja" : pending.puja);
-        targetUrl = `payment.html?bookingId=${pending.id}&id=${refId}`;
+        /* same link as the "Continue payment" button in My Bookings: opens the payment straight away (no Scan & Pay stops in between) */
+        targetUrl = `payment.html?bookingId=${encodeURIComponent(pending.id)}&shortId=${encodeURIComponent(pending.shortId || "")}&id=${encodeURIComponent(refId)}&start=1`;
       } else {
         // Multiple pendings
         displayName = isTe ? `${pendings.length} అసంపూర్ణ బుకింగ్‌లు` : (isHi ? `${pendings.length} अधूरी बुकिंग` : `${pendings.length} unfinished bookings`);

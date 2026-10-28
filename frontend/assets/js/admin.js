@@ -136,15 +136,9 @@ document.addEventListener("DOMContentLoaded", () => {
         closeAllDrawers();
     });
     
-    // Filter Buttons UI
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const group = btn.closest('.filters');
-            group.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            renderBookings();
-        });
-    });
+    // Booking status dropdown (All / Confirmed / Video delivered / Payment pending / Cancelled)
+    document.getElementById('bookingStatusFilter')?.addEventListener('change', () => renderBookings());
+    document.getElementById('bookingRangeClear')?.addEventListener('click', () => { window.bookingRangeDays = 0; renderBookings(); });
     
     document.getElementById('refreshDashboard')?.addEventListener('click',async event=>{
       const btn=event.currentTarget; if(btn.disabled)return; btn.disabled=true;btn.textContent='Refreshing…';
@@ -294,8 +288,9 @@ function doLogout() {
 window.doLogout = doLogout;
 
 function updateDashboardStats() {
-    const pending = b=>['pending','failed','payment-pending'].includes(String(b.status).toLowerCase());
-    const confirmed = b=>['confirmed','scheduled','video delivered','paid','video-sent'].includes(String(b.status).toLowerCase());
+    /* same rules as the Bookings page "Show" list, so a dashboard number always equals what opens when you click it */
+    const pending = b=>bookingMatchesStatus(b,'pending');
+    const confirmed = b=>bookingMatchesStatus(b,'confirmed');
     const istDay = value=>new Date(value).toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'});
     const today=istDay(Date.now());
     const metrics={statTodaySignups:(window.allDevotees||[]).filter(d=>d.signup_at && istDay(d.signup_at)===today).length,
@@ -367,6 +362,7 @@ async function loadBookings() {
         
         window.allBookings = await res.json();
         populateBookingPujaFilter();
+        if (window.allDevotees && window.allDevotees.length && typeof populateDevoteePujaFilter === "function") { populateDevoteePujaFilter(); renderDevotees(); }
         renderBookings();
         if(window.allDevotees) updateDashboardStats();
         return true;
@@ -385,14 +381,37 @@ function populateBookingPujaFilter() {
     if (names.includes(current)) select.value = current;
 }
 
+
+/* One place that decides which booking belongs to which status filter (also used by the Analytics number links). */
+function bookingMatchesStatus(b, key) {
+    const status = String(b.status || "").toLowerCase().trim();
+    const pay = String(b.paymentStatus || "").toLowerCase();
+    const cancelled = /(cancel|failed)/.test(status);
+    const video = status === "video-sent" || status === "video delivered";
+    const paid = ["paid", "captured", "success"].includes(pay) || ["paid", "confirmed", "scheduled", "completed"].includes(status) || video;
+    if (key === "video") return video;
+    if (key === "cancelled") return cancelled;
+    if (key === "confirmed") return paid && !cancelled;
+    if (key === "pending") return !cancelled && !paid && (/pending/.test(status) || /pending/.test(pay));
+    return true;
+}
+/* Open Bookings already filtered, e.g. from a number on the Analytics page. */
+window.openBookingsFiltered = function (statusKey, days) {
+    const sel = document.getElementById("bookingStatusFilter");
+    if (sel) sel.value = statusKey || "all";
+    window.bookingRangeDays = Number(days) || 0;
+    const search = document.querySelector('#view-bookings .search-bar input'); if (search) search.value = "";
+    const pf = document.getElementById("pujaBookingFilter"); if (pf) pf.value = "";
+    switchTab("view-bookings", document.querySelector('.nav-link[data-target="view-bookings"]'));
+    renderBookings();
+};
+window.bookingRangeDays = 0;
+
 function renderBookings() {
     const tbody = document.getElementById("bookingsTbody");
     if (!tbody) return;
     
-    // Find active filter
-    const activeFilterBtn = document.querySelector('#view-bookings .filters .filter-btn.active');
-    const filterText = activeFilterBtn ? activeFilterBtn.textContent.trim().toLowerCase() : "all";
-    
+    const statusKey = document.getElementById("bookingStatusFilter")?.value || "all";
     
     let list = window.allBookings || [];
     
@@ -410,15 +429,16 @@ function renderBookings() {
     }
 
     
-    if (filterText !== "all") {
-        list = list.filter(b => {
-            const status = (b.status || "").toLowerCase();
-            if (filterText === "confirmed") return status === "confirmed" || status === "paid";
-            if (filterText === "scheduled") return status === "scheduled";
-            if (filterText === "video delivered") return status === "video-sent";
-            if (filterText === "cancelled") return status === "cancelled" || status === "failed";
-            return true;
-        });
+    if (statusKey !== "all") list = list.filter(b => bookingMatchesStatus(b, statusKey));
+    if (window.bookingRangeDays) {
+        const since = Date.now() - window.bookingRangeDays * 86400000;
+        list = list.filter(b => { const t = Date.parse(b.createdAt); return Number.isFinite(t) && t >= since; });
+    }
+    const chip = document.getElementById("bookingRangeChip");
+    if (chip) {
+        chip.style.display = window.bookingRangeDays ? "inline-flex" : "none";
+        const text = document.getElementById("bookingRangeText");
+        if (text) text.textContent = "Last " + window.bookingRangeDays + " days (from Analytics)";
     }
 
     const pujaFilter = document.getElementById("pujaBookingFilter")?.value || "";
@@ -443,11 +463,12 @@ function renderBookings() {
             const displayStatus = isVideoSent ? "Video Sent" : (b.status || "Confirmed");
             
             let actionHtml = `
-                <div style="display:flex; gap:4px; max-width: 250px; flex-wrap: wrap;">
+                <div style="display:flex; gap:4px; max-width: 220px; flex-wrap: wrap;">
                     <div style="display:flex; gap:4px; width:100%;">
-                        <input type="file" id="video_file_${b.id}" accept="video/*" style="flex:1; padding: 4px; font-size: 0.8rem; background: transparent; color: var(--text-main);">
+                        <input type="file" id="video_file_${b.id}" accept="video/*" style="flex:1 1 auto; min-width:0; width:120px; max-width:150px; padding: 4px; font-size: 0.75rem; background: transparent; color: var(--text-main);">
                         <button class="btn" style="padding: 4px 8px; background: var(--accent); color: #fff; border:none;" onclick="sendVideo('${b.id}')">Send</button>
                     </div>
+                    <div style="flex-basis:100%;margin-top:2px;"><input type="text" id="video_gotra_${b.id}" placeholder="Gotra at m:ss" title="Optional: when the gotra names start in the video, e.g. 2:15" style="width:120px; padding:4px; font-size:0.75rem;"></div>
                     <div id="video_progress_${b.id}" style="display:none; flex-basis: 100%; margin-top: 4px; font-size: 0.75rem; color: var(--accent);">Uploading: 0%</div>
                     <div style="display:flex; gap:4px; margin-top:4px;">
                         <button class="btn" style="padding: 4px 8px" onclick="editBooking('${b.id}')"><i class="ph ph-pencil"></i></button>
@@ -539,6 +560,22 @@ function closeBookingDetails() {
     if (modal) modal.style.display = "none";
 }
 
+/* "Gotra names start at" time of a puja video. It is kept inside the video link itself (#gotra=SECONDS), so no database change is needed.
+   Browsers ignore this part of the link; the devotee's video page reads it and shows a "Go to gotra names" button. */
+function parseGotraStart(text) {
+    const raw = String(text == null ? "" : text).trim();
+    if (!raw) return { ok: true, seconds: 0 };
+    const parts = raw.split(":");
+    if (parts.length > 3 || parts.some(x => !/^\d{1,3}$/.test(x.trim()))) return { ok: false, seconds: 0 };
+    const n = parts.map(x => parseInt(x, 10));
+    if (n.length > 1 && n.slice(1).some(x => x > 59)) return { ok: false, seconds: 0 };
+    return { ok: true, seconds: n.reduce((total, x) => total * 60 + x, 0) };
+}
+function withGotraStart(url, seconds) {
+    const base = String(url || "").split("#")[0];
+    return seconds > 0 ? base + "#gotra=" + seconds : base;
+}
+
 async function uploadVideoFile(file, onProgress = () => {}) {
     if (file.size > 1.5 * 1024 * 1024 * 1024) throw new Error("File exceeds the 1.5 GB limit.");
     const chunkSize = 5 * 1024 * 1024;
@@ -575,6 +612,8 @@ async function sendVideoToSelectedBookings() {
     const status = document.getElementById("bulkVideoProgress");
     if (!ids.length) return alert("Select the bookings for one puja first.");
     if (!file) return alert("Choose a video file first.");
+    const gotra = parseGotraStart(document.getElementById("bulkGotraStart")?.value);
+    if (!gotra.ok) return alert("Gotra start time must look like 2:15 (minutes:seconds). Leave it empty if not needed.");
     const selected = ids.map(id => (window.allBookings || []).find(booking => String(booking.id) === String(id))).filter(Boolean);
     const pujaNames = [...new Set(selected.map(booking => booking.puja || ""))];
     if (pujaNames.length !== 1) return alert("Please filter bookings to one puja, then select its bookings.");
@@ -583,7 +622,7 @@ async function sendVideoToSelectedBookings() {
     const button = document.getElementById("sendBulkVideoBtn");
     button.disabled = true;
     try {
-        const videoUrl = await uploadVideoFile(file, message => { status.textContent = message; });
+        const videoUrl = withGotraStart(await uploadVideoFile(file, message => { status.textContent = message; }), gotra.seconds);
         let sent = 0;
         const failures = [];
         for (let i = 0; i < ids.length; i++) {
@@ -597,6 +636,7 @@ async function sendVideoToSelectedBookings() {
         await loadBookings();
         status.textContent = `Video attached to ${sent} of ${ids.length} bookings${failures.length ? `; ${failures.length} failed` : ""}.`;
         document.getElementById("bulkVideoFile").value = "";
+        if (document.getElementById("bulkGotraStart")) document.getElementById("bulkGotraStart").value = "";
         document.getElementById("selectAllBookings").checked = false;
         document.querySelectorAll(".booking-row-select").forEach(box => { box.checked = false; });
     } catch (error) {
@@ -608,23 +648,25 @@ async function sendVideoToSelectedBookings() {
     }
 }
 
-async function loadDevotees() {
-    try {
-        const res = await fetch("/api/admin/devotees?key=" + encodeURIComponent(KEY));
-        if (!res.ok) return false;
-        
-        const list = await res.json();
-        window.allDevotees = list;
-        const empty=document.getElementById('devoteesEmpty');if(empty)empty.style.display=list.length?'none':'';
-        const count=document.getElementById('devoteesCount');if(count)count.textContent=list.length+' devotees';
-        const tbody = document.getElementById("devoteesTbody"); // Ensure this ID exists in your devotees table
-        if (!tbody) return true;
-        
-        tbody.innerHTML = "";
-        
-        list.forEach(d => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
+/* ---- Devotees list: search + signup-date range + puja filter + optional grouping (by signup day or by puja) ---- */
+const istDayOf = v => { const t = Date.parse(v); return Number.isFinite(t) ? new Date(t).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" }) : ""; };
+function pujasOfDevotee(d) {
+    const set = new Set();
+    const add = v => { const t = String(v || "").trim(); if (t) set.add(t); };
+    add(d.interested_puja);
+    (window.allBookings || []).forEach(b => { if (String(b.phone || "") === String(d.phone || "") && b.puja) add(b.puja); });
+    return [...set];
+}
+function populateDevoteePujaFilter() {
+    const sel = document.getElementById("devoteePujaFilter");
+    if (!sel) return;
+    const current = sel.value;
+    const names = [...new Set((window.allDevotees || []).flatMap(pujasOfDevotee))].sort((a, b) => a.localeCompare(b));
+    sel.innerHTML = '<option value="">All pujas</option>' + names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
+    if (names.includes(current)) sel.value = current;
+}
+function devoteeRowHtml(d) {
+    return `
                 <td><input type="checkbox" class="devotee-row-select" value="${esc(d.phone)}" aria-label="Select ${esc(d.name)}"></td>
                 <td>
                     <div>${esc(d.name)}</div>
@@ -638,12 +680,74 @@ async function loadDevotees() {
                 <td>${Number(d.pending_count)||0} pending / ${Number(d.confirmed_count)||0} confirmed</td>
                 <td>${d.booking_count || 0}</td>
                 <td>
-                    <button class="btn" style="padding: 4px 8px" onclick="editDevotee('${d.phone}')"><i class="ph ph-pencil"></i></button>
-                    
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
+                    <button class="btn" style="padding: 4px 8px" onclick="editDevotee('${esc(d.phone)}')"><i class="ph ph-pencil"></i></button>
+                </td>`;
+}
+function renderDevotees() {
+    const tbody = document.getElementById("devoteesTbody");
+    if (!tbody) return;
+    const all = window.allDevotees || [];
+    const q = (document.querySelector("#view-devotees .search-bar input")?.value || "").trim().toLowerCase();
+    const from = document.getElementById("devoteeFrom")?.value || "";
+    const to = document.getElementById("devoteeTo")?.value || "";
+    const puja = document.getElementById("devoteePujaFilter")?.value || "";
+    const groupBy = document.getElementById("devoteeGroupBy")?.value || "none";
+    const day = d => istDayOf(d.signup_at || d.created_at);
+    const list = all.filter(d => {
+        if (q && !([d.name, d.phone, d.city, d.gotra, d.email, d.interested_puja].join(" ").toLowerCase().includes(q))) return false;
+        const dd = day(d);
+        if (from && (!dd || dd < from)) return false;
+        if (to && (!dd || dd > to)) return false;
+        if (puja && !pujasOfDevotee(d).includes(puja)) return false;
+        return true;
+    });
+    const groups = [];
+    if (groupBy === "date") {
+        const map = new Map();
+        list.forEach(d => { const k = day(d) || "Not recorded"; (map.get(k) || map.set(k, []).get(k)).push(d); });
+        [...map.entries()].sort((a, b) => b[0].localeCompare(a[0])).forEach(([k, items]) => groups.push({
+            title: k === "Not recorded" ? k : new Date(k + "T00:00:00+05:30").toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Kolkata" }), items }));
+    } else if (groupBy === "puja") {
+        const map = new Map();
+        list.forEach(d => { const ps = pujasOfDevotee(d); (ps.length ? ps : ["No puja yet"]).forEach(p => (map.get(p) || map.set(p, []).get(p)).push(d)); });
+        [...map.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0])).forEach(([k, items]) => groups.push({ title: k, items }));
+    } else groups.push({ title: "", items: list });
+    tbody.innerHTML = "";
+    groups.forEach(g => {
+        if (g.title) {
+            const h = document.createElement("tr");
+            h.className = "devotee-group";
+            h.innerHTML = `<td colspan="10" style="background:rgba(255,140,0,.12);font-weight:700;padding:10px 14px;">${esc(g.title)} <span class="text-muted" style="font-weight:500;">&mdash; ${g.items.length} devotee${g.items.length === 1 ? "" : "s"}</span></td>`;
+            tbody.appendChild(h);
+        }
+        g.items.forEach(d => { const tr = document.createElement("tr"); tr.innerHTML = devoteeRowHtml(d); tbody.appendChild(tr); });
+    });
+    const empty = document.getElementById("devoteesEmpty");
+    if (empty) { empty.style.display = list.length ? "none" : ""; empty.textContent = all.length ? "No devotees match these filters." : "No devotees yet. Add your first one."; }
+    const count = document.getElementById("devoteesCount");
+    if (count) count.textContent = (list.length === all.length ? "" : list.length + " of ") + all.length + " devotees";
+    const sa = document.getElementById("selectAllDevotees"); if (sa) sa.checked = false;
+}
+window.renderDevotees = renderDevotees;
+document.addEventListener("DOMContentLoaded", () => {
+    ["devoteeGroupBy", "devoteeFrom", "devoteeTo", "devoteePujaFilter"].forEach(id => document.getElementById(id)?.addEventListener("change", renderDevotees));
+    document.getElementById("devoteeFilterClear")?.addEventListener("click", () => {
+        ["devoteeFrom", "devoteeTo", "devoteePujaFilter"].forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+        const g = document.getElementById("devoteeGroupBy"); if (g) g.value = "none";
+        const si = document.querySelector("#view-devotees .search-bar input"); if (si) si.value = "";
+        renderDevotees();
+    });
+});
+
+async function loadDevotees() {
+    try {
+        const res = await fetch("/api/admin/devotees?key=" + encodeURIComponent(KEY));
+        if (!res.ok) return false;
+        
+        const list = await res.json();
+        window.allDevotees = list;
+        populateDevoteePujaFilter();
+        renderDevotees();
         
         if (typeof updateDashboardStats === 'function') updateDashboardStats();
     } catch (e) {
@@ -2126,6 +2230,8 @@ window.sendVideo = async function(bookingId) {
     }
     
     const file = fileInput.files[0];
+    const gotra = parseGotraStart((document.getElementById(`video_gotra_${bookingId}`) || {}).value);
+    if (!gotra.ok) return alert("Gotra start time must look like 2:15 (minutes:seconds). Leave it empty if not needed.");
     const progressEl = document.getElementById(`video_progress_${bookingId}`);
     
         progressEl.style.display = "block";
@@ -2182,7 +2288,8 @@ window.sendVideo = async function(bookingId) {
            const err = await finishRes.json();
            throw new Error(err.error || "Failed to finish upload");
         }
-        const { url: videoUrl } = await finishRes.json();
+        const { url: uploadedUrl } = await finishRes.json();
+        const videoUrl = withGotraStart(uploadedUrl, gotra.seconds);
         
         progressEl.textContent = "Video uploaded to Supabase. Attaching to booking...";
         
@@ -2475,4 +2582,32 @@ document.addEventListener('DOMContentLoaded',()=>{
   button.disabled=true;status.textContent='Saving…';
   try{const res=await fetch('/api/admin/settings?key='+encodeURIComponent(KEY),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings,revision:siteSettingsRevision})});const result=await res.json();if(!res.ok)throw new Error(result.error||'Save failed');siteSettingsRevision=result.revision;status.textContent='Settings saved. Reload the website to see the changes.';}catch(e){status.textContent=e.message;}finally{button.disabled=false;}
  });
+});
+
+/* Dashboard boxes: click a number to open the matching list */
+document.addEventListener("DOMContentLoaded", () => {
+    const go = {
+        statTotalBookings: () => window.openBookingsFiltered("all", 0),
+        statPendingBookings: () => window.openBookingsFiltered("pending", 0),
+        statConfirmedBookings: () => window.openBookingsFiltered("confirmed", 0),
+        statTotalDevotees: () => document.querySelector('.nav-link[data-target="view-devotees"]')?.click(),
+        statTodaySignups: () => document.querySelector('.nav-link[data-target="view-devotees"]')?.click(),
+        statTotalRevenue: () => document.querySelector('.nav-link[data-target="view-analytics"]')?.click()
+    };
+    const hint = { statTotalBookings: "See all bookings", statPendingBookings: "See payment pending", statConfirmedBookings: "See confirmed", statTotalDevotees: "See devotees", statTodaySignups: "See devotees", statTotalRevenue: "See Analytics" };
+    Object.keys(go).forEach(id => {
+        const num = document.getElementById(id);
+        const card = num && num.closest(".stat-card");
+        if (!card) return;
+        card.setAttribute("role", "button");
+        card.setAttribute("tabindex", "0");
+        card.title = hint[id];
+        card.style.cursor = "pointer";
+        const small = document.createElement("div");
+        small.textContent = hint[id] + " \u2192";
+        small.style.cssText = "margin-top:8px;font-size:.8rem;color:var(--accent);";
+        card.appendChild(small);
+        card.addEventListener("click", go[id]);
+        card.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go[id](); } });
+    });
 });

@@ -27,7 +27,7 @@ const vm = require("node:vm");
 const { bakeHomeHero } = require("./hero-bake");
 
 const FRONTEND = path.resolve(__dirname, "../frontend");
-const VERSION = "20261023-meta";
+const VERSION = "20261028-pay2";
 const SKIP = new Set(["404.html", "google09a10f499bc60551.html", "admin.html", "booking_backup.html", "index.html", "vedamandir.html", "video-player.html"]);
 
 /* ---- load SITE + headerHTML() exactly as the browser would ---- */
@@ -233,7 +233,7 @@ function processPage(file, headerHTML) {
   }
 
   // 1a. the puja page is served at /puja-details/001, so relative links need <base href="/"> (first thing in <head>)
-  if (file === "puja-details.html") {
+  if (file === "puja-details.html" || file === "payment.html") {
     html = html.replace(/<base href="\/">\s*/g, "");
     html = html.replace(/<head>\s*/, m => m + '<base href="/">\n');
   }

@@ -232,6 +232,9 @@ const requestHandler = async (req, res) => {
     if (/^\/puja-details\/[^\/]+\/?$/.test(url.pathname)) {
       /* clean URL: /puja-details/001 serves the puja details page (the page reads the id from the path) */
       filePath = path.join(FRONTEND_DIR, "puja-details.html");
+    } else if (/^\/(booking|pay)\/\d{4,10}\/?$/.test(url.pathname)) {
+      /* short links: /booking/290416 (details) and /pay/290416 (payment) open the payment page, which looks the booking up */
+      filePath = path.join(FRONTEND_DIR, "payment.html");
     } else if (url.pathname === "/") {
       filePath = path.join(FRONTEND_DIR, "home.html");
     } else if (!path.extname(filePath)) {

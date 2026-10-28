@@ -121,6 +121,76 @@ document.querySelectorAll("#bkTabs .bk-tab").forEach(tab => {
 function bookingPujaStillListed(b) { return ssBookingListed(b); }
 const escapeHtml = v => String(v == null ? "" : v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+/* ---------- My Bookings card (photo on the left, details, 3-step progress, buttons) ---------- */
+const BKC_TEXT = {
+  te: { id: "బుకింగ్ ID", date: "పూజ తేదీ", booked: "బుక్ చేసిన తేదీ", gotram: "గోత్రం", none: "ఇవ్వలేదు",
+        s1: "నిర్ధారణ", s2: "పూజ పూర్తి", s3: "వీడియో అందింది",
+        pending: "చెల్లింపు పూర్తి చేస్తే ఈ బుకింగ్ నిర్ధారణ అవుతుంది.", failed: "మీ చెల్లింపు పూర్తి కాలేదు. మళ్లీ ప్రయత్నించవచ్చు.",
+        verifying: "మీ చెల్లింపు అందింది. ధృవీకరణ జరుగుతోంది.", confirmed: "మీ బుకింగ్ నిర్ధారణ అయింది. పూజ తర్వాత వీడియో పంపబడుతుంది.",
+        done: "పూజ పూర్తయింది. వీడియో సిద్ధమైన వెంటనే ఇక్కడ కనిపిస్తుంది.", video: "మీ పూజ వీడియో సిద్ధంగా ఉంది.",
+        cont: "చెల్లింపు కొనసాగించండి", del: "తొలగించండి", watch: "వీడియో చూడండి", details: "బుకింగ్ వివరాలు →" },
+  en: { id: "Booking ID", date: "Puja date", booked: "Booked on", gotram: "Gotram", none: "Not provided",
+        s1: "Confirmed", s2: "Puja completed", s3: "Video delivered",
+        pending: "Complete the payment to confirm this booking.", failed: "Your payment did not go through. You can try again.",
+        verifying: "We received your payment and are verifying it.", confirmed: "Your booking is confirmed. The video is sent after the puja.",
+        done: "The puja is done. The video appears here as soon as it is ready.", video: "Your puja video is ready.",
+        cont: "Continue payment", del: "Delete", watch: "Watch video", details: "Booking details →" }
+};
+function bookingCardHTML(b, item, refId, statusLabel, bookingIdText) {
+  /* card labels stay in English (client request) - only the puja name follows the site language */
+  const lang = "en";
+  const T = BKC_TEXT.en;
+  const name = escapeHtml(typeof localName === "function" && item.id !== "unavailable" ? (localName(item) || item.name) : item.name);
+  const when = Date.parse(item.muhurat);
+  const passed = Number.isFinite(when) && when < Date.now();
+  const status = b.status;
+  const progress = status === "video-sent" ? 3 : status === "paid" ? (passed ? 2 : 1) : 0;
+  const showTrack = BK_TAB_STATUSES.pending.includes(status) ? false : true;
+  const TE_STATUS = { "payment-pending": "చెల్లింపు పెండింగ్", "payment-claimed": "ధృవీకరణలో ఉంది", "paid": "నిర్ధారణ అయింది", "failed": "చెల్లింపు విఫలమైంది", "video-sent": "వీడియో అందింది" };
+  const [tone, label, note] = ({
+    "payment-pending": ["amber", statusLabel, T.pending],
+    "failed": ["red", statusLabel, T.failed],
+    "payment-claimed": ["amber", statusLabel, T.verifying],
+    "video-sent": ["green", "▶ " + statusLabel, T.video],
+    "paid": ["green", "✓ " + (passed ? T.s2 : statusLabel), passed ? T.done : T.confirmed]
+  }[status] || ["green", statusLabel, ""]);
+  const fmt = d => { try { return new Date(d).toLocaleDateString(lang === "te" ? "te-IN" : "en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" }); } catch (_) { return ""; } };
+  const dateLabel = Number.isFinite(when) ? T.date : (item.id !== "unavailable" && item.date ? T.date : T.booked);
+  const dateText = Number.isFinite(when) ? fmt(when) : (item.id !== "unavailable" && item.date ? escapeHtml(item.date) : (b.createdAt ? fmt(b.createdAt) : "-"));
+  const profileGotra = (($id("dashGotram") || {}).textContent || "").trim();
+  const bookingGotra = String(b.gotram || "").trim() || (profileGotra && profileGotra !== "Not provided" ? profileGotra : "");
+  const gotram = bookingGotra ? escapeHtml(bookingGotra) : T.none;
+  const price = "₹" + Number(b.price || 0).toLocaleString("en-IN");
+  const raw = item.image || "";
+  const small = typeof supabaseResized === "function" ? supabaseResized(raw, 400) : "";
+  const imgSrc = escapeHtml(small || raw);
+  const orig = small ? ` data-orig="${escapeHtml(raw)}"` : "";
+  const img = raw ? `<img src="${imgSrc}"${orig} alt="${name}" loading="lazy" decoding="async" width="400" height="225" onerror="if(this.dataset.orig&&this.src!==this.dataset.orig){this.src=this.dataset.orig}else{this.parentNode.classList.add('noimg');this.remove()}">` : "";
+  const canWatch = status === "video-sent" && b.videoUrl;
+  const watchHref = canWatch ? "video-player.html?url=" + encodeURIComponent(b.videoUrl) : "";
+  const idq = encodeURIComponent(b.id), refq = encodeURIComponent(refId);
+  const detailsHref = `payment.html?bookingId=${idq}&id=${refq}&view=details`;
+  const payHref = `payment.html?bookingId=${idq}&id=${refq}&start=1`;
+  let actions;
+  if (status === "payment-pending" || status === "failed") {
+    actions = `<a class="bkc-btn grow" href="${payHref}">${T.cont}</a><button type="button" class="bkc-btn danger" onclick="window.deleteBooking('${escapeHtml(String(b.id))}')">${T.del}</button>`;
+  } else if (canWatch) {
+    actions = `<a class="bkc-btn grow" href="${watchHref}">▶ ${T.watch}</a><a class="bkc-btn ghost" href="${detailsHref}">${T.details}</a>`;
+  } else {
+    actions = `<a class="bkc-btn ghost" href="${detailsHref}">${T.details}</a>`;
+  }
+  const track = showTrack ? `<div class="bkc-track">${[1, 2, 3].map(n => `<div class="bkc-step${n <= progress ? " on" : ""}"><div class="bkc-dot">${n <= progress ? "✓" : ""}</div>${T["s" + n]}</div>`).join("")}</div>` : "";
+  return `
+    <div class="bkc-img${raw ? "" : " noimg"}">${img}</div>
+    <div class="bkc-body">
+      <div class="bkc-top"><h3>${name}</h3><span class="bkc-badge ${tone}">${escapeHtml(label)}</span></div>
+      <div class="bkc-meta"><span class="bkc-pair"><b>${T.id}:</b> ${escapeHtml(String(bookingIdText))}</span> <span class="bkc-pair"><b>${dateLabel}:</b> ${dateText}</span></div>
+      <div class="bkc-meta"><span class="bkc-pair"><b>${T.gotram}:</b> ${gotram}</span> <span class="bkc-pair"><b>Amount:</b> <span class="bkc-price">${price}</span></span></div>
+      <div class="bkc-note">${note}</div>
+    </div>
+    <div class="bkc-foot">${track}<div class="bkc-actions">${actions}</div></div>`;
+}
+
 function renderBookingsList() {
     const list = $id("myBookingsList");
     list.innerHTML = "";
@@ -189,64 +259,10 @@ function renderBookingsList() {
           matchedItem = { ...matchedItem, image: b.snapshot.image || matchedItem.image, price: b.snapshot.price || matchedItem.price };
         }
 
-      const card = document.createElement("article");
-      card.className = "card";
-      card.innerHTML = cardHTML(matchedItem, refId.split(":")[1] || 0, type);
-
       const bookingIdText = b.shortId || (typeof numericBookingId === "function" ? numericBookingId(b.id) : b.id.split('-')[0]);
-
-      // Gotram: this booking's gotram, else the profile gotram, else a clear "Not provided" (never a bare "N/A")
-      const profileGotra = (($id("dashGotram") || {}).textContent || "").trim();
-      const bookingGotra = String(b.gotram || "").trim() || (profileGotra && profileGotra !== "Not provided" ? profileGotra : "");
-      const uiLang = localStorage.getItem("ss_lang") || "te";
-      const gotramWords = { te: ["Gotram", "ఇవ్వలేదు"], hi: ["Gotram", "नहीं दिया गया"], en: ["Gotram", "Not provided"] }[uiLang] || ["Gotram", "Not provided"];
-      const gotramLabel = gotramWords[0];
-      const gotramText = bookingGotra ? escapeHtml(bookingGotra) : gotramWords[1];
-
-      // 1. Replace the meta info (Temple/Date) with Booking specific info (Gotram/Family/Booking Date)
-      const meta = card.querySelector(".card-meta");
-      if (meta) {
-        meta.innerHTML = `
-          <span title="Booking ID"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px; margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg> ID: ${bookingIdText}</span>
-          <span title="Booking Date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> ${b.createdAt ? new Date(b.createdAt).toLocaleDateString("en-IN") : "Date not available"}</span>
-          <span title="Gotram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px; margin-right:4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> ${gotramLabel}: ${gotramText}</span>
-        `;
-      }
-
-      // 2. Redesign the footer to look exactly like the standard footer, but with booking actions
-      const foot = card.querySelector(".card-foot");
-      if (foot) {
-        let actionBtn = "";
-        const detailsBtn = `<a class="book-link" href="#" onclick="event.preventDefault(); location.href='payment.html?bookingId=${b.id}&id=${refId}&view=details'" style="background:#f1f1f1; color:#333; border: 1px solid #ddd;">Your Booking Details &rarr;</a>`;
-
-        if (b.status === "payment-pending" || b.status === "failed") {
-             actionBtn = `
-              <div style="display:flex; align-items:center; gap:8px;">
-                <button onclick="window.deleteBooking('${b.id}')" style="background:#fff; border:1px solid #ddd; color: #d32f2f; padding: 8px 12px; border-radius: 999px; cursor: pointer; display:flex; align-items:center; justify-content:center; gap:4px; font-weight:600; font-size:0.85rem; transition: background 0.15s;" title="Delete Booking">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                  Delete
-                </button>
-                <a class="book-link" href="#" onclick="event.preventDefault(); location.href='payment.html?bookingId=${b.id}&id=${refId}&start=1'">Continue <span class="arrow">&rarr;</span></a>
-              </div>`;
-        } else if (b.status === "video-sent" && b.videoUrl) {
-           actionBtn = `
-             <div style="display:flex; align-items:center; gap:8px;">
-               ${detailsBtn}
-               <a class="book-link" href="video-player.html?url=${encodeURIComponent(b.videoUrl)}">Watch Video <span class="arrow">&rarr;</span></a>
-             </div>`;
-        } else {
-           actionBtn = detailsBtn;
-        }
-        
-        foot.innerHTML = `
-          <div class="price" style="display:flex; flex-direction:column; align-items:flex-start; gap:4px;">
-            <span style="font-size: 1.1rem; font-weight: 700;">₹${b.price.toLocaleString("en-IN")}</span>
-            <small style="color:${b.status === 'payment-pending' ? '#d32f2f' : 'var(--muted)'}; font-weight:600; font-size: 0.8rem;">${statusLabel}</small>
-          </div>
-          ${actionBtn}
-        `;
-      }
-
+      const card = document.createElement("article");
+      card.className = "bkc";
+      card.innerHTML = bookingCardHTML(b, matchedItem, refId, statusLabel, bookingIdText);
       list.appendChild(card);
     });
 }
@@ -464,3 +480,35 @@ $id("aboutText").textContent =
 
 $id("supportWa").href = `https://wa.me/${SITE.WHATSAPP}?text=I%20need%20help%20with%20my%20account`;
 $id("supportEmail").textContent = `Or email us at ${SITE.SUPPORT_EMAIL || "support@"+SITE.DOMAIN}`;
+
+/* The four summary boxes (bookings, subscriptions, addresses, saved pujas) open their own page when clicked */
+document.querySelectorAll(".sumcard[data-go]").forEach(box => {
+  const open = () => { const b = document.querySelector('.side-item[data-panel="' + box.dataset.go + '"]'); if (b) b.click(); };
+  box.addEventListener("click", open);
+  box.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+});
+
+/* phone: keep the tapped menu pill in view while the pill row scrolls sideways */
+document.querySelectorAll(".side-item").forEach(b => b.addEventListener("click", () => {
+  try { b.scrollIntoView({ block: "nearest", inline: "nearest" }); } catch (_) {}
+}));
+
+/* phone: small bar under the menu pills that moves while the row is scrolled sideways */
+(function () {
+  const card = document.querySelector(".account-grid > .side-card");
+  if (!card) return;
+  const bar = document.createElement("div"); bar.className = "menu-scrollbar"; bar.setAttribute("aria-hidden", "true");
+  bar.innerHTML = "<i></i>"; card.insertAdjacentElement("afterend", bar);
+  const thumb = bar.firstChild;
+  const sync = () => {
+    const max = card.scrollWidth - card.clientWidth;
+    bar.classList.toggle("none", max <= 2);
+    if (max <= 2) return;
+    const w = Math.max(24, (card.clientWidth / card.scrollWidth) * 100);
+    thumb.style.width = w + "%";
+    thumb.style.left = (card.scrollLeft / max) * (100 - w) + "%";
+  };
+  card.addEventListener("scroll", sync, { passive: true });
+  addEventListener("resize", sync);
+  sync(); setTimeout(sync, 600);
+})();

@@ -163,3 +163,125 @@
  .account-grid>div{width:100%;min-width:0}
  .account-banner{margin:16px 0;padding:20px;gap:12px;flex-wrap:wrap}
 }
+
+/* ---------- My Bookings cards (photo left, details, progress, buttons) ---------- */
+#myBookingsList{display:grid;grid-template-columns:1fr;gap:12px}
+.bkc{background:#fff;border:1px solid var(--line);box-shadow:0 4px 16px rgba(150,20,15,.05);border-radius:14px;overflow:hidden;display:grid;grid-template-columns:168px 1fr}
+.bkc-img{position:relative;padding:10px;align-self:start}
+.bkc-img img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;border-radius:10px}
+.bkc-img.noimg{min-height:96px;background:#f7efe3;margin:10px;border-radius:10px;padding:0}
+.bkc-body{padding:10px 14px 10px 2px;display:flex;flex-direction:column;gap:3px;min-width:0;align-self:center}
+.bkc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap}
+.bkc h3{font-size:1rem;font-weight:800;line-height:1.35;color:var(--ink)}
+.bkc-badge{display:inline-block;font-size:.74rem;font-weight:800;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.bkc-badge.green{background:#e4f4ea;color:#1f7a4d}
+.bkc-badge.amber{background:#fdf0d5;color:#9a5b00}
+.bkc-badge.red{background:#fbe5e3;color:#b3261e}
+.bkc-meta{font-size:.83rem;color:var(--muted)}
+.bkc-meta b{color:var(--ink);font-weight:700}
+.bkc-price{font-weight:800;color:var(--red)}
+.bkc-note{font-size:.83rem;color:var(--muted);margin-top:2px}
+.bkc-foot{grid-column:1/-1;border-top:1px solid var(--line);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px 20px;flex-wrap:wrap}
+.bkc-track{display:flex;flex:1 1 300px;max-width:420px}
+.bkc-step{flex:1;text-align:center;position:relative;font-size:.72rem;color:var(--muted);font-weight:600}
+.bkc-step::before{content:"";position:absolute;top:9px;left:-50%;width:100%;height:2px;background:var(--line)}
+.bkc-step:first-child::before{display:none}
+.bkc-dot{width:20px;height:20px;border-radius:50%;background:#fff;border:2px solid var(--line);margin:0 auto 5px;position:relative;z-index:1;font-size:.65rem;display:grid;place-items:center;color:#fff}
+.bkc-step.on{color:var(--ink)}
+.bkc-step.on .bkc-dot{background:#1f7a4d;border-color:#1f7a4d}
+.bkc-step.on::before{background:#1f7a4d}
+.bkc-actions{display:flex;gap:8px;flex-wrap:wrap}
+.bkc-btn{border:0;border-radius:10px;padding:10px 16px;font-weight:700;font-size:.88rem;text-decoration:none;text-align:center;display:inline-block;background:var(--red);color:#fff;cursor:pointer;font-family:inherit}
+.bkc-btn.ghost{background:#fff;color:var(--red);border:1px solid var(--red)}
+.bkc-btn.danger{background:#fff;color:#b3261e;border:1px solid #efc4c0}
+.bkc-btn.grow{flex:1}
+@media(max-width:640px){.bkc{grid-template-columns:1fr}.bkc-img{padding:12px 12px 0}.bkc-body{padding:10px 16px 12px}.bkc-actions{width:100%}.bkc-actions .bkc-btn{flex:1}}
+
+/* ---------- Compact account page (client request 28 Oct): smaller Edit/Logout buttons, smaller booking photo so 2 cards fit on screen ---------- */
+.account-banner{padding:18px 28px;margin:18px 0}
+.ab-avatar{width:56px;height:56px;font-size:1.8rem}
+.ab-right{gap:10px}
+.ab-right .btn{padding:6px 14px;font-size:.78rem;font-weight:600;gap:6px}
+.ab-right .btn-outline{padding:5px 13px !important}
+.bkc{grid-template-columns:128px 1fr}
+.bkc-img{padding:8px}
+.bkc-img img{border-radius:8px}
+.bkc-img.noimg{min-height:72px;margin:8px}
+.bkc-body{padding:8px 12px 6px 2px;gap:2px}
+.bkc h3{font-size:.95rem}
+.bkc-foot{padding:6px 12px}
+.bkc-btn{padding:7px 14px;font-size:.82rem}
+@media(max-width:640px){
+ .account-banner{padding:14px 16px;margin:12px 0;gap:10px}
+ .ab-avatar{width:46px;height:46px;font-size:1.4rem}
+ .ab-right{width:100%}
+ .bkc{grid-template-columns:96px 1fr}
+ .bkc-img{padding:8px 0 0 8px}
+ .bkc-body{padding:8px 10px 6px 0}
+ .bkc-actions{width:auto}
+ .bkc-actions .bkc-btn{flex:0 1 auto}
+ .bkc-foot{padding:6px 10px}
+ .bkc-track{flex:1 1 100%;max-width:none}
+}
+
+/* summary cards: tinted card, title with count, one-line hint, round arrow button (tap = open that page) */
+.sum-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:30px}
+.sumcard{display:flex;align-items:center;gap:12px;padding:16px 16px;border-radius:16px;border:1px solid transparent;cursor:pointer;min-width:0;transition:transform .15s ease,box-shadow .15s ease}
+.sumcard:hover,.sumcard:focus-visible{transform:translateY(-2px);box-shadow:0 8px 20px rgba(120,40,20,.12);outline:none}
+.sumcard.t-rose{background:#FDECEA;border-color:#F6D3CF}
+.sumcard.t-amber{background:#FFF4DC;border-color:#F4E2B3}
+.sumcard.t-green{background:#E9F5EC;border-color:#CFE7D6}
+.sumcard.t-lilac{background:#F1EDFA;border-color:#DED6F1}
+.sc-ic{flex:0 0 auto;width:38px;height:38px;border-radius:10px;background:#fff;display:grid;place-items:center;font-size:1.2rem;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.sc-text{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px}
+.sc-title{font-size:.95rem;font-weight:800;color:var(--ink);line-height:1.25}
+.sc-sub{font-size:.8rem;color:var(--muted);line-height:1.35}
+.sc-go{flex:0 0 auto;width:36px;height:36px;border-radius:50%;background:#1F9D55;color:#fff;display:grid;place-items:center;font-size:1.1rem;font-weight:700}
+@media(max-width:520px){.sum-cards{grid-template-columns:1fr;gap:10px}.sumcard{padding:12px 14px}}
+
+/* ---------- 28 Oct: name in banner, tracker colour, phone layout (cards, menu pills, tabs) ---------- */
+.account-banner .ab-name-row h2{border:0;padding:0;border-radius:0;letter-spacing:0;color:#fff;font-size:1.9rem;font-weight:800;line-height:1.2}
+.account-banner .ab-name-row{margin-bottom:4px}
+.bkc-step.on .bkc-dot{background:var(--red);border-color:var(--red)}
+.bkc-step.on::before{background:var(--red)}
+.bkc-step.on{color:var(--ink)}
+.bkc-pair{white-space:nowrap}
+.bkc-price{font-weight:800;color:var(--red)}
+@media(max-width:768px){
+ .account-banner .ab-name-row h2{font-size:1.7rem}
+ .account-grid>.side-card{gap:5px;padding:7px 7px 9px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:var(--red) #f1e4d2}
+ .account-grid>.side-card::-webkit-scrollbar{height:5px}
+ .account-grid>.side-card::-webkit-scrollbar-track{background:#f1e4d2;border-radius:5px}
+ .account-grid>.side-card::-webkit-scrollbar-thumb{background:var(--red);border-radius:5px}
+ .account-grid>.side-card .side-item{padding:7px 10px;font-size:.78rem;gap:5px;border-radius:999px;border:1px solid var(--line);background:#fff;scroll-snap-align:start}
+ .account-grid>.side-card .side-item.active{background:var(--red);border-color:var(--red);color:#fff}
+ .account-grid>.side-card .side-item .si{width:auto;font-size:.88rem}
+ .hide-sm{display:none}
+}
+@media(max-width:640px){
+ .bk-tabs{flex-wrap:nowrap;gap:6px}
+ .bk-tabs .bk-tab{flex:1 1 0;padding:9px 4px;font-size:.84rem;text-align:center;white-space:nowrap}
+ .bkc{display:grid;grid-template-columns:112px minmax(0,1fr);column-gap:12px;align-items:start;padding-top:12px}
+ .bkc-body{display:contents}
+ .bkc-img{grid-column:1;grid-row:1;padding:0 0 0 12px}
+ .bkc-img img{width:100%;height:auto;aspect-ratio:16/9;border-radius:8px;object-fit:cover}
+ .bkc-img.noimg{min-height:63px;margin:0 0 0 12px;padding:0}
+ .bkc-top{grid-column:2;grid-row:1;padding-right:12px;flex-direction:column;align-items:flex-start;gap:6px;align-self:center}
+ .bkc h3{font-size:.95rem;line-height:1.3}
+ .bkc-meta,.bkc-note{grid-column:1/-1;padding:0 12px}
+ .bkc-meta{font-size:.82rem;line-height:1.55}
+ .bkc-meta:first-of-type{margin-top:10px}
+ .bkc-note{font-size:.8rem;line-height:1.4;margin-top:4px;padding-bottom:10px}
+ .bkc-foot{grid-column:1/-1;flex-direction:column;align-items:stretch;gap:10px;padding:10px 12px 12px}
+ .bkc-track{flex:none;max-width:none;width:100%}
+ .bkc-actions{width:100%}
+ .bkc-actions .bkc-btn{flex:1 1 0;padding:10px 12px}
+}
+
+/* phone: thin position bar under the menu pills so it is clear the row scrolls sideways */
+.menu-scrollbar{display:none}
+@media(max-width:768px){
+ .menu-scrollbar{display:block;height:4px;margin:-8px 4px 14px;background:#f1e4d2;border-radius:4px;position:relative;overflow:hidden}
+ .menu-scrollbar i{position:absolute;top:0;left:0;height:100%;background:var(--red);border-radius:4px;transition:left .1s linear}
+ .menu-scrollbar.none{display:none}
+}

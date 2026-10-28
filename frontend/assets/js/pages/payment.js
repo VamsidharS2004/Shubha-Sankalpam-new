@@ -17,10 +17,49 @@
 (async function initPayment() {
   initLayout();
 
-  const bookingId = getParam("bookingId");
+  /* The address bar is shortened further down (/booking/290416), so read every ?parameter first. */
+  const _q = new URLSearchParams(location.search);
+  window._payQ = _q;
+  const getParam = k => _q.get(k);
+  /* start the payment-settings request right away (it used to wait for /api/me first) */
+  const cfgPromise = api("/api/payments/config"); cfgPromise.catch(() => {});
+
+  let bookingId   = getParam("bookingId");
   let shortId     = getParam("shortId") || "";
-  const ref       = getParam("id") || "puja:0";
-  
+  let ref         = getParam("id") || "puja:0";
+
+  /* Short links: /booking/290416 = booking details, /pay/290416 = continue payment. They carry only the 6-digit
+     booking number, so look the booking up in the signed-in user's own bookings. */
+  const pathMatch = location.pathname.match(/^\/(booking|pay)\/(\d{4,10})\/?$/i);
+  const pathMode = pathMatch ? pathMatch[1].toLowerCase() : "";
+  const refForBooking = b => {
+    try {
+      const name = b.puja || b.puja_name || b.pujaName || b.puja_title || "", snap = b.snapshot && b.snapshot.id;
+      const same = p => p.name === name || p.title_en === name || p.title_te === name;
+      if (typeof pujas !== "undefined") {
+        let i = snap ? pujas.findIndex(p => p.id === snap) : -1;
+        if (i === -1) i = pujas.findIndex(same);
+        if (i !== -1) return pujas[i].id || ("puja:" + i);
+      }
+      if (typeof packages !== "undefined") {
+        const i = packages.findIndex(same);
+        if (i !== -1) return packages[i].id || ("pkg:" + i);
+      }
+    } catch (_) {}
+    return "unavailable";
+  };
+  if (!bookingId && pathMatch) {
+    if (!authToken) { location.replace("login.html?next=" + encodeURIComponent(location.pathname)); return; }
+    try {
+      const first = await api("/api/me", "GET", undefined, true);
+      const hit = ((first && first.bookings) || []).find(x => String(x.shortId || (typeof numericBookingId === "function" ? numericBookingId(x.id) : "")) === pathMatch[2]);
+      if (hit) { bookingId = hit.id; shortId = String(hit.shortId || pathMatch[2]); ref = refForBooking(hit); }
+    } catch (e) {
+      if (e && e.status === 401) { clearToken(); location.replace("login.html?next=" + encodeURIComponent(location.pathname)); return; }
+    }
+    if (!bookingId) { location.replace("account.html?panel=bookings"); return; }
+  }
+
   if (!bookingId) {
     location.href = "puja.html";
     return;
@@ -32,7 +71,17 @@
 
   let me = null;
   let existingBooking = null;
-  const historyRequested = getParam("view") === "details";
+  const historyRequested = getParam("view") === "details" || pathMode === "booking";
+  /* show a short, readable address: /booking/290416 (details) or /pay/290416 (payment) instead of the long id link */
+  const setShortUrl = b => {
+    try {
+      const s = String((b && b.shortId) || shortId || (b && typeof numericBookingId === "function" ? numericBookingId(b.id) : ""));
+      if (!/^\d{4,10}$/.test(s)) return;
+      const st = String((b && b.status) || "").toLowerCase().trim();
+      const paid = !!b && !["pending", "payment-pending", "failed"].includes(st);
+      history.replaceState(null, "", "/" + ((historyRequested || paid) ? "booking" : "pay") + "/" + s);
+    } catch (_) {}
+  };
   let { item, type } = getItem(ref);
   if (historyRequested && authToken) {
     try {
@@ -40,6 +89,7 @@
       const booking = cached?.bookings?.find(b => b.id === bookingId);
       if (booking && cached.user && Date.now() - cached.cachedAt < 5 * 60 * 1000) {
         me = cached; existingBooking = booking;
+        setShortUrl(booking);
         if (!item) { item = {name:booking.puja || "Puja Booking", price:booking.price || 0}; type="puja"; }
         window._isHistoryView = true;
         await showFinalSuccess("Booking Details");
@@ -58,13 +108,16 @@
       if (me && me.bookings) {
           existingBooking = me.bookings.find(b => b.id === bookingId);
       }
+      if (existingBooking) setShortUrl(existingBooking);
   } catch(e) {
     if(e.status===401){location.replace('login.html?next='+encodeURIComponent(location.pathname+location.search));return;}
     const host=document.querySelector('.form-card');host.replaceChildren();
     const message=document.createElement('p');message.textContent='Could not load your booking. Please retry.';
     const retry=document.createElement('button');retry.className='btn btn-red';retry.textContent='Retry';retry.onclick=()=>location.reload();
-    host.append(message,retry);document.documentElement.classList.add('ss-payment-ready');return;
+    host.append(message,retry);document.documentElement.classList.add('ss-payment-ready');document.documentElement.classList.remove?.('ss-pay-direct');return;
   }
+
+  if (!existingBooking) setShortUrl(null);
 
   const isAlreadyPaid = existingBooking && !(["pending", "payment-pending", "failed"].includes((existingBooking.status || "").toLowerCase().trim()));
   
@@ -192,7 +245,7 @@ async function showFinalSuccess(message) {
   }
 
   
-    const isHistoryView = window._isHistoryView || getParam("viewSuccess") === "1";
+    const isHistoryView = window._isHistoryView || (window._payQ ? window._payQ.get("viewSuccess") : getParam("viewSuccess")) === "1";
   const bottomLinkText = isHistoryView ? "Explore All Pujas" : "Back to Home";
   const bottomLinkHref = isHistoryView ? "puja.html" : "home.html";
   
@@ -200,17 +253,26 @@ async function showFinalSuccess(message) {
   const titleHtml = `<h2 style="color:#4A2311; font-size:28px; margin:0 0 ${isHistoryView ? '20' : '10'}px; font-weight:700;">${isHistoryView ? "Booking Details" : (message || "Booking Successful")}</h2>`;
   const subtitleHtml = isHistoryView ? "" : `<p style="color:#555; font-size:16px; margin:0 0 30px;">Your payment is confirmed. Thank you for booking with us.</p>`;
 
+  /* Booking Details page (opened from My Bookings): the white card already has the "Booking Details" title, so the list sits
+     directly on it - no second cream card and no second "Your Booking Details" heading. The success screen after paying keeps its card. */
+  const statusChipHtml = `<span style="font-size:12px; color:#E85A1C; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; background:#FFF1E6; border-radius:999px; padding:4px 12px;">${displayStatus.toUpperCase()}</span>`;
+  const detailsBoxStyle = isHistoryView
+    ? "text-align:left; margin-bottom:20px;"
+    : "background:#FEF8EE; border:1px solid #EADDCD; border-radius:12px; text-align:left; padding:20px; margin-bottom:20px;";
+  const detailsHeaderHtml = isHistoryView
+    ? `<div style="text-align:center; margin:0 0 8px;">${statusChipHtml}</div>`
+    : `<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #EADDCD; padding-bottom:15px; margin-bottom:15px;">
+            <h3 style="color:#4A2311; margin:0; font-size:20px; font-weight:700;">Your Booking Details</h3>
+            <span style="font-size:12px; color:#E85A1C; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">${displayStatus.toUpperCase()}</span>
+        </div>`;
   const escapeDetail=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   displayId=escapeDetail(displayId);displayPuja=escapeDetail(displayPuja);displayDate=escapeDetail(displayDate);displayDevotee=escapeDetail(displayDevotee);displayGotram=escapeDetail(displayGotram);
   successDiv.innerHTML = `
     ${topIconHtml}
     ${titleHtml}
     ${subtitleHtml}
-    <div style="background:#FEF8EE; border:1px solid #EADDCD; border-radius:12px; text-align:left; padding:20px; margin-bottom:20px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #EADDCD; padding-bottom:15px; margin-bottom:15px;">
-            <h3 style="color:#4A2311; margin:0; font-size:20px; font-weight:700;">Your Booking Details</h3>
-            <span style="font-size:12px; color:#E85A1C; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">${displayStatus.toUpperCase()}</span>
-        </div>
+    <div style="${detailsBoxStyle}">
+        ${detailsHeaderHtml}
         
         <table style="width:100%; border-collapse:collapse; font-size:15px;">
             <tbody>
@@ -248,7 +310,7 @@ async function showFinalSuccess(message) {
     
     <div style="background:#EAF6ED; border:1px solid #C8E6C9; border-radius:12px; padding:15px 20px; display:flex; align-items:center; gap:15px; text-align:left; margin-bottom:25px;">
         <svg viewBox="0 0 24 24" fill="none" stroke="#27AE60" stroke-width="2" width="32" height="32" style="flex-shrink:0;"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-        <p style="margin:0; color:#333; font-size:14px; line-height:1.5; font-weight:500;">Your puja video will be shared through WhatsApp within 48 hours after the puja. You can also view it in My Account.</p>
+        <p style="margin:0; flex:1; min-width:0; color:#333; font-size:14px; line-height:1.5; font-weight:500;">Your puja video will be shared through WhatsApp within 48 hours after the puja. You can also view it in My Account.</p>
     </div>
     
     <button style="width:100%; padding:16px; border-radius:8px; font-size:18px; font-weight:700; background:#E85A1C; color:#fff; display:flex; justify-content:center; align-items:center; gap:8px; border:none; cursor:pointer; box-shadow:0 4px 12px rgba(232,90,28,0.3);" onclick="location.href='account.html?panel=bookings&tab=ongoing'">View My Booking &rarr;</button>
@@ -258,7 +320,7 @@ async function showFinalSuccess(message) {
     <a href="${bottomLinkHref}" style="color:#E85A1C; text-decoration:underline; font-size:15px; font-weight:600;">${bottomLinkText}</a>
   `;
   successDiv.style.display='block';
-  document.documentElement.classList.add('ss-payment-ready');
+  document.documentElement.classList.add('ss-payment-ready');document.documentElement.classList.remove?.('ss-pay-direct');
 }
 
 /* ----------------------------------------------------------------
@@ -387,7 +449,7 @@ async function startRazorpayFlow(keyId) {
   try {
     order = await api("/api/payments/order", "POST", { bookingId });
   } catch (e) {
-    $id("paymentStatus").textContent = "Could not start payment: " + e.message;
+    $id("paymentStatus").textContent = "Could not start payment: " + e.message; showPayPage();
     $id("paidBtn").textContent = "Retry";
     $id("paidBtn").disabled=false;
     $id("paidBtn").onclick=()=>{ $id("paidBtn").onclick=null; startRazorpayFlow(keyId); };
@@ -452,17 +514,18 @@ async function startRazorpayFlow(keyId) {
       },
       modal: { ondismiss: function () {
         checkoutOpen=false;
+        showPayPage();
         $id("paidBtn").disabled=false;
         $id("paymentStatus").textContent="Payment window closed. Check My Bookings for payment status, or continue payment.";
       } },
       theme: { color: "#8B1A1A" }
     });
-    rzp.on("payment.failed", () => { $id("paymentStatus").textContent="Payment was not completed. Close the payment window to go back or retry."; });
-    try { rzp.open(); } catch(e) { checkoutOpen=false; $id("paidBtn").disabled=false; $id("paymentStatus").textContent="Payment could not open. Please try again."; }
+    rzp.on("payment.failed", () => { showPayPage(); $id("paymentStatus").textContent="Payment was not completed. Close the payment window to go back or retry."; });
+    try { rzp.open(); showPayPage(); /* payment window is up: the page behind it is the normal "Continue Payment" page, so cancelling shows it at once */ } catch(e) { checkoutOpen=false; showPayPage(); $id("paidBtn").disabled=false; $id("paymentStatus").textContent="Payment could not open. Please try again."; }
   };
   $id("paidBtn").addEventListener("click", openCheckout);
   if (getParam("start") === "1") {
-    history.replaceState(null, "", "payment.html?bookingId=" + encodeURIComponent(bookingId) + "&id=" + encodeURIComponent(ref));
+    setShortUrl(existingBooking || null);
     openCheckout();
   }
 }
@@ -470,24 +533,28 @@ async function startRazorpayFlow(keyId) {
 /* ----------------------------------------------------------------
    Utility: load Razorpay checkout.js once
    ---------------------------------------------------------------- */
+function showPayPage() { document.documentElement.classList.remove("ss-pay-direct"); }
 function loadRazorpayScript(onload) {
   if (typeof Razorpay !== "undefined") { onload(); return; }
+  const early = document.getElementById("rzpEarly");   /* payment.html starts this download as soon as the page opens */
+  if (early && !window.__rzpEarlyFailed) { early.addEventListener("load", onload); early.addEventListener("error", () => { window.__rzpEarlyFailed = true; loadRazorpayScript(onload); }); return; }
   const s = document.createElement("script");
   s.src = "https://checkout.razorpay.com/v1/checkout.js";
   s.onload = onload;
-  s.onerror = () => { $id("paymentStatus").textContent="Payment service could not load. Please check your connection and retry."; $id("paidBtn").textContent="Retry"; $id("paidBtn").disabled=false; $id("paidBtn").onclick=()=>location.reload(); };
+  s.onerror = () => { showPayPage(); $id("paymentStatus").textContent="Payment service could not load. Please check your connection and retry."; $id("paidBtn").textContent="Retry"; $id("paidBtn").disabled=false; $id("paidBtn").onclick=()=>location.reload(); };
   document.head.appendChild(s);
 }
 
 /* ----------------------------------------------------------------
    ENTRY — decide which flow
    ---------------------------------------------------------------- */
-api("/api/payments/config").then(cfg => {
+cfgPromise.then(cfg => {
   document.documentElement.classList.add("ss-payment-ready");
+  if (!cfg.razorpayEnabled) showPayPage();
   if (cfg.razorpayEnabled) {
     loadRazorpayScript(() => startRazorpayFlow(cfg.keyId));
   } else {
-    startQrFlow();
+    showPayPage(); startQrFlow();
   }
-}).catch(() => { document.documentElement.classList.add("ss-payment-ready"); $id("paymentStatus").textContent="Could not load payment settings. Please retry."; $id("paidBtn").textContent="Retry"; $id("paidBtn").onclick=()=>location.reload(); });
+}).catch(() => { showPayPage(); document.documentElement.classList.add("ss-payment-ready"); $id("paymentStatus").textContent="Could not load payment settings. Please retry."; $id("paidBtn").textContent="Retry"; $id("paidBtn").onclick=()=>location.reload(); });
 })();

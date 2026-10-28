@@ -216,6 +216,7 @@ async function all() {
       id: b.id, shortId: getShortId(b.notes, b.id),
       price     : b.price,
       status    : b.status,
+      paymentStatus: b.payment_status || "",
       createdAt : b.created_at,
       videoUrl  : b.video_url  || null,
       name      : b.name       || "Unknown",
@@ -229,7 +230,7 @@ async function all() {
   const data = await require("../utils/pagedRead").pagedRead(() => supabase
     .from("bookings")
     .select(`
-      id, price, status, created_at, notes, video_url,
+      id, price, status, payment_status, created_at, notes, video_url,
       devotees ( name, phone, gotra ),\n        booking_names ( name )
     `)
     .order("created_at", { ascending: false }).order("id", { ascending: true }));
@@ -238,6 +239,7 @@ async function all() {
     id: b.id, shortId: getShortId(b.notes, b.id),
     price     : b.price,
     status    : b.status,
+    paymentStatus: b.payment_status || "",
     createdAt : b.created_at,
     videoUrl  : b.video_url || null,
     name      : b.booking_names?.length > 0 ? b.booking_names[0].name : (b.devotees?.name || "Unknown"),

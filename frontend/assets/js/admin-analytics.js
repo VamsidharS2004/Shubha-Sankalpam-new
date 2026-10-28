@@ -11,8 +11,21 @@
  const number=value=>Number(value||0).toLocaleString('en-IN');
  const money=value=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(value||0);
  function render(data){
-  report=data;const metrics=[['Unique browser visitors',data.metrics.visitors],['Sessions',data.metrics.sessions],['Page views',data.metrics.pageViews],['Puja views',data.metrics.pujaViews],['Visitors seen in last 5 min',data.metrics.recentVisitors],['New devotee accounts',data.metrics.newUsers],['Bookings created',data.metrics.bookings],['Paid bookings',data.metrics.paidBookings],['Pending bookings',data.metrics.pendingBookings],['Failed bookings',data.metrics.failedBookings],['Completed bookings',data.metrics.completedBookings],['Paid booking value',money(data.metrics.paidBookingValue)]];
-  const grid=id('reportMetrics');grid.replaceChildren();for(const [label,value] of metrics){const card=document.createElement('div');card.className='analytics-metric';const title=document.createElement('span');title.textContent=label;const n=document.createElement('strong');n.textContent=typeof value==='number'?number(value):value;card.append(title,n);grid.appendChild(card);}
+  report=data;const m=data.metrics,days=Number(id('reportDays').value)||30;
+  /* Bookings & money: each card opens the Bookings page with the same filter (and the same period) */
+  const bookingCards=[
+   ['Bookings created','Everyone who started a booking, paid or not',m.bookings,'all'],
+   ['Confirmed (payment received)','Paid bookings, including ones whose video is already sent',m.paidBookings,'confirmed'],
+   ['Video delivered','Puja done and video sent to the devotee',m.completedBookings,'video'],
+   ['Payment pending','Booking made but money not received yet',m.pendingBookings,'pending'],
+   ['Cancelled / failed','Cancelled by the devotee or the payment failed',m.cancelledBookings==null?m.failedBookings:m.cancelledBookings,'cancelled'],
+   ['Money received',"Total of the paid bookings above (before any refunds)",money(m.paidBookingValue),null]];
+  const bgrid=id('reportBookingMetrics');bgrid.replaceChildren();
+  for(const [label,hint,value,key] of bookingCards){const card=document.createElement(key?'button':'div');card.className='analytics-metric';if(key){card.type='button';card.title='Open these bookings';card.addEventListener('click',()=>{if(window.openBookingsFiltered)window.openBookingsFiltered(key,days);});}
+   const title=document.createElement('span');title.textContent=label;const n=document.createElement('strong');n.textContent=typeof value==='number'?number(value):value;const h=document.createElement('small');h.textContent=hint;card.append(title,n,h);
+   if(key){const go=document.createElement('em');go.textContent='View these bookings →';card.appendChild(go);}bgrid.appendChild(card);}
+  const metrics=[['People who visited (visitors)','Each phone or computer counted once',m.visitors],['Visits (sessions)','One person can visit several times',m.sessions],['Pages opened (page views)','Every page opened, including repeats',m.pageViews],['Puja pages opened','How many times a puja detail page was opened',m.pujaViews],['On the website now','Seen in the last 5 minutes',m.recentVisitors],['New devotee accounts','People who signed up in this period',m.newUsers]];
+  const grid=id('reportMetrics');grid.replaceChildren();for(const [label,hint,value] of metrics){const card=document.createElement('div');card.className='analytics-metric';const title=document.createElement('span');title.textContent=label;const n=document.createElement('strong');n.textContent=number(value);const h=document.createElement('small');h.textContent=hint;card.append(title,n,h);grid.appendChild(card);}
   const bars=id('reportTrafficChart');bars.replaceChildren();const max=Math.max(1,...data.daily.map(d=>d.pageViews));
   for(const day of data.daily){const column=document.createElement('div');column.className='analytics-day';column.title=day.date+': '+day.pageViews+' page views';const bar=document.createElement('div');bar.className='bar';bar.style.height=Math.max(2,day.pageViews/max*170)+'px';const label=document.createElement('small');label.textContent=day.date.slice(5);column.append(bar,label);bars.appendChild(column);}
   table('reportDevotees',['Name','Mobile number','Registration date & time (IST)'],(data.newDevotees||[]).map(u=>[u.name,u.phone||'—',new Date(u.createdAt).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})]));
@@ -27,7 +40,7 @@
   if(!KEY)return;if(request)request.abort();request=new AbortController();loading=true;
   const current=request;id('reportStatus').textContent='Loading analytics…';id('reportRefresh').disabled=true;id('reportExport').disabled=true;
   try{const res=await fetch('/api/admin/analytics/summary?days='+id('reportDays').value+'&key='+encodeURIComponent(KEY),{signal:current.signal});const data=await res.json();if(!res.ok)throw new Error(data.error||'Could not load analytics');if(current===request)render(data);}
-  catch(e){if(e.name!=='AbortError'){report=null;id('reportStatus').textContent=e.message;for(const container of ['reportDevotees','reportMetrics','reportTrafficChart','reportDaily','reportPopular','reportPages','reportSources','reportDevices','reportLanguages','reportStatuses','adsMetrics','adsChannels','adsCampaigns','adsPujas','adsDaily','adsRecent'])id(container).replaceChildren();}}
+  catch(e){if(e.name!=='AbortError'){report=null;id('reportStatus').textContent=e.message;for(const container of ['reportDevotees','reportMetrics','reportBookingMetrics','reportTrafficChart','reportDaily','reportPopular','reportPages','reportSources','reportDevices','reportLanguages','reportStatuses','adsMetrics','adsChannels','adsCampaigns','adsPujas','adsDaily','adsRecent'])id(container).replaceChildren();}}
   finally{if(current===request){loading=false;id('reportRefresh').disabled=false;}}
  }
 

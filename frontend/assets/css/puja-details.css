@@ -1292,3 +1292,7 @@ html.pd-booting.pd-hinted .pd-hero-right{visibility:hidden}
 @media (min-width:901px){html.pd-booting.pd-hinted.pd-hint-card .pd-hero-right{visibility:visible}}   /* on phones the card sits lower, below text that is not there yet - showing it early would make it jump */
 html.pd-booting #pdBook{pointer-events:none}
 .pd-slide[data-hint]{background-size:var(--media-fit,cover);background-position:center;background-repeat:no-repeat}   /* the small card-size photo (already downloaded) shows until the sharper one arrives */
+
+/* the dotted connector of the last step in each row must not poke out of the page (tablet widths showed a sideways scroll) */
+@media (min-width: 600px) and (max-width: 1199px) { .pd-procedure-list .proc-step:nth-child(4n)::after { display: none !important; } }
+@media (min-width: 1200px) { .pd-procedure-list .proc-step:nth-child(5n)::after { display: none !important; } }

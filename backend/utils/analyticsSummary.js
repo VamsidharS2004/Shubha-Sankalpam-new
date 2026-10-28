@@ -25,7 +25,7 @@ function summarize(events,bookings,users,range,now=new Date()){
   }
   if(e.event_type==='puja_view'&&e.puja_id){const value=topPujas.get(e.puja_id)||{id:e.puja_id,name:e.puja_name||e.puja_id,views:0};value.views++;topPujas.set(e.puja_id,value);}
  }
- let paid=0,pending=0,failed=0,completed=0,paidValue=0;
+ let paid=0,pending=0,failed=0,cancelled=0,completed=0,paidValue=0;
  const statuses={};
  for(const b of selectedBookings){
   const status=String(b.status||'Unknown'),payment=String(b.payment_status||'').toLowerCase();increment(statuses,status);
@@ -34,10 +34,11 @@ function summarize(events,bookings,users,range,now=new Date()){
   if(isPaid){paid++;paidValue+=value;}
   if(/pending/i.test(status)||/pending/i.test(payment))pending++;
   if(/failed/i.test(status)||/failed/i.test(payment))failed++;
+  if(/cancel|failed/i.test(status)||/failed/i.test(payment))cancelled++;
   if(/^(completed|video delivered|video-sent)$/i.test(status))completed++;
   const day=daily.get(dayKey(b.created_at));if(day){day.bookings++;if(isPaid)day.paidBookingValue+=value;}
  }
  const ranked=object=>Object.entries(object).map(([name,count])=>({name,count})).sort((a,b)=>b.count-a.count);
- return {range,timezone:'Asia/Kolkata',generatedAt:now.toISOString(),metrics:{visitors:visitors.size,sessions:sessions.size,pageViews:selectedEvents.filter(e=>e.event_type==='page_view').length,pujaViews:selectedEvents.filter(e=>e.event_type==='puja_view').length,recentVisitors:recent.size,newUsers,bookings:selectedBookings.length,paidBookings:paid,pendingBookings:pending,failedBookings:failed,completedBookings:completed,paidBookingValue:paidValue},daily:[...daily.values()].map(d=>({...d,visitors:d.visitors.size})),languages:ranked(languages),devices:ranked(devices),sources:ranked(sources),pages:ranked(pages),statuses:ranked(statuses),topPujas:[...topPujas.values()].sort((a,b)=>b.views-a.views).slice(0,10)};
+ return {range,timezone:'Asia/Kolkata',generatedAt:now.toISOString(),metrics:{visitors:visitors.size,sessions:sessions.size,pageViews:selectedEvents.filter(e=>e.event_type==='page_view').length,pujaViews:selectedEvents.filter(e=>e.event_type==='puja_view').length,recentVisitors:recent.size,newUsers,bookings:selectedBookings.length,paidBookings:paid,pendingBookings:pending,failedBookings:failed,cancelledBookings:cancelled,completedBookings:completed,paidBookingValue:paidValue},daily:[...daily.values()].map(d=>({...d,visitors:d.visitors.size})),languages:ranked(languages),devices:ranked(devices),sources:ranked(sources),pages:ranked(pages),statuses:ranked(statuses),topPujas:[...topPujas.values()].sort((a,b)=>b.views-a.views).slice(0,10)};
 }
 module.exports={rangeFor,summarize,dayKey};

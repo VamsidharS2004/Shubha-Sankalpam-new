@@ -72,6 +72,8 @@
   ],
   "rewrites": [
     { "source": "/puja-details/:id", "destination": "/puja-details.html" },
+    { "source": "/booking/:ref", "destination": "/payment.html" },
+    { "source": "/pay/:ref", "destination": "/payment.html" },
     {
       "source": "/(.*)",
       "destination": "/api/index.js"

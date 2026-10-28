@@ -67,12 +67,12 @@ html.ss-i18n-pending:not([lang="te"]) [data-i18n],html.ss-i18n-pending:not([lang
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <noscript></noscript>
-<link rel="stylesheet" href="assets/css/global.css?v=20261023-meta">
-<link rel="stylesheet" href="assets/css/navbar.css?v=20261023-meta">
-<link rel="stylesheet" href="assets/css/account.css?v=20261023-meta">
-<link rel="stylesheet" href="assets/css/home.css?v=20261023-meta">
-<link rel="stylesheet" href="assets/css/animations.css?v=20261023-meta">
-<link rel="stylesheet" href="assets/css/responsive.css?v=20261023-meta">  <!-- always last -->
+<link rel="stylesheet" href="assets/css/global.css?v=20261028-pay2">
+<link rel="stylesheet" href="assets/css/navbar.css?v=20261028-pay2">
+<link rel="stylesheet" href="assets/css/account.css?v=20261028-pay2">
+<link rel="stylesheet" href="assets/css/home.css?v=20261028-pay2">
+<link rel="stylesheet" href="assets/css/animations.css?v=20261028-pay2">
+<link rel="stylesheet" href="assets/css/responsive.css?v=20261028-pay2">  <!-- always last -->
 <style>
   html:not(.ss-has-token) .account-banner,
   html:not(.ss-has-token) .account-grid {
@@ -144,7 +144,7 @@ html.ss-i18n-pending:not([lang="te"]) [data-i18n],html.ss-i18n-pending:not([lang
 <meta name="description" content="Manage your profile and view your puja booking history.">
 
   <!-- Favicon -->
-<link rel="stylesheet" href="assets/css/content-layout.css?v=20261023-meta">
+<link rel="stylesheet" href="assets/css/content-layout.css?v=20261028-pay2">
 <style>html[data-start-panel] .account-panel{display:none!important}
 html[data-start-panel="profile"] #panel-profile,
 html[data-start-panel="bookings"] #panel-bookings,
@@ -219,7 +219,6 @@ html[data-start-panel="support"] #panel-support{display:block!important}</style>
       <div class="ab-info">
         <div class="ab-name-row">
           <h2 id="abName"></h2>
-          <span class="ab-badge">DEVOTEE</span>
         </div>
         <div class="ab-phone-row">
           <span class="ab-icon">📞</span> <span id="abPhone"></span> • Verified Account
@@ -239,7 +238,7 @@ html[data-start-panel="support"] #panel-support{display:block!important}</style>
          that panel and hides the others — see assets/js/pages/account.js -->
     <aside class="side-card" aria-label="Account menu">
       <button class="side-item active" data-panel="profile"><span class="si">👤</span> Profile Summary</button>
-      <button class="side-item" data-panel="bookings"><span class="si">🛕</span> My Bookings &amp; Tracker</button>
+      <button class="side-item" data-panel="bookings"><span class="si">🛕</span><span>My Bookings<span class="hide-sm"> &amp; Tracker</span></span></button>
       <button class="side-item" data-panel="subscriptions"><span class="si">🗓️</span> My Subscriptions</button>
       <button class="side-item" data-panel="wishlist"><span class="si">🤍</span> Saved Wishlist</button>
       <button class="side-item" data-panel="address"><span class="si">📍</span> Saved Addresses</button>
@@ -280,11 +279,27 @@ html[data-start-panel="support"] #panel-support{display:block!important}</style>
         </div>
       </div>
 
-      <div class="dash-stats" aria-label="Account summary">
-        <div class="dash-stat"><span data-cms-key="account.stat.total_bookings">TOTAL BOOKINGS</span><b id="dashBkCount">0</b></div>
-        <div class="dash-stat"><span data-cms-key="account.stat.active_subscriptions">ACTIVE SUBSCRIPTIONS</span><b>0</b></div>
-        <div class="dash-stat"><span data-cms-key="account.stat.saved_addresses">SAVED ADDRESSES</span><b>0</b></div>
-        <div class="dash-stat"><span>SAVED PUJAS</span><b id="dashWishlistCount">0</b></div>
+      <div class="sum-cards" aria-label="Account summary">
+        <div class="sumcard t-rose" data-go="bookings" role="button" tabindex="0">
+          <span class="sc-ic">🛕</span>
+          <span class="sc-text"><strong class="sc-title">My Bookings (<span id="dashBkCount">0</span>)</strong><span class="sc-sub">View all your puja bookings and history</span></span>
+          <span class="sc-go" aria-hidden="true">&rarr;</span>
+        </div>
+        <div class="sumcard t-amber" data-go="subscriptions" role="button" tabindex="0">
+          <span class="sc-ic">🗓️</span>
+          <span class="sc-text"><strong class="sc-title">My Subscriptions (<span >0</span>)</strong><span class="sc-sub">Manage your active subscriptions</span></span>
+          <span class="sc-go" aria-hidden="true">&rarr;</span>
+        </div>
+        <div class="sumcard t-green" data-go="address" role="button" tabindex="0">
+          <span class="sc-ic">📍</span>
+          <span class="sc-text"><strong class="sc-title">My Addresses (<span >0</span>)</strong><span class="sc-sub">Manage your saved delivery addresses</span></span>
+          <span class="sc-go" aria-hidden="true">&rarr;</span>
+        </div>
+        <div class="sumcard t-lilac" data-go="wishlist" role="button" tabindex="0">
+          <span class="sc-ic">🤍</span>
+          <span class="sc-text"><strong class="sc-title">Saved Pujas (<span id="dashWishlistCount">0</span>)</strong><span class="sc-sub">Pujas you saved to book later</span></span>
+          <span class="sc-go" aria-hidden="true">&rarr;</span>
+        </div>
       </div>
       <script>window.ssPaintCached && window.ssPaintCached();</script>
     </div>
@@ -399,19 +414,19 @@ html[data-start-panel="support"] #panel-support{display:block!important}</style>
 
 <div id="site-footer"></div>
 <!-- ============ CONTENT (edit these files to change text/prices/images) ============ -->
-<script defer src="content/site-settings.js?v=20261023-meta"></script>
-<script defer src="content/pujas.js?v=20261023-meta"></script>
-<script defer src="content/packages.js?v=20261023-meta"></script>
+<script defer src="content/site-settings.js?v=20261028-pay2"></script>
+<script defer src="content/pujas.js?v=20261028-pay2"></script>
+<script defer src="content/packages.js?v=20261028-pay2"></script>
 
 <!-- ============ SITE CODE (do not need to edit for content changes) ============ -->
-<script defer src="assets/js/main.js?v=20261023-meta"></script>
-<script defer src="assets/js/navbar.js?v=20261023-meta"></script>
-<script defer src="assets/js/animations.js?v=20261023-meta"></script>
-<script defer src="assets/js/cards.js?v=20261023-meta"></script>
-<script defer src="assets/js/language.js?v=20261023-meta"></script>
-<script defer src="assets/js/pages/account.js?v=20261023-meta"></script>
+<script defer src="assets/js/main.js?v=20261028-pay2"></script>
+<script defer src="assets/js/navbar.js?v=20261028-pay2"></script>
+<script defer src="assets/js/animations.js?v=20261028-pay2"></script>
+<script defer src="assets/js/cards.js?v=20261028-pay2"></script>
+<script defer src="assets/js/language.js?v=20261028-pay2"></script>
+<script defer src="assets/js/pages/account.js?v=20261028-pay2"></script>
 
-<script defer src="assets/js/analytics-tracker.js?v=20261023-meta"></script>
+<script defer src="assets/js/analytics-tracker.js?v=20261028-pay2"></script>
 <!-- ss-early:start (generated by scripts/prerender-header.js) -->
 <script>(function(){try{var d=document.documentElement;if((d.lang||"te")!=="te")return;
 var raw=localStorage.getItem("ss_cms_global_v2");if(!raw)return;var c=(JSON.parse(raw)||{}).content;if(!c)return;

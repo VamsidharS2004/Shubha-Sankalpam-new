@@ -36,3 +36,10 @@
 #view-booking-form h2{font-size:1.15rem;margin:24px 0 12px}
 #view-booking-form .bf-editor-block{line-height:1.6}
 .bf-guide{padding:16px 20px;background:var(--accent-dim);border:1px solid var(--border-light);border-radius:12px;line-height:1.8;margin:16px 0}
+
+.analytics-h{margin:34px 0 4px;font-size:1.15rem;color:var(--accent);padding-top:14px;border-top:1px solid var(--border)}
+#view-analytics .analytics-toolbar+p+.analytics-h,#view-analytics .analytics-h:first-of-type{border-top:0;margin-top:18px}
+.analytics-metric small{display:block;margin-top:2px;font-size:.74rem;line-height:1.35;color:var(--text-muted);opacity:.85}
+button.analytics-metric{font:inherit;color:inherit;text-align:left;cursor:pointer;width:100%;transition:border-color .15s,transform .15s}
+button.analytics-metric:hover,button.analytics-metric:focus-visible{border-color:var(--accent);transform:translateY(-2px);outline:0}
+button.analytics-metric em{display:block;margin-top:6px;font-style:normal;font-size:.75rem;color:var(--accent)}

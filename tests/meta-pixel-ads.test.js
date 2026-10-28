@@ -137,7 +137,8 @@ test('ad report counts visits, ad clicks, funnel steps per source and campaign',
 
 const { validateSettings } = require('../backend/controllers/siteSettingsController');
 test('Meta Pixel ID is saved from Site Settings and must be digits', () => {
-  const base = { ...require('../frontend/content/site-settings.js').SITE, DEFAULT_LANGUAGE: 'te' };
+  /* the real site-settings.js may already hold the owner's saved Pixel ID, so start this test from a blank one */
+  const base = { ...require('../frontend/content/site-settings.js').SITE, DEFAULT_LANGUAGE: 'te', META_PIXEL_ID: '' };
   assert.equal(validateSettings({ ...base, META_PIXEL_ID: ' 1234567890123456 ' }).META_PIXEL_ID, '1234567890123456');
   assert.equal(validateSettings({ ...base }).META_PIXEL_ID, '');
   assert.throws(() => validateSettings({ ...base, META_PIXEL_ID: '12ab' }), /Pixel ID/);

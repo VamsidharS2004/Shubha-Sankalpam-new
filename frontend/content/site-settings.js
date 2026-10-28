@@ -19,7 +19,7 @@ const SITE = {
   "UPI_NAME": "Shubha Sankalpam",
   "WHATSAPP": "917075568530",
   "FOOTER_LOGO": "",
-  "META_PIXEL_ID": "",
+  "META_PIXEL_ID": "28564629799874458",
   "SUPPORT_EMAIL": "support@shubhasankalpam.com",
   "BUSINESS_HOURS": "",
   "DEFAULT_LANGUAGE": "te",

@@ -12,9 +12,29 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- Styles -->
+    <link rel="stylesheet" href="/assets/css/fonts.css">
     <link rel="stylesheet" href="/assets/css/admin.css">
     <link rel="stylesheet" href="assets/css/responsive.css?v=20261001-hero-variants1">
-<link rel="stylesheet" href="/assets/css/admin-analytics.css?v=20261003-admin-v3">
+<link rel="stylesheet" href="/assets/css/admin-analytics.css?v=20261028-admin">
+<style>
+/* same fonts as the website (Poppins for English, Anek Telugu for Telugu) */
+body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif}
+.bk-field{display:flex;flex-direction:column;gap:4px;font-size:.8rem;font-weight:600}
+.bk-field .form-control{padding:9px 12px}
+.bk-field .search-bar{display:block}
+.bk-field .search-bar input{width:100%;padding-top:9px;padding-bottom:9px}
+.ss-where{display:block;margin:3px 0 0;font-size:12.5px;font-weight:400;line-height:1.4;color:#aab3bd}
+.ss-section>summary{cursor:pointer;list-style:none}
+.ss-section>summary::-webkit-details-marker{display:none}
+.ss-section>summary h4{display:inline}
+.ss-section>summary::after{content:" ▾";color:var(--accent)}
+.ss-section[open]>summary::after{content:" ▴"}
+/* wide tables: never cut columns off - they scroll sideways and use less padding */
+.table-container{overflow-x:auto!important}
+.table-container th,.table-container td{padding:12px 10px}
+.table-container td{font-size:.85rem}
+.table-container th{font-size:.8rem}
+</style>
 </head>
 <body>
 
@@ -87,29 +107,32 @@
                 </button>
             </div>
             
-            <div class="toolbar">
-                <div class="search-bar">
-                    <i class="ph ph-magnifying-glass"></i>
-                    <input type="text" placeholder="Search ID, name, phone...">
+            <div class="toolbar bk-toolbar" style="display:flex;flex-direction:column;align-items:stretch;gap:12px;">
+                <div class="bk-row" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+                    <label class="bk-field" style="flex:1 1 240px;">Search
+                        <span class="search-bar" style="width:100%;min-width:0;"><i class="ph ph-magnifying-glass"></i><input type="text" placeholder="Booking ID, name, phone or puja"></span>
+                    </label>
+                    <label class="bk-field" for="bookingStatusFilter" style="flex:0 1 240px;">Show
+                        <select id="bookingStatusFilter" class="form-control">
+                            <option value="all">All bookings</option>
+                            <option value="confirmed">Confirmed (payment received)</option>
+                            <option value="video">Video delivered</option>
+                            <option value="pending">Payment pending</option>
+                            <option value="cancelled">Cancelled / failed</option>
+                        </select>
+                    </label>
+                    <label class="bk-field" for="pujaBookingFilter" style="flex:0 1 260px;">Puja
+                        <select id="pujaBookingFilter" class="form-control"><option value="">All pujas</option></select>
+                    </label>
                 </div>
-                <div class="filters">
-                    <button class="filter-btn active">All</button>
-                    <button class="filter-btn">Confirmed</button>
-                    <button class="filter-btn">Scheduled</button>
-                    <button class="filter-btn">Video Delivered</button>
-                    <button class="filter-btn">Cancelled</button>
-                </div>
-                <div class="booking-tools" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;width:100%;">
-                    <label for="pujaBookingFilter" style="font-size:.85rem;font-weight:600;">Filter by puja</label>
-                    <select id="pujaBookingFilter" class="form-control" style="max-width:320px;padding:9px 12px;">
-                        <option value="">All pujas</option>
-                    </select>
-                    <input type="file" id="bulkVideoFile" accept="video/*" style="max-width:240px;">
-                    <button type="button" class="btn btn-primary" id="sendBulkVideoBtn"><i class="ph ph-video"></i> Send video to selected</button>
-                    <span id="bulkVideoProgress" role="status" style="font-size:.82rem;"></span>
-                </div>
-                <div class="booking-tools" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;width:100%;">
-                    <div class="dl-menu" id="downloadMenu">
+                <div class="bk-row" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;">
+                    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                        <span id="bookingCountSpan" style="font-weight:600;">0 bookings</span>
+                        <span id="bookingRangeChip" hidden style="display:none;align-items:center;gap:6px;background:rgba(255,140,0,.15);border:1px solid var(--accent);border-radius:20px;padding:4px 10px;font-size:.8rem;"><span id="bookingRangeText"></span><button type="button" id="bookingRangeClear" class="btn" style="padding:0 6px;line-height:1.4" aria-label="Show all dates">&times;</button></span>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                        <button class="btn" id="refreshBtn"><i class="ph ph-arrows-clockwise"></i> Refresh</button>
+                        <div class="dl-menu" id="downloadMenu">
                         <button type="button" class="btn btn-primary" id="downloadMenuBtn" aria-haspopup="true" aria-expanded="false"><i class="ph ph-download-simple"></i> <span id="downloadMenuLabel">Download</span> <i class="ph ph-caret-down"></i></button>
                         <div class="dl-menu-list" id="downloadMenuList" role="menu" hidden>
                             <div class="dl-menu-hint" id="downloadMenuHint">Downloads everything shown below. Filter by puja, or tick bookings, to download only those.</div>
@@ -118,11 +141,18 @@
                             <button type="button" role="menuitem" id="downloadBookingsByPuja"><i class="ph ph-files"></i><span><b>One file per puja (ZIP)</b><small>A separate Excel file for each puja</small></span></button>
                         </div>
                     </div>
+                    </div>
                 </div>
-                <div class="meta-info">
-                    <span id="bookingCountSpan">0 bookings</span>
-                    <button class="btn" id="refreshBtn"><i class="ph ph-arrows-clockwise"></i> Refresh</button>
-                </div>
+                <details class="bk-video" style="border:1px solid var(--border);border-radius:10px;padding:10px 14px;">
+                    <summary style="cursor:pointer;font-weight:600;"><i class="ph ph-video"></i> Send one video to many bookings</summary>
+                    <p class="text-muted" style="margin:8px 0;font-size:.82rem;">1. Choose one puja above &nbsp;2. Tick its bookings in the table &nbsp;3. Choose the video &nbsp;4. Press Send.</p>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                        <input type="file" id="bulkVideoFile" accept="video/*" style="max-width:260px;">
+                        <label style="font-size:.8rem;display:flex;align-items:center;gap:6px;">Gotra names start at <input type="text" id="bulkGotraStart" placeholder="e.g. 2:15" title="Optional. When the gotra names begin in the video (minutes:seconds)" style="width:80px;padding:6px 8px;"></label>
+                        <button type="button" class="btn btn-primary" id="sendBulkVideoBtn"><i class="ph ph-video"></i> Send video to selected</button>
+                        <span id="bulkVideoProgress" role="status" style="font-size:.82rem;"></span>
+                    </div>
+                </details>
             </div>
 
             <div class="table-container">
@@ -170,6 +200,26 @@
                     <i class="ph ph-magnifying-glass"></i>
                     <input type="text" placeholder="Search name, phone, city...">
                 </div>
+            </div>
+            <div class="toolbar" id="devoteeFilters" style="justify-content:flex-start;gap:14px;flex-wrap:wrap;align-items:flex-end;">
+                <label style="display:flex;flex-direction:column;gap:4px;font-size:.8rem;font-weight:600;">Group devotees by
+                    <select id="devoteeGroupBy" class="form-control" style="min-width:190px;padding:9px 12px;">
+                        <option value="none">No grouping (one list)</option>
+                        <option value="date">Signup date (day by day)</option>
+                        <option value="puja">Puja (booked or interested)</option>
+                    </select>
+                </label>
+                <label style="display:flex;flex-direction:column;gap:4px;font-size:.8rem;font-weight:600;">Signed up from
+                    <input type="date" id="devoteeFrom" class="form-control" style="padding:8px 10px;">
+                </label>
+                <label style="display:flex;flex-direction:column;gap:4px;font-size:.8rem;font-weight:600;">Signed up to
+                    <input type="date" id="devoteeTo" class="form-control" style="padding:8px 10px;">
+                </label>
+                <label style="display:flex;flex-direction:column;gap:4px;font-size:.8rem;font-weight:600;">Only this puja
+                    <select id="devoteePujaFilter" class="form-control" style="min-width:220px;padding:9px 12px;"><option value="">All pujas</option></select>
+                </label>
+                <button type="button" class="btn" id="devoteeFilterClear">Clear filters</button>
+                <p class="text-muted" style="flex-basis:100%;margin:0;font-size:.78rem;">"Puja" means the puja a devotee booked or showed interest in. A devotee who did both for different pujas appears under each one. "Download CSV" downloads exactly what is shown here.</p>
             </div>
 
             <div class="table-container">
@@ -355,9 +405,15 @@
 <label><input type="checkbox" id="reportAutoRefresh" checked> Auto-refresh (60s)</label>
 </div>
 <p id="reportStatus" role="status" aria-live="polite">Choose Analytics to load the report.</p>
+<h2 class="analytics-h">1. Bookings &amp; money</h2>
+<p class="analytics-note">What devotees booked in the selected period. <b>Click any number</b> to open those bookings in the Bookings page.</p>
+<div id="reportBookingMetrics" class="analytics-metrics"></div>
+<h2 class="analytics-h">2. Visitors on the website</h2>
+<p class="analytics-note">How many people opened the website. One person on one phone is counted once ("visitors").</p>
 <div id="reportMetrics" class="analytics-metrics"></div>
-<div class="analytics-panel" id="adsPanel" style="margin-top:20px">
-<h2>Ads &amp; social traffic (Instagram, Facebook, YouTube, Google, X ...)</h2>
+<h2 class="analytics-h">3. Ads &amp; social media traffic</h2>
+<div class="analytics-panel" id="adsPanel" style="margin-top:8px">
+<h2>Instagram, Facebook, YouTube, Google, X ...</h2>
 <p class="analytics-note">Every visit is tagged with where the person came from. An <b>ad click</b> is a visit that arrived through an ad link (Meta, Google / YouTube, X, TikTok, Bing ...). Counts are visits (browser sessions) in the selected period.</p>
 <div id="adsMigration" class="analytics-note" style="display:none;color:#ffb347"></div>
 <div id="adsMetrics" class="analytics-metrics"></div>
@@ -376,8 +432,10 @@
 <p class="analytics-note">Without it, clicks from Meta ads are still counted (Meta adds its own click id), but they may show as &ldquo;Meta ads&rdquo; without the campaign name.</p>
 </details>
 </div>
+<h2 class="analytics-h">4. New devotee accounts</h2>
 <div class="analytics-panel"><h2>New devotee accounts</h2><p class="analytics-note">Accounts created in the selected period. Registration time is shown in IST.</p><div class="scroll-table" id="reportDevotees"></div></div>
 <p class="analytics-note">Dates use IST. Paid booking value sums bookings marked paid, grouped by booking creation date; it does not deduct refunds or calculate Razorpay settlements. Pending and failed counts use the current status. Traffic totals may be lower when tracking is blocked or Do Not Track is enabled.</p>
+<h2 class="analytics-h">5. Day by day, popular pujas and pages</h2>
 <div class="analytics-panel"><h2>Daily page views</h2><div class="analytics-bars" id="reportTrafficChart" aria-label="Daily page views; exact values appear in the daily report below"></div></div>
 <div class="analytics-panels">
 <div class="analytics-panel"><h2>Popular pujas</h2><div class="scroll-table" id="reportPopular"></div></div>
@@ -828,9 +886,9 @@
                         <label>Full Temple Name (Temple Details Section) <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Overrides the main temple name in the 'Temple Details' section)</span></label>
                         <input type="text" id="editPujaTempleDetailsName" placeholder="e.g. Sri Venkateswara Swamy Temple, Tirumala">
                     </div>
-                    <div class="form-group">
-                        <label>Date shown to visitors * <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Written automatically when you pick the date below. You may edit the words.)</span></label>
-                        <input type="text" id="editPujaDate" placeholder="Filled automatically">
+                    <div class="form-group" id="editPujaDateGroup" style="display:none;">
+                        <label>Date shown to visitors * <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Written automatically when you pick the date below.)</span></label>
+                        <input type="text" id="editPujaDate" placeholder="Filled automatically" readonly>
                     </div>
                 </div>
                 <div class="form-group" style="margin-top:16px;">
@@ -841,6 +899,7 @@
                         <select id="editPujaMuhuratAp" aria-label="AM or PM"><option>AM</option><option>PM</option></select>
                     </div>
                     <input type="hidden" id="editPujaMuhurat">
+                    <div style="font-size:.85rem;margin-top:10px;"><span class="text-muted">Visitors will see the date as:</span> <b id="editPujaDateShown">-</b></div>
                 </div>
             </div>
 
@@ -880,8 +939,8 @@
             </div>
 
             <!-- Advanced Arrays -->
-            <div style="border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
-                <h4 style="margin-bottom:16px; color:var(--text-main); font-size:1rem;">3. Extra sections (optional) - Advanced Puja Details <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;text-transform:none;">(These sections only appear on the Puja Details page)</span></h4>
+            <details class="ss-section" style="border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
+                <summary><h4 style="margin-bottom:16px; color:var(--text-main); font-size:1rem;">3. Extra sections (optional) - Advanced Puja Details <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;text-transform:none;">(These sections only appear on the Puja Details page)</span></h4></summary>
                 <p class="text-muted" style="margin-bottom: 16px; font-size: 0.85rem;">Leaving these blank will use the default content for this puja.</p>
                 
                 <h5 style="margin:16px 0 8px; color:var(--text-main);">1. Puja Benefits</h5>
@@ -903,7 +962,7 @@
                 <h5 style="margin:24px 0 8px; color:var(--text-main);">5. Gallery Images</h5>
                 <div id="editor-gallery" style="display:flex; flex-direction:column; gap:8px;"></div>
                 <button class="btn" style="margin-top:8px; font-size:0.8rem;" onclick="addDynamicRow('gallery')">+ Add Gallery Image</button>
-            </div>
+            </details>
             <p class="text-muted" style="font-size: 0.8rem;">Private drafts never show on the website. Public and Scheduled pujas update the live website when saved. After the puja date and time pass, the puja leaves the website by itself and stays here, so you can open it, change the date and reuse it with Duplicate.</p>
         </div>
     </aside>
@@ -1105,8 +1164,8 @@
             </div>
 
             <!-- Advanced Arrays -->
-            <div style="border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
-                <h4 style="margin-bottom:16px; color:var(--text-main); font-size:1rem;">3. Extra sections (optional) - Advanced Package Details <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(These sections only appear on the Package Details page)</span></h4>
+            <details class="ss-section" style="border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
+                <summary><h4 style="margin-bottom:16px; color:var(--text-main); font-size:1rem;">3. Extra sections (optional) - Advanced Package Details <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(These sections only appear on the Package Details page)</span></h4></summary>
                 <p class="text-muted" style="margin-bottom: 16px; font-size: 0.85rem;">Leaving these blank will use the default content for this package. These rows follow the "Editing Language" chosen above; switch the language to fill the Telugu or Hindi text of the same rows.</p>
                 
                 <h5 style="margin:16px 0 8px; color:var(--text-main);">1. Package Benefits</h5>
@@ -1128,7 +1187,7 @@
                 <h5 style="margin:24px 0 8px; color:var(--text-main);">5. Gallery Images</h5>
                 <div id="package-editor-gallery" style="display:flex; flex-direction:column; gap:8px;"></div>
                 <button type="button" class="btn" style="margin-top:8px; font-size:0.8rem;" onclick="addPackageDetailRow('gallery')">+ Add Gallery Image</button>
-            </div>
+            </details>
             <p class="text-muted" style="font-size: 0.8rem;">Private drafts never show on the website. Public and Scheduled packages update the live website when saved. After the package date and time pass, it leaves the website by itself and stays here, so you can open it, change the date and reuse it with Duplicate.</p>
             <div style="display:flex; gap:12px;">
                 <button class="btn" id="deletePackageBtn" style="color:var(--red); border-color:var(--red); display:none;"><i class="ph ph-trash"></i></button>
@@ -1199,7 +1258,7 @@
         </div>
     </aside>
 
-    <script src="/content/pujas.js"></script><script src="/content/packages.js"></script><script defer src="/assets/js/admin.js?v=20261023-meta"></script>
+    <script src="/content/pujas.js"></script><script src="/content/packages.js"></script><script defer src="/assets/js/admin.js?v=20261028c-admin"></script>
 <style>
 .dl-menu{position:relative;display:inline-block}
 .dl-menu-list{position:absolute;left:0;top:calc(100% + 6px);z-index:60;min-width:300px;background:var(--bg-panel);border:1px solid var(--border-light);border-radius:10px;padding:6px;box-shadow:0 12px 30px rgba(0,0,0,.45)}
@@ -1225,11 +1284,12 @@
 .pb-name-row input{flex:1;min-width:0;width:auto}
 .pb-name-row button{padding:4px 9px;flex:0 0 auto;width:auto}
 </style>
-<script defer src="/assets/js/admin-export.js?v=20261015-menu"></script>
+<script defer src="/assets/js/admin-export.js?v=20261028c-admin"></script>
 <script defer src="/assets/js/rich-text.js?v=20261016-drafts2"></script>
-<script defer src="/assets/js/admin-puja.js?v=20261016-drafts2"></script>
+<script defer src="/assets/js/admin-puja.js?v=20261028-date"></script>
+<script defer src="/assets/js/admin-editor-guide.js?v=20261028c-admin"></script>
 <script defer src="/assets/js/admin-phone-booking.js?v=20261015-phone2"></script>
-<script defer src="/assets/js/admin-analytics.js?v=20261023-meta"></script>
+<script defer src="/assets/js/admin-analytics.js?v=20261028c-admin"></script>
 <script defer src="/assets/js/booking-form-ui.js?v=20261003-form-v2"></script>
 <script defer src="/assets/js/admin-booking-form.js?v=20261003-form-v2"></script>
 

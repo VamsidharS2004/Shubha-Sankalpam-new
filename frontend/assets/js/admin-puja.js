@@ -196,10 +196,29 @@
                     $(cfg.muhurat).value = iso;
                     if (cfg.autoDateId && iso) {
                         var box = $(cfg.autoDateId), auto = displayDate(iso.slice(0, 10), ($(cfg.langId) || {}).value);
-                        if (box && (!box.value.trim() || box.value === lastAutoDate)) { box.value = auto; lastAutoDate = auto; }
+                        if (box && (cfg.hideAutoDate || !box.value.trim() || box.value === lastAutoDate)) { box.value = auto; lastAutoDate = auto; }
                     }
+                    refreshDateShown();
                 });
             });
+            /* the "date shown to visitors" box is hidden for pujas: it always follows the date picked below, in the editing language */
+            function refreshDateShown() {
+                if (!cfg.autoDateId) return;
+                var shown = $(cfg.autoDateId + 'Shown'), box = $(cfg.autoDateId);
+                if (shown) shown.textContent = (box && box.value.trim()) || '-';
+            }
+            if (cfg.hideAutoDate && cfg.langId && $(cfg.langId)) {
+                $(cfg.langId).addEventListener('change', function () {
+                    var iso = readPicker(cfg.muhurat), box = $(cfg.autoDateId);
+                    if (iso && box) { box.value = displayDate(iso.slice(0, 10), $(cfg.langId).value); lastAutoDate = box.value; }
+                    refreshDateShown();
+                });
+            }
+            if (cfg.hideAutoDate && typeof window[cfg.openFn] === 'function' && !window[cfg.openFn].__dateWrapped) {
+                var origOpen = window[cfg.openFn];
+                window[cfg.openFn] = function () { var r = origOpen.apply(this, arguments); setTimeout(refreshDateShown, 0); setTimeout(refreshDateShown, 400); return r; };
+                window[cfg.openFn].__dateWrapped = true;
+            }
             var dr = drawer();
             dr.addEventListener('input', function (e) {
                 var t = e.target.id;
@@ -251,7 +270,7 @@
         lsKey: 'ss_puja_draft_v1', skipId: /^pujaRestore|^pujaAutosave/, indexId: 'editPujaIndex', idId: 'editPujaId',
         nameIds: ['editPujaNameEn'], contentIds: ['editPujaNameEn', 'editPujaDescEn', 'editPujaAboutEn', 'editPujaTemple', 'editPujaImage'],
         saveFn: 'savePuja', openFn: 'openEditPuja', loadFn: 'loadPujas', listVar: 'allPujas',
-        autoDateId: 'editPujaDate', langId: 'editPujaLang', autoId: { from: 'editPujaNameEn', lang: 'editPujaLang' },
+        autoDateId: 'editPujaDate', hideAutoDate: true, langId: 'editPujaLang', autoId: { from: 'editPujaNameEn', lang: 'editPujaLang' },
         previews: [['editPujaDescEn', 'editPujaDescPreview'], ['editPujaAboutEn', 'editPujaAboutPreview']],
         editors: { benefits: 'editor-benefits', procedure: 'editor-procedure', receive: 'editor-receive', faqs: 'editor-faqs', gallery: 'editor-gallery' },
         restoreRow: function (t, vals, c) {

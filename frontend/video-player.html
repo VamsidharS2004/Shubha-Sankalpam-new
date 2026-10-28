@@ -18,7 +18,9 @@
     .header { width: 100%; padding: 15px 20px; background: #111; display: flex; align-items: center; box-sizing: border-box; }
     .back-btn { background: #333; color: #fff; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-size: 16px; display: flex; align-items: center; gap: 8px; text-decoration: none; font-weight: bold; }
     .back-btn:hover { background: #444; }
-    video { max-width: 100%; max-height: calc(100vh - 80px); outline: none; }
+    video { max-width: 100%; max-height: calc(100vh - 130px); outline: none; }
+    .jump-row { padding: 10px 0; display: none; }
+    .jump-btn { background: #b3261e; color: #fff; border: none; padding: 10px 18px; border-radius: 999px; cursor: pointer; font-size: 15px; font-weight: 700; }
   </style>
 
   <!-- Favicon -->
@@ -28,13 +30,30 @@
   <div class="header">
     <a href="account.html" class="back-btn">&larr; Go Back</a>
   </div>
-  <video id="player" controls autoplay></video>
+  <video id="player" controls autoplay playsinline></video>
+  <div class="jump-row" id="jumpRow"><button type="button" class="jump-btn" id="jumpBtn"></button></div>
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const videoUrl = urlParams.get('url');
+    const rawUrl = urlParams.get('url') || '';
+    const parts = rawUrl.split('#');
+    const videoUrl = parts[0];
+    const m = /(?:^|&)gotra=(\d{1,6})(?:&|$)/.exec(parts.slice(1).join('#'));
+    const gotraStart = m ? parseInt(m[1], 10) : 0;
     if (videoUrl) {
-      document.getElementById('player').src = videoUrl;
+      const player = document.getElementById('player');
+      player.src = videoUrl;
+      if (gotraStart > 0) {
+        const lang = document.documentElement.lang;
+        const text = { te: 'గోత్రనామాల దగ్గరికి వెళ్ళండి', hi: 'गोत्र नाम पर जाएँ', en: 'Go to gotra names' }[lang] || 'Go to gotra names';
+        const mm = Math.floor(gotraStart / 60), ss = String(gotraStart % 60).padStart(2, '0');
+        document.getElementById('jumpBtn').textContent = '▶ ' + text + ' (' + mm + ':' + ss + ')';
+        document.getElementById('jumpRow').style.display = 'block';
+        document.getElementById('jumpBtn').addEventListener('click', function () {
+          player.currentTime = gotraStart;
+          player.play().catch(function () {});
+        });
+      }
     } else {
       document.body.innerHTML = "<h2 style='color:white; margin:auto;'>Video not found</h2>";
     }

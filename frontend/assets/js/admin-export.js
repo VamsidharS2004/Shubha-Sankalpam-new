@@ -259,6 +259,7 @@
 
   function visibleDevotees() {
     const phones = [...document.querySelectorAll("#devoteesTbody tr:not([hidden]) .devotee-row-select")].map(b => b.value);
+    phones.splice(0, phones.length, ...new Set(phones));   /* grouped by puja a devotee can appear twice */
     const all = window.allDevotees || [];
     return phones.map(p => all.find(d => String(d.phone) === p)).filter(Boolean);
   }
@@ -314,12 +315,8 @@
       if (all) all.checked = boxes.length > 0 && boxes.every(b => b.checked);
       updateLabels();
     });
-    document.querySelector("#view-devotees .search-bar input")?.addEventListener("input", e => {
-      const q = e.target.value.trim().toLowerCase();
-      document.querySelectorAll("#devoteesTbody tr").forEach(tr => { tr.hidden = !!q && !tr.textContent.toLowerCase().includes(q); });
-      const all = document.getElementById("selectAllDevotees"); if (all) all.checked = false;
-      const shown = document.querySelectorAll("#devoteesTbody tr:not([hidden])").length;
-      const c = document.getElementById("devoteesCount"); if (c && window.allDevotees) c.textContent = (q ? `${shown} of ` : "") + window.allDevotees.length + " devotees";
+    document.querySelector("#view-devotees .search-bar input")?.addEventListener("input", () => {
+      if (typeof window.renderDevotees === "function") window.renderDevotees();   /* admin.js applies search + filters + grouping */
     });
     new MutationObserver(updateLabels).observe(document.getElementById("bookingsTbody") || document.body, { childList: true });
     new MutationObserver(updateLabels).observe(document.getElementById("devoteesTbody") || document.body, { childList: true });
