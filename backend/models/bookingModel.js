@@ -63,6 +63,8 @@ async function generateUniqueBookingId() {
   }
 }
 
+function getPromo(notes) { return require("../utils/promo").parsePromoNote(notes); }
+
 function getSnapshot(notes) {
   const m = String(notes || "").match(/Snapshot:\s*(\{.*\})/);
   if (m) {
@@ -264,7 +266,8 @@ async function getUserBookings(phone) {
         name      : b.name || "Unknown",
         phone     : b.devotee_phone || "",
         puja      : bookingPujaName(b.notes),
-    snapshot  : getSnapshot(b.notes)
+    snapshot  : getSnapshot(b.notes),
+        promo     : getPromo(b.notes)
       }));
   }
 
@@ -289,7 +292,8 @@ async function getUserBookings(phone) {
     name      : b.booking_names?.length > 0 ? b.booking_names[0].name : (b.devotees?.name || "Unknown"),
     phone     : b.devotees?.phone || "",
     puja      : bookingPujaName(b.notes),
-    snapshot  : getSnapshot(b.notes)
+    snapshot  : getSnapshot(b.notes),
+    promo     : getPromo(b.notes)
   })));
 }
 
@@ -433,13 +437,13 @@ async function findById(id) {
   if (!supabase) {
     const b = readLocalBookings().find(b => b.id === id);
     if (!b) return null;
-    return { id: b.id, shortId: getShortId(b.notes, b.id), puja: bookingPujaName(b.notes), price: b.price, userPhone: b.devotee_phone, whatsapp: String(b.notes || "").match(/^WhatsApp: (\d{10})$/m)?.[1] || b.devotee_phone };
+    return { id: b.id, shortId: getShortId(b.notes, b.id), puja: bookingPujaName(b.notes), price: b.price, promo: getPromo(b.notes), userPhone: b.devotee_phone, whatsapp: String(b.notes || "").match(/^WhatsApp: (\d{10})$/m)?.[1] || b.devotee_phone };
   }
 
   /* ---- Supabase ---- */
   const { data, error } = await supabase.from("bookings").select("*").eq("id", id).single();
   if (error) return null;
-  return { id: data.id, shortId: getShortId(data.notes, data.id), puja: bookingPujaName(data.notes), price: data.price, userPhone: data.devotee_phone, whatsapp: String(data.notes || "").match(/^WhatsApp: (\d{10})$/m)?.[1] || data.devotee_phone };
+  return { id: data.id, shortId: getShortId(data.notes, data.id), puja: bookingPujaName(data.notes), price: data.price, promo: getPromo(data.notes), userPhone: data.devotee_phone, whatsapp: String(data.notes || "").match(/^WhatsApp: (\d{10})$/m)?.[1] || data.devotee_phone };
 }
 
 async function attachOrder(id, orderId) {

@@ -83,6 +83,19 @@ function renderDetails() {
   $id("pdPrice").textContent = "₹" + Number(item.price || 0).toLocaleString("en-IN");
   if ($id("pdStickyName")) $id("pdStickyName").textContent = localName(item);
   if ($id("pdStickyPrice")) $id("pdStickyPrice").textContent = "₹" + Number(item.price || 0).toLocaleString("en-IN");
+  /* puja discount (set in the admin panel): struck original price + % off; no discount = nothing extra is drawn */
+  document.querySelectorAll(".pd-discount-extra").forEach(el => el.remove());
+  const disc = typeof ssDiscountInfo === "function" ? ssDiscountInfo(item) : null;
+  if (disc) {
+    const extra = () => { const w = document.createElement("span"); w.className = "pd-discount-extra"; w.style.cssText = "display:inline-flex;align-items:center;gap:8px;margin-left:10px;vertical-align:middle;font-size:1.05rem"; w.innerHTML = `<s class="pd-was">${ssRupees(disc.orig)}</s><span class="pd-off">${disc.pct}% OFF</span>`; return w; };
+    $id("pdPrice").parentElement.appendChild(extra());
+    /* the bottom bar stays one slim line: price, struck original and a small % badge side by side */
+    if ($id("pdStickyPrice")) {
+      const sp = $id("pdStickyPrice"), w = document.createElement("span");
+      w.className = "pd-discount-extra pd-sb-disc"; w.innerHTML = `<s>${ssRupees(disc.orig)}</s><em>${disc.pct}% OFF</em>`;
+      sp.appendChild(w);
+    }
+  }
   
   const description = String(typeof localDesc === "function" ? localDesc(item) : (item["desc_" + currentLang] || item.desc_en || item.desc || "")).trim();
   const aboutText = String(D["about_" + currentLang] || ((!item.language || item.language === currentLang) ? (D.about || "") : "")).trim();

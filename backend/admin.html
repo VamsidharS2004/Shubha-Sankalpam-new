@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="/assets/css/fonts.css">
     <link rel="stylesheet" href="/assets/css/admin.css">
     <link rel="stylesheet" href="assets/css/responsive.css?v=20261001-hero-variants1">
-<link rel="stylesheet" href="/assets/css/admin-analytics.css?v=20261028-admin">
+<link rel="stylesheet" href="/assets/css/admin-analytics.css?v=20261029-admin">
 <style>
 /* same fonts as the website (Poppins for English, Anek Telugu for Telugu) */
 body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif}
@@ -58,6 +58,7 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
         <nav class="nav-links">
 <button class="nav-link" data-target="view-booking-form"><i class="ph ph-list-checks"></i> Booking Form</button>
 <button class="nav-link" data-target="view-analytics"><i class="ph ph-chart-line-up"></i> Analytics</button>
+<button class="nav-link" data-target="view-promos"><i class="ph ph-ticket"></i> Promo Codes</button>
             <button class="nav-link" data-target="view-dashboard">
                 <i class="ph ph-squares-four"></i> Dashboard
             </button>
@@ -436,7 +437,7 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
 <div class="analytics-panel"><h2>New devotee accounts</h2><p class="analytics-note">Accounts created in the selected period. Registration time is shown in IST.</p><div class="scroll-table" id="reportDevotees"></div></div>
 <p class="analytics-note">Dates use IST. Paid booking value sums bookings marked paid, grouped by booking creation date; it does not deduct refunds or calculate Razorpay settlements. Pending and failed counts use the current status. Traffic totals may be lower when tracking is blocked or Do Not Track is enabled.</p>
 <h2 class="analytics-h">5. Day by day, popular pujas and pages</h2>
-<div class="analytics-panel"><h2>Daily page views</h2><div class="analytics-bars" id="reportTrafficChart" aria-label="Daily page views; exact values appear in the daily report below"></div></div>
+<div class="analytics-panel"><h2>Daily page views</h2><div class="analytics-bars" id="reportTrafficChart" aria-label="Daily page views; the number above each bar is that day's page views"></div></div>
 <div class="analytics-panels">
 <div class="analytics-panel"><h2>Popular pujas</h2><div class="scroll-table" id="reportPopular"></div></div>
 <div class="analytics-panel"><h2>Pages visited</h2><div class="scroll-table" id="reportPages"></div></div>
@@ -517,6 +518,59 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
                     </div>
                 </div>
             </div>
+</section>
+<style>
+.promo-step{border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:14px}
+.promo-step-head{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+.promo-step-head>span{flex:none;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#111;font-weight:800;display:flex;align-items:center;justify-content:center}
+.promo-step-head h3{margin:0;font-size:1.05rem;color:var(--accent)}
+.promo-step-head p{margin:2px 0 0;font-size:.85rem;opacity:.75}
+.promo-hint{display:block;margin-top:5px;font-size:.78rem;opacity:.7}
+.promo-summary{border:1px dashed var(--accent);border-radius:10px;padding:12px 16px;margin:0 0 14px;font-size:.95rem}
+.promo-summary b{color:var(--accent)}
+</style>
+<section id="view-promos" class="view-section">
+<div class="page-header"><h1 style="color:var(--accent)">Promo Codes</h1><button class="btn btn-primary" id="promoNew" type="button">New Promo Code</button></div>
+<p id="promoStatus" role="status" style="margin:12px 0;min-height:1.2em"></p>
+<div class="bf-guide"><strong>What is a promo code?</strong><p style="margin:6px 0 0">A promo code is a secret word (like <b>FIRST</b> or <b>SALE50</b>) that a devotee types on the booking page to get a discount on a puja. Press <b>New Promo Code</b> and answer the 5 simple steps. The discount is worked out on the server, so it cannot be changed from the browser.</p></div>
+
+<div id="promoForm" style="display:none;margin:16px 0;">
+<h2 id="promoFormTitle" style="margin-bottom:14px">New promo code</h2>
+
+<div class="promo-step"><div class="promo-step-head"><span>1</span><div><h3>Name of the code</h3><p>What will the devotee type? Leave it empty and we will make a random one.</p></div></div>
+<div class="form-group"><label>Promo code</label>
+<div style="display:flex;gap:8px;"><input type="text" id="promoCode" maxlength="24" placeholder="e.g. FIRST, SALE50, DIWALI" style="text-transform:uppercase;flex:1;"><button class="btn" id="promoGenerate" type="button">Make a random code</button></div>
+<small class="promo-hint">Use 3 to 24 letters or numbers, no spaces. A code can't be renamed later.</small></div></div>
+
+<div class="promo-step"><div class="promo-step-head"><span>2</span><div><h3>How much discount?</h3><p>Choose how much the devotee saves.</p></div></div>
+<div class="form-group"><label>Type of discount</label><select id="promoKind"><option value="percent">Percentage off (for example 10% off)</option><option value="flat">Fixed rupees off (for example ₹100 off)</option></select></div>
+<div class="form-group"><label id="promoValueLabel">Percent off (%)</label><input type="number" id="promoValue" min="1" step="1" placeholder="e.g. 10"></div>
+<div class="form-group" id="promoMaxOffBox"><label>Never take off more than ₹ (optional)</label><input type="number" id="promoMaxOff" min="0" step="1" placeholder="No limit"><small class="promo-hint">Example: 20% off but never more than ₹500. Leave empty for no limit.</small></div></div>
+
+<div class="promo-step"><div class="promo-step-head"><span>3</span><div><h3>Who gets it, and on which pujas?</h3><p>Decide who can use the code and where it works.</p></div></div>
+<div class="form-group"><label>Who can use this code?</label>
+<select id="promoAudience"><option value="anyone">Everyone (a general offer like SALE)</option><option value="first_time">Only first-time devotees (like FIRST)</option><option value="phone">Only the mobile numbers I enter (one or many devotees)</option></select></div>
+<div class="form-group" id="promoPhoneBox" style="display:none"><label>Mobile numbers (one or many)</label><textarea id="promoPhone" rows="4" placeholder="9876543210&#10;9123456780&#10;9000000001" style="width:100%;resize:vertical"></textarea><small class="promo-hint">Type one number per line, or separate them with commas. Only these numbers can use the code. <b id="promoPhoneCount">0 numbers</b></small></div>
+<div class="form-group"><label>Which pujas does it work on?</label><select id="promoScope"><option value="all">Every puja on the site</option><option value="selected">Only the pujas I choose</option></select><small class="promo-hint">Monthly packages never get promo codes.</small></div>
+<div class="form-group" id="promoPujaBox" style="display:none"><label>Tick the pujas</label><div id="promoPujaList" style="max-height:220px;overflow:auto;border:1px solid var(--border);border-radius:6px;padding:10px;"></div></div></div>
+
+<div class="promo-step"><div class="promo-step-head"><span>4</span><div><h3>When does the code expire? (required)</h3><p>Choose the exact date and time (India time, IST) when the code stops working.</p></div></div>
+<div class="form-group"><label>Expires on (date and time) *</label><input type="datetime-local" id="promoEnds"><small class="promo-hint">The code stops working at exactly this time.</small></div>
+<div class="form-group"><label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:.9rem;color:var(--text-main)"><input type="checkbox" id="promoNoExpiry"> This code never expires (tick this instead of choosing a time)</label></div>
+<div class="form-group"><label>Starts on (date and time, optional)</label><input type="datetime-local" id="promoStarts"><small class="promo-hint">Empty = works immediately.</small></div></div>
+
+<div class="promo-step"><div class="promo-step-head"><span>5</span><div><h3>Limits (all optional)</h3><p>Leave these empty for no limit.</p></div></div>
+<div class="form-group"><label>How many times can the code be used in total?</label><input type="number" id="promoMaxUses" min="0" step="1" placeholder="Unlimited"><small class="promo-hint">Example: 100 means the first 100 bookings get the discount.</small></div>
+<div class="form-group"><label>How many times can one devotee use it?</label><input type="number" id="promoPerUser" min="1" step="1" value="1"></div>
+<div class="form-group"><label>Note for yourself</label><input type="text" id="promoNote" maxlength="200" placeholder="e.g. Diwali offer (devotees don't see this)"></div>
+<div class="form-group"><label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:.9rem;color:var(--text-main)"><input type="checkbox" id="promoActive" checked> Switch this code on</label></div></div>
+
+<div class="promo-summary" id="promoSummary" aria-live="polite"></div>
+<div style="display:flex;gap:10px;"><button class="btn btn-primary" id="promoSave" type="button">Save promo code</button><button class="btn" id="promoCancel" type="button">Cancel</button></div>
+</div>
+
+<div class="table-container"><table><thead><tr><th>Promo code</th><th>Discount</th><th>Works on</th><th>Who can use it</th><th>Times used</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead><tbody id="promoRows"></tbody></table></div>
+<p id="promoEmpty" class="text-muted" style="display:none;margin-top:14px">No promo codes yet. Click New Promo Code to create the first one.</p>
 </section>
 <section id="view-booking-form" class="view-section">
 <div class="page-header"><h1 style="color:var(--accent)">Booking Form</h1><button class="btn btn-primary" id="bfSave" disabled>Save Form</button></div>
@@ -815,8 +869,13 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
                 <input type="text" id="editPujaId" placeholder="Filled automatically">
             </div>
             <div class="form-group">
-                <label>Base Price (₹) * <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Shows on Home, Puja Details, & Booking pages)</span></label>
-                <input type="number" id="editPujaPrice">
+                <label>Base Price (₹) * <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(The normal price, before any discount. Shows on Home, Puja Details, & Booking pages)</span></label>
+                <input type="number" id="editPujaPrice" min="1">
+            </div>
+            <div class="form-group" id="editPujaDiscountBox">
+                <label>Discount (%) <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Optional. Leave empty or 0 for no discount. When set, customers see the original price struck through, the new price and the % off.)</span></label>
+                <input type="number" id="editPujaDiscount" min="0" max="90" step="1" placeholder="0">
+                <p id="editPujaDiscountPreview" style="margin:6px 0 0;font-size:13px;color:#666;"></p>
             </div>
 
             <!-- General Info -->
@@ -1258,7 +1317,7 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
         </div>
     </aside>
 
-    <script src="/content/pujas.js"></script><script src="/content/packages.js"></script><script defer src="/assets/js/admin.js?v=20261028c-admin"></script>
+    <script src="/content/pujas.js"></script><script src="/content/packages.js"></script><script defer src="/assets/js/admin.js?v=20261028d-admin"></script>
 <style>
 .dl-menu{position:relative;display:inline-block}
 .dl-menu-list{position:absolute;left:0;top:calc(100% + 6px);z-index:60;min-width:300px;background:var(--bg-panel);border:1px solid var(--border-light);border-radius:10px;padding:6px;box-shadow:0 12px 30px rgba(0,0,0,.45)}
@@ -1284,14 +1343,15 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
 .pb-name-row input{flex:1;min-width:0;width:auto}
 .pb-name-row button{padding:4px 9px;flex:0 0 auto;width:auto}
 </style>
-<script defer src="/assets/js/admin-export.js?v=20261028c-admin"></script>
+<script defer src="/assets/js/admin-export.js?v=20261028d-admin"></script>
 <script defer src="/assets/js/rich-text.js?v=20261016-drafts2"></script>
 <script defer src="/assets/js/admin-puja.js?v=20261028-date"></script>
-<script defer src="/assets/js/admin-editor-guide.js?v=20261028c-admin"></script>
+<script defer src="/assets/js/admin-editor-guide.js?v=20261028d-admin"></script>
 <script defer src="/assets/js/admin-phone-booking.js?v=20261015-phone2"></script>
-<script defer src="/assets/js/admin-analytics.js?v=20261028c-admin"></script>
+<script defer src="/assets/js/admin-analytics.js?v=20261029-admin"></script>
 <script defer src="/assets/js/booking-form-ui.js?v=20261003-form-v2"></script>
 <script defer src="/assets/js/admin-booking-form.js?v=20261003-form-v2"></script>
+<script defer src="/assets/js/admin-promos.js?v=20261028-promo4"></script>
 
 <style id="puja-admin-style">
 .puja-head{position:sticky;top:0;z-index:10;background:var(--bg-panel);display:block !important;padding:14px 20px 10px}

@@ -496,3 +496,22 @@ body { max-width: 100%; }
 
 /* Soft warm placeholder behind big photos while they download (instead of a white hole) */
 .about-hero-content img,.card-media img,.temple-card-media img,.pd-slide img,.hero-image-wrap{background-color:#f3ebe0}
+
+/* puja discount: struck original price + % off (only drawn when the admin set a discount) */
+.price .price-was{font-size:.62em;font-weight:600;color:var(--muted);text-decoration:line-through;text-decoration-thickness:1.5px}
+.price .price-off{display:inline-block;font-size:.5em;font-weight:800;letter-spacing:.02em;color:#fff;background:#1E8E4E;border-radius:999px;padding:2px 8px;vertical-align:middle;white-space:nowrap}
+.pd-was{font-size:1em;font-weight:600;color:var(--muted);text-decoration:line-through;text-decoration-thickness:1.5px}
+.pd-off{display:inline-block;font-size:.72em;font-weight:800;letter-spacing:.02em;color:#fff;background:#1E8E4E;border-radius:999px;padding:2px 8px;vertical-align:middle;white-space:nowrap}
+/* booking page: promo code box and the discount rows */
+.promo-box{margin:0 0 14px}
+.promo-toggle{background:none;border:0;padding:0;color:var(--red);font-weight:700;font-size:.9rem;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.promo-form{display:flex;gap:8px;margin-top:10px}
+.promo-form[hidden]{display:none}
+.promo-form input{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:#fff}
+.promo-form button{border:0;border-radius:10px;padding:10px 16px;background:var(--red);color:#fff;font-weight:700;cursor:pointer}
+.promo-form button[disabled]{opacity:.6;cursor:default}
+.promo-msg{margin:8px 0 0;font-size:.85rem;min-height:1.1em}
+.promo-msg.ok{color:#1E8E4E;font-weight:700}
+.promo-msg.err{color:#B42318}
+.promo-remove{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:.82rem;margin-left:6px;padding:0}
+.price-row .off-amt{color:#1E8E4E}

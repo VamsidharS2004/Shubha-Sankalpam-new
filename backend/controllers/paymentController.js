@@ -47,7 +47,8 @@ async function createOrder(req, res) {
   }
 
   const currentItem = require('../utils/catalog').resolveItem(null, booking.puja);
-  if (currentItem && Number(booking.price) !== currentItem.price) {
+  /* a booking made with a promo code was priced at the puja price minus the code's discount */
+  if (currentItem && Number(booking.price) !== require('../utils/promo').expectedPrice(currentItem.price, booking.promo)) {
     return send(res,409,{error:'This pending booking has an older price. Go back and create a new booking at the current price.'});
   }
   const amountPaise = Math.round(booking.price * 100); // Razorpay wants paise, not rupees

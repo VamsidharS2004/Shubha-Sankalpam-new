@@ -1046,6 +1046,20 @@ async function deletePuja(index) {
     }catch(e){alert(e.message);}
 }
 
+/* shows what customers will pay while the admin types the price / discount */
+function updatePujaDiscountPreview() {
+    const base = parseInt(document.getElementById("editPujaPrice").value, 10) || 0;
+    const pct = Math.min(90, Math.max(0, parseInt(document.getElementById("editPujaDiscount").value, 10) || 0));
+    const out = document.getElementById("editPujaDiscountPreview");
+    if (!out) return;
+    out.textContent = (pct > 0 && base > 1)
+        ? `Customers will see ₹${base.toLocaleString("en-IN")} struck through, pay ₹${Math.max(1, Math.round(base * (100 - pct) / 100)).toLocaleString("en-IN")} and see "${pct}% OFF".`
+        : "No discount: customers see the normal price only.";
+}
+document.addEventListener("input", e => {
+    if (e.target && (e.target.id === "editPujaPrice" || e.target.id === "editPujaDiscount")) updatePujaDiscountPreview();
+});
+
 function openEditPuja(index) {
     const p = index >= 0 ? allPujas[index] : { id: "", name: "", desc: "", name_te: "", desc_te: "", name_hi: "", desc_hi: "", price: 1500, cat: "All", image: "", temple: "", date: "", muhurat: "", detail: {}, packages: [], media: [] };
     
@@ -1061,7 +1075,10 @@ function openEditPuja(index) {
     document.getElementById("editPujaIndex").value = index;
     
     document.getElementById("editPujaId").value = p.id || "";
-    document.getElementById("editPujaPrice").value = p.price ?? "";
+    /* a discounted puja keeps its normal price in detail.originalPrice; "price" is what the customer pays */
+    document.getElementById("editPujaPrice").value = (p.detail && p.detail.originalPrice) ? p.detail.originalPrice : (p.price ?? "");
+    document.getElementById("editPujaDiscount").value = (p.detail && p.detail.discountPercent) ? p.detail.discountPercent : "";
+    updatePujaDiscountPreview();
     
     // General
     document.getElementById("editPujaCat").value = p.cat || "All";
@@ -1220,7 +1237,18 @@ async function savePuja(opts) {
     if(index >= 0 && String(allPujas[index].id)!==id) return fail('Existing puja IDs cannot change because bookings refer to them. Create a new puja instead.');
     if(allPujas.some((other,i)=>i!==index && String(other.id)===id)) return fail('This puja ID already exists. Choose a unique ID.');
     p.id = id;
-    p.price = parseInt(document.getElementById("editPujaPrice").value, 10) || 0;
+    const basePrice = parseInt(document.getElementById("editPujaPrice").value, 10) || 0;
+    const discountPercent = Math.min(90, Math.max(0, parseInt(document.getElementById("editPujaDiscount").value, 10) || 0));
+    if (!p.detail) p.detail = {};
+    if (discountPercent > 0 && basePrice > 1) {
+        p.price = Math.max(1, Math.round(basePrice * (100 - discountPercent) / 100));
+        p.detail.originalPrice = basePrice;
+        p.detail.discountPercent = discountPercent;
+    } else {
+        p.price = basePrice;
+        delete p.detail.originalPrice;
+        delete p.detail.discountPercent;
+    }
     if (p.packages && p.packages[0] && p.packages[0].id === "individual" && index < 0) p.packages[0].price = p.price;
     
     p.cat = document.getElementById("editPujaCat").value;

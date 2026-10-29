@@ -7,7 +7,6 @@ const pujas = [
     "id": "001",
     "base_id": "మకష-నరయణ-బల-పజ",
     "language": "te",
-    "show_in_hero": true,
     "name": "మోక్ష నారాయణ బలి పూజ",
     "name_te": "మోక్ష నారాయణ బలి పూజ",
     "desc": "పూర్వీకుల శాంతి, సద్గతి కోసం అయోధ్య పవిత్ర క్షేత్రంలో మోక్ష నారాయణ బలి పూజను శాస్త్రోక్తంగా నిర్వహిస్తారు. శ్రీమహావిష్ణువును నారాయణ స్వరూపంగా ఆరాధిస్తూ, సంకల్పం, తర్పణం, పిండప్రదానం మరియు ప్రత్యేక ప్రార్థనలతో పితృదేవతలను స్మరించి ఈ పవిత్ర కర్మను సమర్పిస్తారు.",
@@ -15,13 +14,10 @@ const pujas = [
     "temple": "అయోధ్య",
     "date": "ఆదివారం, 04 అక్టోబర్",
     "muhurat": "2026-10-04T07:00:00+05:30",
-    "price": 5116,
+    "price": 4604,
     "basePrice": 5116,
     "cat": "Special Puja",
     "image": "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/1bf4c453-9680-4840-b9d2-dc8e1a439035.webp",
-    "gallery": [
-      "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/f338199b-ac20-44b3-9d66-e6d6d5af3cfc.jpg"
-    ],
     "detail": {
       "faqs": [
         {
@@ -106,34 +102,31 @@ const pujas = [
       "templeImage": "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/temples/75049c05-bffa-4fd3-815f-49a1107151c5.jpg",
       "show_in_hero": true,
       "tradition_te": "వైదిక పితృ కర్మ",
+      "originalPrice": 5116,
+      "discountPercent": 10,
       "desktopHeroImage": "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/64c1ba17-1046-4a3e-b507-7936f7fe4821.webp",
       "templeDetailsName": "అయోధ్య పుణ్యక్షేత్రం"
-    }
+    },
+    "gallery": [
+      "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/f338199b-ac20-44b3-9d66-e6d6d5af3cfc.jpg"
+    ],
+    "show_in_hero": true
   },
   {
     "id": "002",
     "base_id": "శర-రజశయమల---చడ-హమ",
     "language": "te",
-    "show_in_hero": true,
     "name": "శ్రీ రాజశ్యామల - చండీ హోమం",
     "name_te": "శ్రీ రాజశ్యామల - చండీ హోమం",
     "desc": "వాక్చాతుర్యం, మేధాశక్తి, విఘ్నవినాశనం, విజయసిద్ధి, నాయకత్వ శక్తి",
     "desc_te": "వాక్చాతుర్యం, మేధాశక్తి, విఘ్నవినాశనం, విజయసిద్ధి, నాయకత్వ శక్తి",
     "temple": "శ్రీ శుభంకరీ దేవాలయం, హైదరాబాద్",
-    "date": "20-10-2026",
+    "date": "మంగళవారం, 20 అక్టోబర్",
     "muhurat": "2026-10-20T06:00:00+05:30",
     "price": 816,
     "basePrice": 816,
     "cat": "All",
     "image": "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/c927e613-fb05-4605-be3f-6992792a2cf4.webp",
-    "gallery": [
-      "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/e92e9e04-fd68-4d85-ac76-87deee351762.webp",
-      "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/b4defd44-bd06-41ea-85f3-6f2433167d37.webp",
-      "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/e8bb4e27-d610-4717-b4e1-aba2d587acd2.webp",
-      "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/ab1e0e88-ffc3-4813-bdab-630bda7f6c6a.jpg",
-      "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/4c2184e8-a5f6-46f7-9759-a26ce573cc96.webp",
-      "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/c0c5eb27-dce8-4901-b2f5-0a47dabbcce3.webp"
-    ],
     "detail": {
       "faqs": [
         {
@@ -229,7 +222,16 @@ const pujas = [
       "show_in_hero": true,
       "desktopHeroImage": "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/b22ac15c-9b95-43e8-a3ff-52510dd93b38.webp",
       "templeDetailsName": "శ్రీ శుభంకరీ దేవాలయం, హైదరాబాద్"
-    }
+    },
+    "gallery": [
+      "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/e92e9e04-fd68-4d85-ac76-87deee351762.webp",
+      "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/b4defd44-bd06-41ea-85f3-6f2433167d37.webp",
+      "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/e8bb4e27-d610-4717-b4e1-aba2d587acd2.webp",
+      "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/ab1e0e88-ffc3-4813-bdab-630bda7f6c6a.jpg",
+      "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/4c2184e8-a5f6-46f7-9759-a26ce573cc96.webp",
+      "https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/c0c5eb27-dce8-4901-b2f5-0a47dabbcce3.webp"
+    ],
+    "show_in_hero": true
   }
 ];
 

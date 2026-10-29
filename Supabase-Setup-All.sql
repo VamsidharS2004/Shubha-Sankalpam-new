@@ -200,3 +200,26 @@ ALTER TABLE public.ss_analytics_events ADD CONSTRAINT ss_analytics_events_event_
   CHECK (event_type IN ('page_view','puja_view','checkout_start','booking_created','payment_done'));
 CREATE INDEX IF NOT EXISTS ss_analytics_session_idx ON public.ss_analytics_events(session_id);
 CREATE INDEX IF NOT EXISTS ss_analytics_ad_idx ON public.ss_analytics_events(created_at) WHERE is_landing;
+
+-- ===== Promo codes (20261028_promo_codes.sql) =====
+CREATE TABLE IF NOT EXISTS public.ss_promo_codes (
+  code text PRIMARY KEY,
+  kind text NOT NULL DEFAULT 'percent' CHECK (kind IN ('percent','flat')),
+  value integer NOT NULL CHECK (value >= 1),
+  max_off integer NOT NULL DEFAULT 0,
+  scope text NOT NULL DEFAULT 'all' CHECK (scope IN ('all','selected')),
+  items jsonb NOT NULL DEFAULT '[]'::jsonb,
+  audience text NOT NULL DEFAULT 'anyone' CHECK (audience IN ('anyone','first_time','phone')),
+  phone text,
+  max_uses integer NOT NULL DEFAULT 0,
+  per_user integer NOT NULL DEFAULT 1,
+  starts_at timestamptz,
+  expires_at timestamptz,
+  active boolean NOT NULL DEFAULT true,
+  note text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.ss_promo_codes ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.ss_promo_codes FROM anon, authenticated;
+GRANT ALL ON public.ss_promo_codes TO service_role;
+COMMENT ON TABLE public.ss_promo_codes IS 'Discount codes created in the admin panel. Read/written only by the server (service role).';

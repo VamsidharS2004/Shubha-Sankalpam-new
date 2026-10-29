@@ -11,9 +11,11 @@
 .analytics-panel td,.analytics-panel th{padding:10px 8px;text-align:left;border-bottom:1px solid var(--border);overflow-wrap:anywhere}
 .analytics-panel th:last-child,.analytics-panel td:last-child{text-align:right}
 .analytics-panel .scroll-table{overflow:auto;max-height:420px}
-.analytics-bars{display:flex;gap:7px;align-items:flex-end;min-height:220px;overflow-x:auto;padding:12px 0}
-.analytics-day{flex:1 0 25px;display:flex;flex-direction:column;justify-content:flex-end;min-height:180px;text-align:center}
+.analytics-bars{display:flex;gap:7px;align-items:flex-end;min-height:240px;overflow-x:auto;padding:12px 0}
+.analytics-day{flex:1 0 38px;display:flex;flex-direction:column;justify-content:flex-end;min-height:180px;text-align:center}
 .analytics-day .bar{background:var(--accent,#9b1c1c);border-radius:4px 4px 0 0;min-height:2px}
+.analytics-day .val{font-size:.7rem;font-weight:700;margin-bottom:3px;white-space:nowrap}
+.analytics-day .val.zero{opacity:.45;font-weight:400}
 .analytics-day small{font-size:.65rem;white-space:nowrap;margin-top:6px}
 .analytics-note{color:var(--text-muted);font-size:.85rem;line-height:1.6;margin:12px 0}
 #reportStatus{margin:16px 0;line-height:1.6}

@@ -23,6 +23,16 @@ async function create(req, res) {
   raw.phone = req.userPhone;
   raw.puja = item.name;
   raw.price = item.price;
+  /* promo code: worked out here on the server; the browser can only say which code it typed */
+  let promoResult = null;
+  if (String(raw.promoCode || "").trim()) {
+    let out;
+    try { out = await require('./promoController').checkCode({ code: raw.promoCode, ref: raw.ref, puja: raw.puja, phone: req.userPhone }); }
+    catch (e) { return send(res, e.status || 500, { error: e.message }); }
+    if (!out.ok) return send(res, 400, { error: out.error, promoError: true });
+    promoResult = out;
+  }
+  const payPrice = promoResult ? promoResult.finalPrice : item.price;  // what the devotee actually pays
   const form=await require('./bookingFormController').loadForm();
   if(raw.formRevision!==form.revision)return send(res,409,{error:'The booking form has changed. Reload this page before submitting.'});
   if(item.cat==='Special Puja'&&!String(raw.gotram||'').trim())return send(res,400,{error:'Gotram is required for this special puja.'});
@@ -42,7 +52,7 @@ async function create(req, res) {
     phone: raw.phone,
     name: raw.name,
     gotra: raw.gotram,
-    price: item.price,
+    price: payPrice,
     source: "Website",
     notes: [
       raw.puja ? "Puja: " + raw.puja : "",
@@ -53,6 +63,7 @@ async function create(req, res) {
         temple: item.temple || "", cat: item.cat || ""
       }),
       "WhatsApp: " + whatsapp,
+      promoResult ? require('../utils/promo').promoNoteLine(promoResult) : "",
       raw.family ? "Family: " + raw.family : "",
       raw.bookingDetails && typeof raw.bookingDetails === "object"
         ? "BookingDetails: " + JSON.stringify(raw.bookingDetails)
@@ -78,7 +89,7 @@ async function create(req, res) {
         .select("id, notes, price, status, created_at")
         .eq("devotee_phone", clean(bookingData.phone, 20))
         .eq("status", "Pending")
-        .eq("price", item.price)
+        .eq("price", payPrice)
         .order("created_at", { ascending: false })
         .limit(5);
 
@@ -103,7 +114,7 @@ async function create(req, res) {
     try {
       const existing = await bookingModel.findPendingDuplicate({
         phone: bookingData.phone,
-        price: item.price,
+        price: payPrice,
         puja: raw.puja || item.name,
         ref: raw.ref
       });

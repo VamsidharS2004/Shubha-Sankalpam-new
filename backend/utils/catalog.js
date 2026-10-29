@@ -43,4 +43,11 @@ function resolveItem(ref, legacyName) {
   return {...item, price:Number(item.price)};
 }
 
-module.exports = {resolveItem, resolveItemAsync};
+/* true when the item is a monthly package (promo codes and puja discounts apply to pujas only) */
+function isPackage(item) {
+  if (!item) return false;
+  const [, packages] = catalog();
+  return packages.some(p => (item.id && p.id === item.id) || (!item.id && p.name === item.name));
+}
+
+module.exports = {resolveItem, resolveItemAsync, isPackage};

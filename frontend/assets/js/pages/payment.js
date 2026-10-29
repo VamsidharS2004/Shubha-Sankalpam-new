@@ -128,6 +128,10 @@
     location.href = "puja.html";
     return;
   }
+  /* a booking made with a promo code costs less than the puja's list price: always show / pay the booking's own amount */
+  if (existingBooking && type !== "pkg" && Number(existingBooking.price) > 0 && Number(existingBooking.price) !== Number(item.price)) {
+    item = { ...item, price: Number(existingBooking.price) };
+  }
 
   if (isAlreadyPaid || (historyRequested && existingBooking)) {
     window._isHistoryView = true;
@@ -296,6 +300,10 @@ async function showFinalSuccess(message) {
                     <td style="padding:10px 0; color:#666;">Gotram</td>
                     <td style="padding:10px 0; color:#333; font-weight:600;">${displayGotram}</td>
                 </tr>
+                ${(b && b.promo && b.promo.code) ? `<tr style="border-top:1px solid #f0e6d8;">
+                    <td style="padding:10px 0; color:#666;">Promo Code</td>
+                    <td style="padding:10px 0; color:#1E8E4E; font-weight:600;">${escapeDetail(b.promo.code)} (-₹${Number(b.promo.off || 0).toLocaleString("en-IN")})</td>
+                </tr>` : ""}
                 <tr style="border-top:1px solid #f0e6d8;">
                     <td style="padding:10px 0; color:#666;">Amount Paid</td>
                     <td style="padding:10px 0; color:#333; font-weight:600;">₹${Number(displayPrice).toLocaleString("en-IN")}</td>

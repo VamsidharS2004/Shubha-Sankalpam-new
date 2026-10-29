@@ -84,15 +84,50 @@ if (isSpecialPuja) {
     if($id("regularPujaSection")) $id("regularPujaSection").style.display = "block";
     if($id("specialPujaSection")) $id("specialPujaSection").style.display = "none";
 }
+let promo = null;   /* { code, off, label } once a promo code has been applied (the server checks it again when the booking is made) */
 function showPrice(){
 $id("bkDate").textContent = item.muhurat ? new Date(item.muhurat).toLocaleDateString("en-IN",{timeZone:"Asia/Kolkata",day:"numeric",month:"long",year:"numeric"}) : item.date || "To be confirmed";
 const formattedPrice = "₹" + item.price.toLocaleString("en-IN");
+const disc = type === "pkg" ? null : ssDiscountInfo(item);          /* puja discount set in the admin panel (null = no discount) */
+const off = promo ? Math.min(promo.off, item.price - 1) : 0;
+const payable = item.price - off;
 $id("bkPriceBase").textContent = formattedPrice;
-$id("bkPriceBreakdown").textContent = formattedPrice;
-$id("bkTotalFinal").textContent = formattedPrice;
-$id("bkTotalStrike").textContent = "₹" + (item.price + 675).toLocaleString("en-IN"); /* fake strikethrough showing saved fees */
+if (disc) $id("bkPriceBreakdown").innerHTML = `<s style="color:var(--muted);font-weight:600">${ssRupees(disc.orig)}</s> ${formattedPrice} <span class="pd-off" style="font-size:.7rem">${disc.pct}% OFF</span>`;
+else $id("bkPriceBreakdown").textContent = formattedPrice;
+$id("promoRow").hidden = !off;
+if (off) { $id("promoRowLabel").textContent = "Promo code (" + promo.code + ")"; $id("promoRowAmt").textContent = "-₹" + off.toLocaleString("en-IN"); }
+$id("bkTotalFinal").textContent = "₹" + payable.toLocaleString("en-IN");
+$id("bkTotalStrike").textContent = "₹" + (payable + 675).toLocaleString("en-IN"); /* fake strikethrough showing saved fees */
 document.documentElement.classList.remove("bk-booting");   /* summary is complete: show it */
 }
+/* PROMO CODE: "Have a promo code?" -> type it -> Apply. The server decides the discount (also again at booking time). */
+(function initPromo(){
+  const box = $id("promoBox"); if (!box) return;
+  if (type === "pkg") { box.hidden = true; return; }            /* promo codes are for pujas, not monthly packages */
+  const form = $id("promoForm"), input = $id("promoInput"), msg = $id("promoMsg"), apply = $id("promoApply");
+  const say = (text, kind) => { msg.textContent = text || ""; msg.className = "promo-msg" + (kind ? " " + kind : ""); };
+  $id("promoToggle").addEventListener("click", () => { form.hidden = !form.hidden; if (!form.hidden) input.focus(); });
+  function clearPromo(){ promo = null; input.value = ""; form.hidden = false; say(""); showPrice(); }
+  async function applyPromo(){
+    const code = input.value.trim().toUpperCase();
+    if (!code) { say("Enter a promo code.", "err"); return; }
+    apply.disabled = true; say("Checking...");
+    try {
+      const out = await api("/api/promo/validate", "POST", { ref: (item && item.id) || ref, code });
+      promo = { code: out.code, off: out.off, label: out.label };
+      showPrice();
+      msg.innerHTML = "";
+      msg.className = "promo-msg ok";
+      msg.textContent = `${out.code} applied: you save ₹${out.off.toLocaleString("en-IN")}`;
+      const remove = document.createElement("button"); remove.type = "button"; remove.className = "promo-remove"; remove.textContent = "Remove";
+      remove.addEventListener("click", clearPromo); msg.appendChild(remove);
+      form.hidden = true;
+    } catch (e) { promo = null; showPrice(); say(e.message || "This promo code is not valid.", "err"); }
+    apply.disabled = false;
+  }
+  apply.addEventListener("click", applyPromo);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); applyPromo(); } });
+})();
 showPrice();
 const priceReady = api('/api/catalog/item?ref='+encodeURIComponent((item && item.id) || ref)).then(out=>{
   item=out.item; showPrice();
@@ -247,7 +282,7 @@ $id("payBtn").addEventListener("click", async () => {
       family: familyPayload,
       bookingDetails,
       ...formPayload,
-      promoCode: "" // promo field was removed from new layout, passing empty
+      promoCode: promo ? promo.code : ""
     };
     const fingerprint = JSON.stringify(payload);
     const out = submittedBooking?.fingerprint === fingerprint

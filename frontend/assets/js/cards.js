@@ -5,6 +5,20 @@
    CARDS.JS — builds puja/package cards used on home, puja, and package
    pages. Clicking anywhere meaningful goes to the DETAILS page.
    ============================================================ */
+/* ============================================================
+   PUJA DISCOUNT — set per puja in the admin panel.
+   A discounted puja keeps its normal price in detail.originalPrice; "price" is what the devotee pays.
+   Returns { orig, price, pct } only when there really is a discount; otherwise null, and every page shows the plain price.
+   ============================================================ */
+function ssDiscountInfo(item) {
+  const d = (item && item.detail) || {};
+  const orig = Number(d.originalPrice), price = Number(item && item.price);
+  if (!(orig > price) || !(price > 0)) return null;
+  const pct = Math.round((orig - price) / orig * 100);
+  return pct >= 1 ? { orig, price, pct } : null;
+}
+const ssRupees = n => "₹" + Number(n || 0).toLocaleString("en-IN");
+
 const templeIcon = `<svg viewBox="0 0 80 80" fill="none"><path d="M40 8 14 30v42h52V30L40 8Z" fill="currentColor" opacity=".35"/><path d="M40 18 22 33v33h36V33L40 18Z" fill="currentColor" opacity=".6"/><rect x="34" y="48" width="12" height="18" rx="6" fill="currentColor"/></svg>`;
 
 /* ============================================================
@@ -125,7 +139,9 @@ function cardHTML(p, i, type) {
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> ${p.date || ""}</span>
       </div>
       <div class="card-foot">
-        <div class="price">₹${(p.price || p.basePrice || 0).toLocaleString("en-IN")}<small>${type === "pkg" ? "Per Month" : "Per Booking"}</small></div>
+        ${(() => { const dc = type === "pkg" ? null : ssDiscountInfo(p); return dc
+          ? `<div class="price has-off"><span class="price-was">${ssRupees(dc.orig)}</span> ${ssRupees(dc.price)} <span class="price-off">${dc.pct}% OFF</span><small>Per Booking</small></div>`
+          : `<div class="price">₹${(p.price || p.basePrice || 0).toLocaleString("en-IN")}<small>${type === "pkg" ? "Per Month" : "Per Booking"}</small></div>`; })()}
         <a class="book-link" href="${href}">${type === "pkg" ? "Subscribe" : "View Details"} <span class="arrow">→</span></a>
       </div>
     </div>`;

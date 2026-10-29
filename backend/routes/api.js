@@ -18,6 +18,7 @@ const siteSettings = require('../controllers/siteSettingsController');
 const analyticsReports = require('../controllers/analyticsReportController');
 const visitorLeads = require('../controllers/visitorLeadsController');
 const bookingForm = require('../controllers/bookingFormController');
+const promo = require('../controllers/promoController');
 const routes = [
   {method:'GET',path:'/api/content/booking-form',middleware:[],handler:bookingForm.getForm},
   {method:'GET',path:'/api/admin/booking-form',middleware:[adminOnly],handler:bookingForm.getForm},
@@ -66,6 +67,14 @@ const routes = [
   { method: "DELETE", path: "/api/admin/bookings", middleware: [adminOnly], handler: booking.adminDeleteBooking },
   { method: "PUT",  path: "/api/admin/content/global", middleware: [adminOnly], handler: websiteContent.updateWebsiteContent },
   { method: "GET",  path: "/api/content/global", middleware: [], handler: websiteContent.getWebsiteContent },
+
+  // --- Promo codes ---
+  { method: "POST", path: "/api/promo/validate", middleware: [requireLogin], handler: promo.validate },
+  { method: "GET",  path: "/api/admin/promos", middleware: [adminOnly], handler: promo.adminList },
+  { method: "GET",  path: "/api/admin/promos/generate", middleware: [adminOnly], handler: promo.adminGenerate },
+  { method: "POST", path: "/api/admin/promos", middleware: [adminOnly], handler: promo.adminCreate },
+  { method: "PUT",  path: "/api/admin/promos", middleware: [adminOnly], handler: promo.adminUpdate },
+  { method: "DELETE", path: "/api/admin/promos", middleware: [adminOnly], handler: promo.adminDelete },
 
   // --- Payment Endpoints ---
   { method: "GET",  path: "/api/payments/config",        middleware: [],              handler: payment.getPaymentConfig },
