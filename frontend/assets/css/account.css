@@ -443,3 +443,19 @@ html body #panel-profile .pf-group label .req { display: none; }
 @media (min-width: 769px) {
   html body .account-grid { margin-top: 0; padding-top: 16px; padding-bottom: 40px; gap: 22px; }
 }
+
+/* Profile card alignment on phone + tablet: heading and subtitle on one line, labels never wrap */
+html body #panel-profile .pf-group label { white-space: nowrap; }
+@media (min-width: 521px) and (max-width: 1024px) {
+  html body #panel-profile .pf-group { grid-template-columns: 140px minmax(0, 1fr); }
+  html body #panel-profile .profile-card h3, html body #panel-profile .profile-card .pf-sub { white-space: nowrap; padding-right: 150px; }
+}
+@media (max-width: 520px) {
+  html body #panel-profile .profile-card h3 { font-size: 1.05rem; white-space: nowrap; padding-right: 105px; margin-bottom: 0; }
+  html body #panel-profile .profile-card .pf-sub { font-size: .8rem; white-space: nowrap; padding-right: 0; margin: 12px 0 4px; }
+  html body #panel-profile #pfEdit { top: 14px; right: 14px; padding: 7px 11px; font-size: .78rem; gap: 6px; }
+  html body #panel-profile #pfEdit::before { width: 14px; height: 14px; }
+  html body #panel-profile .pf-group { grid-template-columns: minmax(0, 1fr); gap: 3px; padding: 11px 0; }
+  html body #panel-profile .pf-group label { font-size: .82rem; }
+  html body #panel-profile .pf-readonly, html body #panel-profile .profile-card form:not(.editing) .pf-group input { font-size: .95rem; }
+}

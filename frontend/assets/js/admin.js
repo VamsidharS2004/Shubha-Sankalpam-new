@@ -462,13 +462,15 @@ function renderBookings() {
             const isVideoSent = b.status === "video-sent";
             const displayStatus = isVideoSent ? "Video Sent" : (b.status || "Confirmed");
             
+            const canVideo = canSendVideo(b);
             let actionHtml = `
-                <div style="display:flex; gap:4px; max-width: 220px; flex-wrap: wrap;">
+                <div style="display:flex; gap:4px; max-width: 220px; flex-wrap: wrap;${canVideo ? "" : " opacity:.55;"}" ${canVideo ? "" : 'title="Payment not confirmed - video cannot be sent"'}>
                     <div style="display:flex; gap:4px; width:100%;">
                         <input type="file" id="video_file_${b.id}" accept="video/*" style="flex:1 1 auto; min-width:0; width:120px; max-width:150px; padding: 4px; font-size: 0.75rem; background: transparent; color: var(--text-main);">
                         <button class="btn" style="padding: 4px 8px; background: var(--accent); color: #fff; border:none;" onclick="sendVideo('${b.id}')">Send</button>
                     </div>
                     <details class="ts-box" style="flex-basis:100%;margin-top:2px;" ontoggle="if(this.open)tsEnsureRow('ts_${b.id}')"><summary style="cursor:pointer;font-size:.75rem;color:var(--accent);">&#9201; Add timestamps</summary>${tsEditorHTML('ts_' + b.id)}</details>
+                    ${canVideo ? "" : '<div style="flex-basis:100%;font-size:.72rem;color:#d9534f;">Payment not confirmed</div>'}
                     <div id="video_progress_${b.id}" style="display:none; flex-basis: 100%; margin-top: 4px; font-size: 0.75rem; color: var(--accent);">Uploading: 0%</div>
                     <div style="display:flex; gap:4px; margin-top:4px;">
                         <button class="btn" style="padding: 4px 8px" onclick="editBooking('${b.id}')"><i class="ph ph-pencil"></i></button>
@@ -476,7 +478,17 @@ function renderBookings() {
                     </div>
                 </div>
             `;
-            
+
+            if (!canVideo && !isVideoSent) {
+                /* payment not confirmed (pending / failed / cancelled): no video upload at all */
+                actionHtml = `
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; max-width:220px;">
+                        <span style="font-size:.75rem; color:#d9534f;">Payment not confirmed.<br>Video cannot be sent.</span>
+                        <button class="btn" style="padding: 4px 8px" onclick="editBooking('${b.id}')"><i class="ph ph-pencil"></i></button>
+                    </div>
+                `;
+            }
+
             if (isVideoSent) {
                 actionHtml = `
                     <div style="display:flex; gap:8px;">
@@ -752,6 +764,10 @@ function tsInitBulk() {
 document.addEventListener("DOMContentLoaded", tsInitBulk);
 if (document.readyState !== "loading") setTimeout(tsInitBulk, 0);
 
+/* A video can only be sent for a booking whose payment is confirmed. */
+const NO_VIDEO_MSG = "Payment is not confirmed for this booking, so a video cannot be sent. Please send videos only to confirmed (paid) bookings.";
+const canSendVideo = b => bookingMatchesStatus(b, "confirmed");
+
 /* Browser -> Supabase Storage directly, resumable (6 MB pieces, retries, survives a dropped connection). Up to 10 GB. */
 const MAX_VIDEO_BYTES = 10 * 1024 * 1024 * 1024;
 function loadTusLib() {
@@ -806,6 +822,8 @@ async function sendVideoToSelectedBookings() {
     const stamps = readTimestamps("ts_bulk");
     if (!stamps.ok) return alert(stamps.error);
     const selected = ids.map(id => (window.allBookings || []).find(booking => String(booking.id) === String(id))).filter(Boolean);
+    const notPaid = selected.filter(booking => !canSendVideo(booking));
+    if (notPaid.length) return alert(`${notPaid.length} of the ticked booking(s) have no confirmed payment, so a video cannot be sent to them:\n\n` + notPaid.slice(0, 10).map(booking => `• ${booking.name || "Devotee"} (${booking.shortId || booking.id}) - ${booking.status || "pending"}`).join("\n") + (notPaid.length > 10 ? `\n…and ${notPaid.length - 10} more` : "") + "\n\nUntick them and send again.");
     const pujaNames = [...new Set(selected.map(booking => booking.puja || ""))];
     if (pujaNames.length !== 1) return alert("Please filter bookings to one puja, then select its bookings.");
     if (!confirm(`Upload this video once and attach it to ${selected.length} booking(s) for ${pujaNames[0]}?`)) return;
@@ -2479,6 +2497,8 @@ window.sendVideo = async function(bookingId) {
     }
     
     const file = fileInput.files[0];
+    const bkRow = (window.allBookings || []).find(x => String(x.id) === String(bookingId));
+    if (bkRow && !canSendVideo(bkRow)) return alert(NO_VIDEO_MSG);
     const stamps = readTimestamps(`ts_${bookingId}`);
     if (!stamps.ok) return alert(stamps.error);
     const progressEl = document.getElementById(`video_progress_${bookingId}`);

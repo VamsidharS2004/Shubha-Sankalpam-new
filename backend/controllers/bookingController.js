@@ -180,6 +180,14 @@ async function updateVideo(req, res, url) {
   const body = await readBody(req);
   if (!body.videoUrl) return send(res, 400, { error: "Missing video URL" });
 
+  /* a video may only be attached to a booking whose payment is confirmed (same rule as the admin screen) */
+  const fields = await bookingModel.findStatusFields(id);
+  if (!fields) return send(res, 404, { error: "Booking not found" });
+  const st = String(fields.status || "").toLowerCase().trim(), pay = String(fields.paymentStatus || "").toLowerCase();
+  const cancelled = /(cancel|failed)/.test(st);
+  const paid = ["paid", "captured", "success"].includes(pay) || ["paid", "confirmed", "scheduled", "completed", "video-sent", "video delivered"].includes(st);
+  if (cancelled || !paid) return send(res, 409, { error: "Payment is not confirmed for this booking, so a video cannot be sent." });
+
   const ok = await bookingModel.updateBookingVideo(id, body.videoUrl);
   if (!ok) return send(res, 500, { error: "Failed to update video URL" });
   send(res, 200, { success: true });

@@ -432,6 +432,17 @@ async function deleteBooking(id) {
   return true;
 }
 
+/* status + payment status of one booking (used to decide whether a video may be sent) */
+async function findStatusFields(id) {
+  if (!supabase) {
+    const b = readLocalBookings().find(b => b.id === id);
+    return b ? { status: b.status || "", paymentStatus: b.payment_status || "" } : null;
+  }
+  const { data, error } = await supabase.from("bookings").select("status,payment_status").eq("id", id).single();
+  if (error || !data) return null;
+  return { status: data.status || "", paymentStatus: data.payment_status || "" };
+}
+
 async function findById(id) {
   /* ---- LOCAL fallback ---- */
   if (!supabase) {
@@ -622,7 +633,7 @@ async function findByNoteLine(line) {
 module.exports = {
   createManualBooking,
   all, getUserBookings,
-  updateBookingVideo, updateBooking, deleteBooking,
+  updateBookingVideo, findStatusFields, updateBooking, deleteBooking,
   findById, attachOrder, findByOrderId, markPaid, setStatus,
   getShortId, findPendingDuplicate, claimBooking, backfillSnapshots, withArchiveSnapshots,
   findFullById, notesForPhone, findByNoteLine
