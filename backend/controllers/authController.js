@@ -5,10 +5,10 @@ const { MSG91_AUTHKEY, MSG91_OTP_TEMPLATE_ID } = require("../config");
 const { createSession } = require("../middleware/auth");
 const userModel = require("../models/userModel");
 const analyticsModel = require("../models/analyticsModel");
+const loginState = require("../models/loginStateModel");
 
-/* phone -> { otpHash, expires, attempts } — the OTP itself is never
+/* Pending OTPs live in loginStateModel (Supabase, shared by every server copy; memory fallback). The OTP itself is never
    stored in plain text, only its hash (see hashOtp below) */
-const pendingOtps = new Map();
 
 /* simple in-memory rate limit: max 5 OTP requests per phone per
    15 minutes, so this endpoint can't be used to spam a number or
@@ -82,7 +82,7 @@ async function requestOtp(req, res) {
     return send(res, 429, { error: "Too many OTP requests. Please try again in a few minutes." });
 
   const otp = crypto.randomInt(1000, 10000).toString(); // 4 digits, crypto-random
-  pendingOtps.set(p, {
+  await loginState.saveOtp(p, {
     otpHash: hashOtp(otp, p),
     email: clean(email, 150),
     expires: Date.now() + 5 * 60 * 1000,  // 5 minutes
@@ -96,7 +96,7 @@ async function requestOtp(req, res) {
     return send(res, 200, { ok: true });
   }
 
-  pendingOtps.delete(p);
+  await loginState.deleteOtp(p);
 
   return send(res, 500, {
     error: "Unable to send OTP. Please try again later."
@@ -108,24 +108,25 @@ async function requestOtp(req, res) {
 async function verifyOtp(req, res) {
   const { phone, otp, email, signupRef } = await readBody(req);
   const p = normalizePhone(phone);
-  const pending = pendingOtps.get(p);
+  const pending = await loginState.getOtp(p);
 
   if (!pending || pending.expires < Date.now())
     return send(res, 400, { error: "OTP expired — please request a new one." });
 
   if (pending.attempts >= 3) {
-    pendingOtps.delete(p);
+    await loginState.deleteOtp(p);
     return send(res, 400, { error: "Too many wrong attempts — please request a new OTP." });
   }
 
   const submittedHash = hashOtp(clean(otp, 10), p);
   if (submittedHash !== pending.otpHash) {
     pending.attempts++;
+    await loginState.bumpOtpAttempts(p, pending.attempts);
     return send(res, 400, { error: "Wrong OTP — please check and try again." });
   }
 
   const storedEmail = pending.email || email;
-  pendingOtps.delete(p);
+  await loginState.deleteOtp(p);
   
   const user = await userModel.findOrCreate(p, {signup:true, signupRef:clean(signupRef,200)});
   
@@ -137,6 +138,7 @@ async function verifyOtp(req, res) {
   require('./visitorLeadsController').link(req, { phone: p, name: user && user.name });
   const token = createSession(p);
   analyticsModel.recordLogin(p, (user && user.name) || "Devotee", token);
+  await loginState.recordLoginSession(p, (user && user.name) || "Devotee");
   send(res, 200, { token, user });
 }
 

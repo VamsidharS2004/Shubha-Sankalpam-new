@@ -24,9 +24,9 @@ document.addEventListener("click", e => {
 });
 if (item) {
   try {
-    const cleanId = encodeURIComponent(item.id != null ? item.id : ref);
+    const cleanId = encodeURIComponent(item.id != null ? ssPujaSlug(item) : ref);
     const cleanPath = "/puja-details/" + cleanId;
-    if (/^\/puja-details(?:\.html)?\/?$/.test(location.pathname)) history.replaceState(null, "", cleanPath + location.hash);
+    if (/^\/puja-details(?:\.html)?\/?$/.test(location.pathname) || (/^\/puja-details\/[^\/]+\/?$/.test(location.pathname) && decodeURIComponent(location.pathname.replace(/\/$/, "")) !== decodeURIComponent(cleanPath))) history.replaceState(null, "", cleanPath + location.hash);
     const head = document.head;
     let canon = head.querySelector('link[rel="canonical"]');
     if (!canon) { canon = document.createElement("link"); canon.rel = "canonical"; head.appendChild(canon); }
@@ -267,7 +267,7 @@ tick(); setInterval(tick, 1000);
 
 /* ---- Book Now: login-gated → booking page ---- */
 function goBook() {
-  const next = "booking.html?id=" + ref;
+  const next = "/book/" + encodeURIComponent(item && item.id != null ? ssPujaSlug(item) : ref);
   if (!authToken) location.href = "login.html?next=" + encodeURIComponent(next);
   else location.href = next;
 }
@@ -305,22 +305,37 @@ if (bookBtnRow && stickyRow) {
   window.addEventListener("load", watch);
 }
 
-/* "Read More" — only appears if the text actually overflows 3 lines,
-   exactly like the reference site (short about-text never shows it) */
+/* "Read More" for About Puja (phones and tablets only).
+   If the About text has more than one paragraph, only the first paragraph is shown with a "Read More" button; tapping it
+   shows the rest ("Show Less" folds it back). A single paragraph shows in full with no button. Laptops always show everything.
+   It re-checks itself when the language changes (the About text is rebuilt) and when the screen size changes. */
 (function setupReadMore() {
-  const p = $id("pdAbout");
+  const box = $id("pdAbout");
   const btn = $id("pdReadMore");
-  p.classList.add("clamped");
-  requestAnimationFrame(() => {
-    if (p.scrollHeight > p.clientHeight + 4) {
-      btn.classList.add("show");
-      btn.addEventListener("click", () => {
-        const open = p.classList.toggle("clamped") === false;
-        btn.classList.toggle("open", open);
-        btn.innerHTML = (open ? `<span data-i18n="show_less">${dt("show_less")}</span>` : `<span data-i18n="read_more">${dt("read_more")}</span>`) + ' <span class="rm-arrow">⌄</span>';
-      });
-    }
-  });
+  if (!box || !btn) return;
+  const mq = window.matchMedia ? window.matchMedia("(max-width: 900px)") : { matches: false };
+  let open = false;
+  btn.className = "read-more-btn";
+  btn.type = "button";
+  function label() {
+    btn.innerHTML = `<span>${dt(open ? "show_less" : "read_more")}</span> <span class="rm-arrow">⌄</span>`;
+    btn.classList.toggle("open", open);
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+  function apply() {
+    const blocks = Array.from(box.children);
+    blocks.forEach(el => el.classList.remove("rm-hide"));
+    const firstPara = blocks.findIndex(el => el.tagName === "P");
+    const hasMore = firstPara !== -1 && blocks.slice(firstPara + 1).some(el => el.textContent.trim());
+    const collapse = mq.matches && hasMore;
+    if (collapse && !open) blocks.slice(firstPara + 1).forEach(el => el.classList.add("rm-hide"));
+    btn.style.display = collapse ? "flex" : "none";
+    label();
+  }
+  btn.addEventListener("click", () => { open = !open; apply(); });
+  new MutationObserver(() => { open = false; apply(); }).observe(box, { childList: true });
+  (mq.addEventListener ? mq.addEventListener("change", apply) : mq.addListener && mq.addListener(apply));
+  apply();
 })();
 
 
@@ -329,7 +344,7 @@ $id("pdTemplePhoto").className = "temple-photo";
 const initialLocalTemple = typeof localTemple === 'function' ? localTemple(item) : item.temple;
 $id("pdTemplePhoto").innerHTML = mediaHTML({ image: (item.detail && item.detail.templeImage) ? item.detail.templeImage : (item.image || item.media) }, initialLocalTemple.split(",")[0]);
 if (item.detail && item.detail.templeDetailsName) {
-    $id("pdTempleName").textContent = item.detail.templeDetailsName;
+    $id("pdTempleName").textContent = String(item.detail.templeDetailsName).split(",")[0].trim();   /* name only: the city is shown on the line below */
   } else {
     $id("pdTempleName").textContent = initialLocalTemple.split(",")[0];
   }
@@ -498,7 +513,9 @@ function updateScrollSpy() {
       tabLinks.forEach(a => a.classList.remove("active"));
       activeTab.classList.add("active");
       if (window.innerWidth <= 960) {
-        activeTab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+        /* centre the active pill inside the tab bar only; scrollIntoView() here also scrolled the whole page back up to the tab bar */
+        const bar = activeTab.closest("#pdTabs");
+        if (bar) bar.scrollTo({ left: Math.max(0, activeTab.offsetLeft - (bar.clientWidth - activeTab.offsetWidth) / 2), behavior: "smooth" });
       }
     }
   }
@@ -515,10 +532,10 @@ window.addEventListener("scroll", () => {
 });
 updateScrollSpy();
 window.addEventListener('languageChanged', () => {
-  if (type === 'puja' && item.id) {
+  if ((type === 'puja' || type === 'pkg') && item.id) {
     const baseId = item.base_id || String(item.id).replace(/-(en|te|hi)$/, "");
-    const localizedItem = pujas.find(p => p.language === currentLang &&
-      (p.base_id === baseId || p.id === baseId || p.id === `${baseId}-${currentLang}`));
+    const localizedItem = (type === 'pkg' ? packages : pujas).find(p => p.language === currentLang &&
+      ((p.base_id || String(p.id).replace(/-(en|te|hi)$/, "")) === baseId || p.id === baseId || p.id === `${baseId}-${currentLang}`));
     if (localizedItem) {
       item = localizedItem;
       ref = localizedItem.id;
@@ -539,3 +556,43 @@ document.documentElement.classList.add("ss-details-ready");
 // Drop the loading placeholder as soon as the details are rendered (title, text, price), without
 // waiting for the photo: the photo box keeps its size and soft background while it downloads.
 requestAnimationFrame(() => document.documentElement.classList.remove("pd-booting"));
+
+/* Puja title: stays on ONE line when it can. If it is a little too long for the screen, the letters shrink a little
+   (never below ~72% of the normal size). If it is still too long, it wraps neatly into balanced lines. Runs again when
+   the screen turns, the language changes or the title text changes. */
+(function () {
+  const t = document.getElementById("pdTitle");
+  if (!t) return;
+  let busy = false;
+  function fit() {
+    if (busy) return;
+    busy = true;
+    t.style.fontSize = "";
+    if (t.textContent.trim() && window.innerWidth <= 1024) {
+      const start = parseFloat(getComputedStyle(t).fontSize) || 24;
+      const min = Math.max(15, start * 0.72);
+      let size = start, guard = 0;
+      const oneLine = () => { const lh = parseFloat(getComputedStyle(t).lineHeight) || size * 1.25; return t.getBoundingClientRect().height <= lh * 1.35; };
+      while (!oneLine() && size > min && guard++ < 40) { size -= 0.5; t.style.fontSize = size + "px"; }
+    }
+    busy = false;
+  }
+  function later() { requestAnimationFrame(fit); }
+  new MutationObserver(later).observe(t, { childList: true, characterData: true, subtree: true });
+  window.addEventListener("resize", later);
+  window.addEventListener("orientationchange", later);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(later);
+  later();
+})();
+
+/* The Book Now bar sits exactly on top of the phone menu (Home / Puja / Packages / Account): measure the menu's real height
+   so there is never a gap between them, whatever the phone or its bottom safe-area. */
+(function () {
+  const nav = document.querySelector(".bottom-nav");
+  function set() { document.documentElement.style.setProperty("--bn-h", ((nav && nav.offsetHeight) || 62) + "px"); }
+  set();
+  window.addEventListener("resize", set);
+  window.addEventListener("orientationchange", set);
+  window.addEventListener("load", set);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(set);
+})();

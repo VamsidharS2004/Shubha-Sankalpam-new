@@ -75,7 +75,7 @@
   .bottom-nav { display: flex; width: 100vw; max-width: 100%; box-sizing: border-box; overflow-x: hidden; justify-content: space-evenly; }
   .bottom-nav a { flex: 1; text-align: center; }
   .floating-wa { bottom: 85px; right: 16px; width: 54px; height: 54px; }
-  .floating-wa svg { width: 24px; height: 24px; }
+  .floating-wa svg { width: 28px; height: 28px; }
   
   /* hide .nav-links entirely */
   .nav-links { display: none; }
@@ -1841,3 +1841,248 @@
     box-shadow: 0 2px 6px rgba(107, 18, 32, .08);
   }
 }
+
+
+/* ===== Pujas / Packages pages: banner only on desktop & laptop.
+   Phones and tablets show just the search bar, pinned under the header
+   so it stays usable while scrolling. ===== */
+@media (max-width: 1024px) {
+  .discover {
+    position: sticky; top: calc(var(--header-h, 70px) - 1px); z-index: 40;
+    padding: 10px 14px !important; border-bottom-width: 2px;
+    box-shadow: 0 3px 10px rgba(0,0,0,.22);
+    background: #4A0C16;
+  }
+  .discover h1, .discover p, .discover .wm { display: none !important; }
+  .discover .search-bar { max-width: 640px; }
+  .discover .search-bar input {
+    height: 46px; box-sizing: border-box; padding: 0 46px 0 18px;
+    font-size: .92rem; box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  }
+  .discover .search-bar .si { right: 18px; }
+  .tabs-sticky { top: calc(var(--header-h, 70px) + 67px); }
+}
+
+/* Puja details (phone/tablet): the tab bar stays pinned right under the header, and tab jumps land
+   with the section heading visible just below it (no empty gap, nothing hidden behind the bar) */
+html body.pd-page .pd-section { scroll-margin-top: calc(var(--header-h, 78px) + 16px); }
+@media (max-width: 960px) {
+  html body.pd-page .pd-sidebar { position: sticky !important; top: calc(var(--header-h, 57px) - 1px) !important; z-index: 50; background: #fff !important; margin: 0 0 6px !important; box-shadow: 0 2px 6px rgba(0,0,0,.06); }
+  html body.pd-page .pd-tabs { margin-bottom: 0 !important; }
+  .pd-content-grid { gap: 0 !important; }
+  .pd-main-content { padding-top: 0 !important; }
+  html body.pd-page .pd-section { scroll-margin-top: calc(var(--header-h, 57px) + 62px); margin-bottom: 28px; padding-bottom: 28px; }
+  .pd-section:first-child .pd-section-title { margin-top: 0; }
+  .pd-section-title { font-size: 1.35rem; margin-bottom: 14px; }
+}
+
+/* ============================================================
+   PUJA DETAILS ON PHONES (Nov 5): compact boxes so more fit on one screen.
+   Smaller paddings and text for Benefits, Puja Process (4+ steps per screen), What you receive and FAQ.
+   All text is always shown in full (no "Read More"); the boxes grow only as much as the text typed in admin needs.
+   ============================================================ */
+@media (max-width: 700px) {
+  html body.pd-page .pd-main-content { padding: 12px 10px; }
+  html body.pd-page .pd-section { margin-bottom: 14px; padding-bottom: 14px; }
+  html body.pd-page .pd-section-title { font-size: 1.05rem; margin: 0 0 8px; }
+
+  /* About */
+  html body.pd-page #pdAbout { font-size: .84rem; line-height: 1.5; }
+
+  /* Benefits */
+  html body.pd-page .pd-benefits-grid { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  html body.pd-page .benefit-card { padding: 8px 10px; gap: 8px; border-radius: 8px; }
+  html body.pd-page .benefit-card .ben-icon { width: 18px; height: 18px; font-size: .62rem; }
+  html body.pd-page .benefit-card h3 { font-size: .8rem; line-height: 1.25; margin: 0 0 1px; }
+  html body.pd-page .benefit-card p { font-size: .72rem; line-height: 1.3; }
+
+  /* Puja process */
+  html body.pd-page .pd-procedure-list { gap: 5px; }
+  html body.pd-page .proc-step { margin-bottom: 0; gap: 8px; }
+  html body.pd-page .pd-procedure-list .proc-card { padding: 6px 10px !important; border-radius: 8px; box-shadow: none; }
+  html body.pd-page .pd-procedure-list .proc-card h3 { font-size: .8rem !important; line-height: 1.25 !important; margin: 0 0 1px !important; }
+  html body.pd-page .pd-procedure-list .proc-card p { font-size: .72rem !important; line-height: 1.3 !important; }
+
+  /* What you receive */
+  html body.pd-page .pd-receive-list { gap: 6px; }
+  html body.pd-page .receive-card { padding: 8px 10px; gap: 8px; border-radius: 8px; }
+  html body.pd-page .receive-card .rc-icon { font-size: 1.2rem; }
+  html body.pd-page .receive-card .rc-num { font-size: 1rem; }
+  html body.pd-page .receive-card h3 { font-size: .82rem; line-height: 1.3; }
+
+  /* FAQ */
+  html body.pd-page .pd-faq-list .faq { margin-bottom: 6px; }
+  html body.pd-page .pd-faq-list .faq .faq-q { padding: 9px 10px; gap: 8px; font-size: .82rem; line-height: 1.3; }
+  html body.pd-page .pd-faq-list .faq-a-body { padding: 0 10px 10px 38px; font-size: .78rem; line-height: 1.45; }
+}
+
+/* ============================================================
+   PUJAS + PACKAGES LISTING ON TABLETS & PHONES (Nov 5)
+   - One pinned bar under the header: category chips on the left, search on the right.
+     It stays visible while you scroll (phones: chips on top, search under them).
+   - Compact cards: 3 per row on tablets, 2 per row on phones.
+   The search box is moved into the bar by assets/js/cards.js (same element, same id).
+   ============================================================ */
+@media (max-width: 1024px) {
+  .discover:has(+ .listing #tabsPage) { display: none; }   /* banner/search moved into the pinned bar */
+
+  .listing:has(#pujaCardsPage), .listing:has(#packageCards) { padding-top: 14px !important; }
+  .listing:has(#pujaCardsPage) .listing-heading,
+  .listing:has(#packageCards) .listing-heading { font-size: 1.15rem; margin: 0 0 10px !important; }
+
+  .listing .tabs-sticky#tabsPage {
+    position: sticky; top: calc(var(--header-h, 64px) - 1px); z-index: 40;
+    display: flex !important; flex-wrap: nowrap; align-items: center; gap: 10px;
+    margin: 0 0 16px !important; padding: 9px 0 !important;
+    background: var(--bg); border-bottom: 0 !important;
+    box-shadow: 0 0 0 100vmax var(--bg); clip-path: inset(0 -100vmax -10px);
+    filter: drop-shadow(0 2px 3px rgba(107,18,32,.14));
+  }
+  /* chips: one line, swipe sideways if there are many */
+  .listing .tabs-sticky#tabsPage .tab {
+    flex: 0 0 auto; padding: 7px 16px; font-size: .82rem; white-space: nowrap;
+  }
+  .listing .tabs-sticky#tabsPage .search-bar {
+    flex: 1 1 220px; min-width: 150px; max-width: 320px; margin: 0 0 0 auto;
+  }
+  .listing .tabs-sticky#tabsPage .search-bar input {
+    height: 38px; box-sizing: border-box; padding: 0 38px 0 16px; font-size: .84rem;
+    border: 1.5px solid var(--line); background: #fff; box-shadow: none; border-radius: 999px;
+  }
+  .listing .tabs-sticky#tabsPage .search-bar input:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(138,18,32,.12); }
+  .listing .tabs-sticky#tabsPage .search-bar .si { right: 14px; font-size: .85rem; }
+
+  /* cards */
+  #pujaCardsPage, #packageCards { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 14px !important; }
+  #pujaCardsPage > .card, #packageCards > .card { border-radius: 12px; }
+  #pujaCardsPage .card-media, #packageCards .card-media { height: auto !important; aspect-ratio: 16 / 10; overflow: hidden; }
+  #pujaCardsPage .card-media .media-img, #packageCards .card-media .media-img { width: 100% !important; height: 100% !important; object-fit: cover !important; }
+  #pujaCardsPage .card-act, #packageCards .card-act { width: 28px; height: 28px; right: 8px; font-size: .8rem; }
+  #pujaCardsPage .card-heart, #packageCards .card-heart { top: 8px !important; }
+  #pujaCardsPage .card-share, #packageCards .card-share { top: 42px !important; }
+  #pujaCardsPage .card-body, #packageCards .card-body { padding: 12px 12px 14px; gap: 6px; }
+  #pujaCardsPage .pkg-badge, #packageCards .pkg-badge { font-size: .66rem; padding: 3px 10px; margin: 0; align-self: flex-start; }
+  #pujaCardsPage .card-body h3, #packageCards .card-body h3 { font-size: .92rem; line-height: 1.3; }
+  #pujaCardsPage .card-desc, #packageCards .card-desc {
+    font-size: .76rem; line-height: 1.4; flex: 0 0 auto;
+    display: -webkit-box !important; -webkit-box-orient: vertical; -webkit-line-clamp: 2 !important; overflow: hidden !important;
+  }
+  #pujaCardsPage .card-meta, #packageCards .card-meta { grid-template-columns: minmax(0, 1fr); gap: 3px; font-size: .72rem; }
+  #pujaCardsPage .card-meta > span, #packageCards .card-meta > span { line-height: 1.35; }
+  #pujaCardsPage .card-foot, #packageCards .card-foot {
+    flex-direction: column; align-items: stretch; gap: 8px; margin-top: auto; padding-top: 10px;
+  }
+  #pujaCardsPage .price, #packageCards .price { font-size: 1.15rem; }
+  #pujaCardsPage .price small, #packageCards .price small { font-size: .62rem; }
+  #pujaCardsPage .book-link, #packageCards .book-link {
+    width: 100%; box-sizing: border-box; justify-content: center; padding: 8px 12px; min-height: 0; font-size: .8rem;
+    box-shadow: none;
+  }
+  #pujaCardsPage .book-link .arrow, #packageCards .book-link .arrow { width: 20px; height: 20px; font-size: .7rem; }
+}
+
+/* ---- phones: ONE card per row, compact enough that a whole card (image, text, price and button) fits in one screen ---- */
+@media (max-width: 600px) {
+  .listing .tabs-sticky#tabsPage { flex-wrap: wrap; row-gap: 6px; padding: 7px 0 !important; margin-bottom: 12px !important; }
+  .listing .tabs-sticky#tabsPage .tab { padding: 5px 12px; font-size: .76rem; }
+  .listing .tabs-sticky#tabsPage .search-bar { flex: 1 1 100%; max-width: none; margin: 0; order: 2; }
+  .listing .tabs-sticky#tabsPage .search-bar input { height: 34px; font-size: .8rem; }
+
+  #pujaCardsPage, #packageCards { grid-template-columns: minmax(0, 1fr) !important; gap: 12px !important; }
+  #pujaCardsPage .card-media, #packageCards .card-media { aspect-ratio: 2 / 1; }
+  #pujaCardsPage .card-body, #packageCards .card-body { padding: 8px 12px 10px; gap: 3px; }
+  #pujaCardsPage .card-body h3, #packageCards .card-body h3 { font-size: .92rem; line-height: 1.3; }
+  #pujaCardsPage .card-desc, #packageCards .card-desc { font-size: .74rem; line-height: 1.35; -webkit-line-clamp: 1 !important; }
+  #pujaCardsPage .card-meta, #packageCards .card-meta { font-size: .72rem; gap: 2px; }
+  #pujaCardsPage .card-meta > span, #packageCards .card-meta > span { line-height: 1.3; }
+  #pujaCardsPage .card-foot, #packageCards .card-foot {
+    flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; margin-top: 6px; padding-top: 7px;
+  }
+  #pujaCardsPage .price, #packageCards .price { font-size: 1.05rem; line-height: 1.1; }
+  #pujaCardsPage .price small, #packageCards .price small { font-size: .6rem; }
+  #pujaCardsPage .book-link, #packageCards .book-link { width: auto; flex: 0 0 auto; padding: 7px 14px; font-size: .78rem; white-space: nowrap; }
+  #pujaCardsPage .card-act, #packageCards .card-act { width: 26px; height: 26px; right: 8px; font-size: .75rem; }
+  #pujaCardsPage .card-heart, #packageCards .card-heart { top: 8px !important; }
+  #pujaCardsPage .card-share, #packageCards .card-share { top: 40px !important; }
+}
+
+/* ============================================================
+   SMALL-SCREEN TIDY-UP (Nov 5), phones only
+   - Puja page: temple card (name on one line, city on the next), small "book by WhatsApp / call" buttons,
+     line icons on the section tabs (same style as the account page)
+   - Account page: smaller "Continue payment" / "Delete" buttons
+   ============================================================ */
+html body.pd-page .pd-tabs a .ic { display: inline-flex; align-items: center; justify-content: center; line-height: 0; }
+html body.pd-page .pd-tabs a .ic svg { width: 18px; height: 18px; }
+html body.pd-page .pd-btn-wa .ic svg, html body.pd-page .pd-btn-call .ic svg { width: 16px; height: 16px; display: block; }
+@media (max-width: 700px) {
+  /* temple card */
+  html body.pd-page .pd-temple-info { padding: 10px 12px; }
+  html body.pd-page .pd-temple-info h3 { font-size: .95rem; line-height: 1.3; margin: 0 0 2px; }
+  html body.pd-page .pd-temple-info p { font-size: .78rem; line-height: 1.3; }
+  html body.pd-page .temple-photo { aspect-ratio: 21 / 8; overflow: hidden; }
+  html body.pd-page .temple-photo img { height: 100%; }
+
+  /* "Not sure which puja to book?" box */
+  html body.pd-page .pd-help-box { padding: 10px 12px !important; }
+  html body.pd-page .pd-help-box h4 { font-size: .84rem; margin: 0 0 8px; line-height: 1.3; }
+  html body.pd-page .pd-help-btns { flex-direction: column; flex-wrap: nowrap; gap: 6px; }
+  html body.pd-page .pd-help-btns a { flex: 0 0 auto; width: 100%; box-sizing: border-box; padding: 7px 10px; border-radius: 8px; font-size: .78rem; gap: 6px; white-space: nowrap; line-height: 1.2; }
+
+  /* section tabs */
+  html body.pd-page .pd-tabs a { gap: 6px; }
+
+  /* account page booking buttons */
+  html body .bkc-actions { width: auto; flex-wrap: nowrap; gap: 6px; }
+  html body .bkc-actions .bkc-btn, html body .bkc-actions .bkc-btn.grow { flex: 0 1 auto; padding: 5px 12px; font-size: .74rem; border-radius: 8px; white-space: nowrap; line-height: 1.3; }
+}
+
+/* ============================================================
+   PUJA FACTS ROW: label + value can never overlap (Nov 5)
+   "Duration: about 2 hours" is one block of text that wraps like normal text, so a long translated label
+   or value moves to the next line instead of running over its neighbour. Works for any language and any length.
+   ============================================================ */
+.pd-meta-item { min-width: 0; }
+.pd-meta-item > .ic { flex: 0 0 auto; }
+.pd-meta-item > .pd-meta-text { flex: 1 1 0; min-width: 0; white-space: normal; overflow-wrap: anywhere; line-height: 1.35; }
+.pd-meta-item > .pd-meta-text > span, .pd-meta-item > .pd-meta-text > b { display: inline; }
+@media (max-width: 767px) {
+  .pd-hero-left > .pd-hero-meta [data-i18n="language_label"],
+  .pd-hero-left > .pd-hero-meta [data-i18n="col_duration"] { white-space: normal !important; }
+}
+
+/* Puja title: tidy line breaks when it has to wrap (shrinking to one line is done in details.js) */
+.pd-hero-title { line-height: 1.25; text-wrap: balance; overflow-wrap: break-word; }
+
+/* About Puja "Read More" (see details.js): the folded-away paragraphs and the button */
+.rm-hide { display: none !important; }
+#pdReadMore.read-more-btn { margin: 8px auto 0; padding: 4px 8px; font-size: .84rem; cursor: pointer; align-items: center; justify-content: center; gap: 4px; }
+#pdReadMore .rm-arrow { display: inline-block; line-height: 1; transition: transform .2s; }
+#pdReadMore.open .rm-arrow { transform: rotate(180deg); }
+
+/* Phones & small tablets: the Book Now bar is attached directly on top of the bottom menu (no gap, nothing visible between them).
+   It stays pinned there while you scroll, and at the end of the page it rests above the footer as before. */
+@media (max-width: 768px) {
+  html body.pd-page .pd-sticky-bottom {
+    bottom: var(--bn-h, 62px) !important;
+    width: 100vw !important; max-width: 100vw !important; left: auto !important; right: auto !important;
+    margin-left: calc(50% - 50vw) !important; margin-right: 0 !important;
+    border-radius: 14px 14px 0 0 !important;
+    box-shadow: 0 -4px 14px rgba(107, 18, 32, .28) !important;
+    padding-left: 14px !important; padding-right: 12px !important;
+  }
+}
+
+/* Puja page on phones/tablets: no big empty band between the end of the content / Book Now bar and the footer */
+@media (max-width: 768px) {
+  html body.pd-page .pd-content-grid { padding-bottom: 12px; }
+  html body.pd-page .footer-wrap { margin-top: 8px; }
+}
+
+/* Search icon: clean line magnifier (same style as the tab icons) instead of the emoji */
+.search-bar .si { display: inline-flex; align-items: center; justify-content: center; opacity: 1; pointer-events: none; line-height: 0; }
+.search-bar .si svg { width: 20px; height: 20px; display: block; }
+.discover .search-bar .si { color: var(--red); }
+.listing .tabs-sticky#tabsPage .search-bar .si { color: var(--muted); }
+.listing .tabs-sticky#tabsPage .search-bar .si svg { width: 17px; height: 17px; }
+.listing .tabs-sticky#tabsPage .search-bar input:focus ~ .si { color: var(--red); }

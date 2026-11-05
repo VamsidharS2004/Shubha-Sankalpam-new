@@ -393,3 +393,5 @@ header.flow-header .logo {margin:auto}
     .cta-note { flex-direction: column; gap: 12px; }
     .cta-note .sep { display: none; }
 }
+
+.floating-wa svg{width:32px;height:32px}

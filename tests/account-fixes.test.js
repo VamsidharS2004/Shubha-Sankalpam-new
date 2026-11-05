@@ -84,7 +84,7 @@ test('account avatar skips Mr./Mrs./Dr./Sri titles', () => {
 
 test('account page shows at once: no waiting for the catalog scripts, early profile request, skeleton bookings', () => {
   const html = read('frontend/account.html');
-  assert.match(html, /html:not\(\.ss-has-token\) \.account-banner/);
+  assert.match(html, /html:not\(\.ss-has-token\) \.account-grid/);
   assert.match(html, /window\.__meP = fetch\("\/api\/me"/);
   assert.match(html, /class="bk-skel"/);
   assert.ok(!/Loading profile/.test(html));
@@ -389,4 +389,50 @@ test('first-load speed: scroll-reveal measures before it writes, and far-below s
   const home = read('frontend/home.html');
   for (const id of ['why-us', 'temples', 'testimonials', 'faq']) assert.match(home, new RegExp(`class="section cv-below" id="${id}"`));
   assert.ok(!/cv-below[^>]*id="(pujas|top)"/.test(home), 'the banner and the pujas list are never deferred');
+});
+
+
+test('account page has no top banner; My Profile shows a read-only Customer ID and a Logout button', () => {
+  const html = read('frontend/account.html'), js = read('frontend/assets/js/pages/account.js');
+  assert.ok(!/class="account-banner"/.test(html));
+  assert.match(html, /id="pfCid"/);
+  assert.match(html, /id="pfLogout"/);
+  assert.match(html, /data-panel="profile"/); // sidebar untouched
+  assert.match(js, /customer_id/);
+  assert.ok(!/abName|abEditBtn|abLogoutBtn/.test(js));
+});
+
+test('customer ID: 5 digits, unique, handed out once, never editable (database + local fallback + admin list)', () => {
+  const sql = read('backend/migrations/20261102_customer_id.sql'), model = read('backend/models/userModel.js');
+  assert.match(sql, /START 10001 MINVALUE 10001 MAXVALUE 99999 NO CYCLE/);
+  assert.match(sql, /CREATE UNIQUE INDEX IF NOT EXISTS devotees_customer_id_key/);
+  assert.match(sql, /NEW\.customer_id := OLD\.customer_id/);
+  assert.match(model, /nextLocalCustomerId/);
+  assert.ok(!/updates\.customer_id/.test(model));
+  assert.match(read('frontend/assets/js/admin.js'), /Customer ID: <b>/);
+});
+
+test('My Profile fields are read-only until Edit Profile is pressed', () => {
+  const html = read('frontend/account.html');
+  for (const id of ['pfName', 'pfGotram', 'pfEmail']) assert.match(html, new RegExp(`id="${id}"[^>]*readonly`), id);
+  assert.match(html, /id="pfEdit"/);
+  assert.match(html, /id="pfSave"[^>]*hidden/);
+  assert.match(html, /id="pfCancel"[^>]*hidden/);
+  const js = read('frontend/assets/js/pages/account.js');
+  assert.match(js, /setEdit\(true\)/);
+  assert.match(js, /readOnly\s*=\s*!on/);
+});
+
+test('booking tracker is fully green and menu pills are pinned under the header on phones', () => {
+  const css = read('frontend/assets/css/account.css');
+  assert.match(css, /\.bkc-step\.on::before\{background:#1E7A46\}/);
+  assert.match(css, /account-grid>\.side-card\{position:sticky!important/);
+});
+
+test('puja details tabs stay pinned on phones and tab jumps do not scroll the page back', () => {
+  const css = read('frontend/assets/css/responsive.css');
+  assert.match(css, /body\.pd-page \.pd-sidebar \{ position: sticky !important/);
+  assert.match(css, /pd-section \{ scroll-margin-top/);
+  const js = read('frontend/assets/js/pages/details.js');
+  assert.doesNotMatch(js, /activeTab\.scrollIntoView/);
 });

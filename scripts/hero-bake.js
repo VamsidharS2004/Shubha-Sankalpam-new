@@ -79,7 +79,7 @@ function bakeHomeHero(html, root, probe = probeSizeSync, pujaList = null) {
       rest = rest.replace(/<h1>[\s\S]*?<\/h1>/, `<h1>${headline}</h1>`)
         .replace(/(<p class="hero-desc">)[\s\S]*?(<\/p>)/, (m, a, b) => `${a}${esc(desc)}${b}`)
         .replace(/(<div class="hero-meta"><span class="hm-item">)[\s\S]*?(<\/span><span class="hm-item">)[\s\S]*?(<\/span><\/div>)/, (m, a, b, c) => `${a}${esc(temple)}${b}${esc(date)}${c}`)
-        .replace(/(<a href=")[^"]*(" class="btn hero-btn-primary">)/, (m, a, b) => `${a}/puja-details/${encodeURIComponent(first.id)}${b}`)
+        .replace(/(<a href=")[^"]*(" class="btn hero-btn-primary">)/, (m, a, b) => `${a}/puja-details/${encodeURIComponent(/-(en|te|hi)$/.test(String(first.id)) ? first.id : first.id + "-" + (first.language || "en"))}${b}`)
         ;
       slide = slide.replace(/( alt=")[^"]*(" class="hero-img")/, (m, a, b) => `${a}${attr(name)}${b}`);
       bakedRest = rest;

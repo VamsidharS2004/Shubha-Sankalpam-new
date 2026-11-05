@@ -9,29 +9,44 @@ function getTempDir() {
   return dir;
 }
 
-async function startVideoUpload(req, res) {
-  if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
-  const { supabase: activeSupabase } = require('../utils/supabase');
-  if (!activeSupabase) return send(res, 503, { error: 'Storage configuration missing' });
+/* Big videos go from the admin's browser STRAIGHT to Supabase Storage (resumable upload, 6 MB pieces), so they
+   never pass through this server (a serverless host cannot hold a multi-GB file). This endpoint only checks the
+   admin password and hands the browser what it needs; /finish confirms the file arrived and returns its public URL. */
+const BUCKET = 'media';
+const ALLOWED_EXT = ['mp4', 'mov', 'webm', 'm4v', 'mkv'];
 
+async function startVideoUpload(req, res, url) {
+  if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
+  const { SUPABASE_URL, SUPABASE_SERVICE_KEY } = require('../config');
+  const { supabase: activeSupabase } = require('../utils/supabase');
+  if (!activeSupabase || !SUPABASE_URL || !SUPABASE_SERVICE_KEY) return send(res, 503, { error: 'Storage configuration missing' });
+
+  let ext = String((url && url.searchParams.get('ext')) || 'mp4').toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (!ALLOWED_EXT.includes(ext)) ext = 'mp4';
   const uploadId = crypto.randomUUID();
-  const tempPath = path.join(getTempDir(), uploadId);
-  fs.writeFileSync(tempPath, Buffer.alloc(0)); // create empty file
-  
-  send(res, 200, { success: true, uploadId });
+  send(res, 200, {
+    success: true,
+    uploadId,
+    bucket: BUCKET,
+    objectName: `videos/${uploadId}.${ext}`,
+    endpoint: `${SUPABASE_URL.replace(/\/+$/, '')}/storage/v1/upload/resumable`,
+    token: SUPABASE_SERVICE_KEY /* admin-only endpoint: the key goes only to a logged-in admin's browser */
+  });
 }
 
-async function uploadVideoChunk(req, res) {
+async function uploadVideoChunk(req, res, url) {
   if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
   
-  const uploadId = req.query.id;
-  const chunkIndex = parseInt(req.query.index, 10);
-  const chunkSize = parseInt(req.query.size, 10);
+  const q = url.searchParams;
+  const uploadId = q.get('id');
+  const chunkIndex = parseInt(q.get('index'), 10);
+  const chunkSize = parseInt(q.get('size'), 10);
   
   if (!uploadId || isNaN(chunkIndex) || isNaN(chunkSize)) {
     return send(res, 400, { error: 'Missing chunk metadata' });
   }
 
+  if (!/^[0-9a-f-]{36}$/i.test(uploadId)) return send(res, 400, { error: 'Bad upload ID' });
   const tempPath = path.join(getTempDir(), uploadId);
   if (!fs.existsSync(tempPath)) {
     return send(res, 404, { error: 'Upload session not found' });
@@ -73,51 +88,22 @@ async function uploadVideoChunk(req, res) {
   });
 }
 
-async function finishVideoUpload(req, res) {
+async function finishVideoUpload(req, res, url) {
   if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
   const { supabase: activeSupabase } = require('../utils/supabase');
-  
-  const uploadId = req.query.id;
-  if (!uploadId) return send(res, 400, { error: 'Missing upload ID' });
-
-  const tempPath = path.join(getTempDir(), uploadId);
-  if (!fs.existsSync(tempPath)) {
-    return send(res, 404, { error: 'Upload session not found' });
-  }
-
+  const uploadId = url.searchParams.get('id');
+  const ext = String(url.searchParams.get('ext') || 'mp4').toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (!uploadId || !/^[0-9a-f-]{36}$/i.test(uploadId) || !ALLOWED_EXT.includes(ext)) return send(res, 400, { error: 'Bad upload ID' });
   try {
-    const stat = fs.statSync(tempPath);
-    if (stat.size === 0) {
-      return send(res, 400, { error: 'Empty file' });
-    }
-
-    const ext = '.mp4';
-    const filename = `${uploadId}${ext}`;
-    const storagePath = `videos/${filename}`;
-
-    const fileStream = fs.createReadStream(tempPath);
-    
-    // Upload to Supabase using duplex: half for streams
-    const { data, error } = await activeSupabase.storage.from('media').upload(storagePath, fileStream, {
-      contentType: 'video/mp4',
-      duplex: 'half',
-      upsert: false
-    });
-
-    if (error) {
-      console.error('Supabase upload error:', error);
-      return send(res, 502, { error: 'Storage upload failed' });
-    }
-
-    const { data: publicUrlData } = activeSupabase.storage.from('media').getPublicUrl(storagePath);
-    
-    // Cleanup local file
-    try { fs.unlinkSync(tempPath); } catch (e) {}
-
-    send(res, 200, { success: true, url: publicUrlData.publicUrl });
+    const name = `${uploadId}.${ext}`;
+    const { data: found, error } = await activeSupabase.storage.from(BUCKET).list('videos', { search: name, limit: 5 });
+    if (error) return send(res, 502, { error: 'Storage check failed: ' + (error.message || JSON.stringify(error)) });
+    if (!found || !found.some(f => f.name === name)) return send(res, 404, { error: 'Video not found in storage. The upload may not have finished.' });
+    const { data } = activeSupabase.storage.from(BUCKET).getPublicUrl(`videos/${name}`);
+    send(res, 200, { success: true, url: data.publicUrl });
   } catch (err) {
-    console.error("Finish upload error", err);
-    send(res, 500, { error: 'Failed to finish upload' });
+    console.error('Finish upload error', err);
+    send(res, 500, { error: 'Failed to finish upload: ' + (err.message || '') });
   }
 }
 

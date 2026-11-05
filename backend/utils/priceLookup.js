@@ -12,7 +12,8 @@
    ================================================================ */
 const path = require("path");
 const { pujas } = require(path.join(__dirname, "..", "..", "frontend", "content", "pujas.js"));
-const { packages } = require(path.join(__dirname, "..", "..", "frontend", "content", "packages.js"));
+const { splitPackages } = require("./packageLanguages");
+const packages = splitPackages(require(path.join(__dirname, "..", "..", "frontend", "content", "packages.js")).packages);
 
 /* Looks up the real price for a puja or package by its name.
    Returns null if no match is found (caller should reject the

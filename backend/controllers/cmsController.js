@@ -64,7 +64,7 @@ async function updatePujas(req, res) {
 async function getPackages(req, res) {
   try {
     const snapshot=await readCatalog('cms_packages');
-    const records=frontendRows('cms_packages',snapshot.rows);
+    const records=require('../utils/packageLanguages').splitPackages(frontendRows('cms_packages',snapshot.rows));
     safeWrite(PACKAGES_FILE_PATH, 'packages', records);
     send(res,200,{ok:true,packages:records,revision:snapshot.revision});
   } catch(err) { send(res,err.status||503,{error:err.message}); }

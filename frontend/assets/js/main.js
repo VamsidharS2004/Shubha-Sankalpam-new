@@ -1,3 +1,32 @@
+/* ss-package-languages:start */
+function ssSplitPackages(list) {
+  /* One package = one language (like pujas). A package saved before this rule held English, Telugu and Hindi together:
+     it is shown as up to three packages. The English one keeps the old id (old links and bookings keep working);
+     the Telugu / Hindi ones get "-te" / "-hi". Packages that already have a language are left as they are. */
+  var out = [], LANGS = ["en", "te", "hi"];
+  (list || []).forEach(function (p) {
+    if (!p) return;
+    if (p.language) { out.push(p); return; }
+    var made = 0;
+    LANGS.forEach(function (L) {
+      var name = L === "en" ? p.name : p["name_" + L];
+      if (!name) return;
+      var q = JSON.parse(JSON.stringify(p));
+      q.language = L; q.base_id = String(p.id);
+      q.id = L === "en" ? String(p.id) : p.id + "-" + L;
+      q.name = name;
+      q.desc = (L === "en" ? p.desc : p["desc_" + L]) || "";
+      LANGS.forEach(function (X) { delete q["name_" + X]; delete q["desc_" + X]; });
+      if (L !== "en") { q["name_" + L] = q.name; q["desc_" + L] = q.desc; }
+      out.push(q); made++;
+    });
+    if (!made) out.push(p);
+  });
+  return out;
+}
+/* ss-package-languages:end */
+(function () { if (typeof packages !== "undefined" && Array.isArray(packages)) { var s = ssSplitPackages(packages); packages.splice.apply(packages, [0, packages.length].concat(s)); } })();
+
 /* ============================================================
    ⚠️ SITE CODE — not content. To edit puja/package text, prices,
    images, or site info, go to the /content folder instead.
@@ -5,11 +34,11 @@
    MAIN.JS — shared helpers (API calls, session state) used by every page
    ============================================================ */
 const $id = x => document.getElementById(x);
-/* ?id=... works as before; on the clean URL /puja-details/001 the id comes from the path */
+/* ?id=... works as before; on the clean URLs /puja-details/001-te and /book/001-te the id comes from the path */
 const getParam = k => {
   const v = new URLSearchParams(location.search).get(k);
   if (v !== null || k !== "id") return v;
-  const m = location.pathname.match(/^\/puja-details\/([^\/]+)\/?$/);
+  const m = location.pathname.match(/^\/(?:puja-details|book)\/([^\/]+)\/?$/);
   try { return m ? decodeURIComponent(m[1]) : null; } catch (_) { return m ? m[1] : null; }
 };
 
@@ -87,6 +116,14 @@ function ssPendingBookings(bookings) {
   });
 }
 
+/* Readable address of a puja/package: its id plus the language, e.g. 001-te (Telugu), 001-hi (Hindi), 001-en (English).
+   Ids that already end with the language are kept as they are. The stored id never changes. */
+function ssPujaSlug(p) {
+  const id = String((p && p.id) != null ? p.id : "");
+  if (!id || /-(en|te|hi)$/.test(id)) return id;
+  return id + "-" + ((p && p.language) || "en");
+}
+
 /* which puja/package does a "ref" like "puja:1" point to? */
 function getItem(ref) {
   const value = String(ref || "");
@@ -95,6 +132,15 @@ function getItem(ref) {
   if (puja) return { item: puja, type: "puja", ref };
   const pkg = typeof packages !== 'undefined' ? packages.find(p => String(p.id) === value) : null;
   if (pkg) return { item: pkg, type: "pkg", ref };
+  // Readable address 001-te: the stored id 001 in language te
+  const slug = value.match(/^(.+)-(en|te|hi)$/);
+  if (slug) {
+    const same = p => String(p.id) === slug[1] && (p.language || "en") === slug[2];
+    const sp = typeof pujas !== 'undefined' ? pujas.find(same) : null;
+    if (sp) return { item: sp, type: "puja", ref };
+    const sk = typeof packages !== 'undefined' ? packages.find(same) : null;
+    if (sk) return { item: sk, type: "pkg", ref };
+  }
   const legacy = value.match(/^(puja|pkg):(\d+)$/);
   if (legacy) {
     const type = legacy[1] === "pkg" ? "pkg" : "puja";

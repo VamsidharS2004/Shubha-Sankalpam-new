@@ -1,6 +1,7 @@
 const path = require('path');
 const { safeRead, ensureInitialSync } = require('./cmsSync');
 const { isPublic } = require('./pujaVisibility');
+const { splitPackages } = require('./packageLanguages');
 
 function catalog() {
   const pujasPath = path.join(__dirname, "../../frontend/content/pujas.js");
@@ -8,7 +9,7 @@ function catalog() {
   
   return [
     safeRead(pujasPath, "pujas"),
-    safeRead(packagesPath, "packages")
+    splitPackages(safeRead(packagesPath, "packages"))
   ];
 }
 

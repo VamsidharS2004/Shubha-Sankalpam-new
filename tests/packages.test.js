@@ -6,8 +6,30 @@ function setup(ok=true){
  let request;const alerts=[];
  const context={window:{},document:{getElementById:el},structuredClone,crypto,Number,parseInt,encodeURIComponent,console,alert:x=>alerts.push(x),KEY:'test',allPackages:[original],packagesRevision:'rev',packageSaving:false,packageDetailFields:{benefits:['t','d'],procedure:['t','d'],receive:['r'],faqs:['q','a'],gallery:['url']},readPackageDetailRows:type=>type==='gallery'?['/image.webp']:[{t_te:'వివరాలు'}],fetch:async(url,options)=>{request=JSON.parse(options.body);return{ok,json:async()=>({error:'Conflict'})}},closeAllDrawers(){},loadPackages(){}};
  vm.createContext(context);vm.runInContext(source.slice(source.indexOf('async function savePackage('),source.indexOf('// ================== Temples CMS')),context);
- el('editPackageIndex').value='0';el('editPackagePrice').value='125.50';el('editPackageNameTe').value='కొత్త పేరు';
+ el('editPackageIndex').value='0';el('editPackagePrice').value='125.50';el('editPackageLangToggle').value='te';el('editPackageNameTe').value='కొత్త పేరు';
  return{context,el,original,alerts,get request(){return request}};
 }
-test('package edits preserve identity and unknown details, accept Telugu-only names and keep decimal prices',async()=>{const s=setup();await s.context.savePackage();assert.equal(s.request.revision,'rev');const p=s.request.packages[0];assert.equal(p.id,s.original.id);assert.equal(p.price,125.5);assert.equal(p.detail.unknown,'preserve');assert.deepEqual(p.detail.gallery,['/image.webp']);assert.equal(s.original.price,100);assert.equal(s.el('savePackageBtn').disabled,false);});
+test('package edits preserve identity and unknown details, accept Telugu-only names and keep decimal prices',async()=>{const s=setup();await s.context.savePackage();assert.equal(s.request.revision,'rev');const p=s.request.packages[0];assert.equal(p.id,s.original.id);assert.equal(p.language,'te');assert.equal(p.name,'కొత్త పేరు');assert.equal(p.name_te,'కొత్త పేరు');assert.equal(p.name_en,undefined);assert.equal(p.price,125.5);assert.equal(p.detail.unknown,'preserve');assert.deepEqual(p.detail.gallery,['/image.webp']);assert.equal(s.original.price,100);assert.equal(s.el('savePackageBtn').disabled,false);});
 test('failed package save preserves current catalog; invalid prices do not send a request',async()=>{const s=setup(false);await s.context.savePackage();assert.equal(s.original.price,100);assert.equal(s.alerts[0],'Conflict');assert.equal(s.context.packageSaving,false);const bad=setup();bad.el('editPackagePrice').value='-5';await bad.context.savePackage();assert.equal(bad.request,undefined);});
+
+test('one package = one language: a package saved before this rule is shown as an English, a Telugu and a Hindi package',()=>{
+  const {splitPackages}=require('../backend/utils/packageLanguages');
+  const old={id:'abc',name:'Monthly',name_te:'నెలవారీ',name_hi:'मासिक',desc:'d',desc_te:'డి',desc_hi:'डी',price:299,detail:{about:'a',about_te:'ఎ',about_hi:'ए'}};
+  const out=splitPackages([old,{id:'only-te',name:'',name_te:'తె',price:1,detail:{}},{id:'new-te',language:'te',name:'కొత్త',price:5,detail:{}}]);
+  assert.deepEqual(out.map(p=>[p.id,p.language]),[['abc','en'],['abc-te','te'],['abc-hi','hi'],['only-te-te','te'],['new-te','te']]);
+  const te=out[1];assert.equal(te.name,'నెలవారీ');assert.equal(te.name_te,'నెలవారీ');assert.equal(te.name_hi,undefined);assert.equal(te.desc,'డి');
+  assert.equal(out[0].name_te,undefined);assert.equal(out[0].price,299);assert.equal(old.name_te,'నెలవారీ'); // input untouched
+  assert.deepEqual(splitPackages(out).map(p=>p.id),out.map(p=>p.id));                                   // splitting twice changes nothing
+});
+test('the website copy of the package-language rule is identical to the server copy',()=>{
+  const cut=t=>t.slice(t.indexOf('/* ss-package-languages:start */'),t.indexOf('/* ss-package-languages:end */'));
+  const a=cut(fs.readFileSync(require('node:path').join(__dirname,'../backend/utils/packageLanguages.js'),'utf8'));
+  const b=cut(fs.readFileSync(require('node:path').join(__dirname,'../frontend/assets/js/main.js'),'utf8'));
+  assert.ok(a.length>200);assert.equal(a,b);
+});
+test('listing and details pages show only packages of the chosen language, and the language switch finds the matching package',()=>{
+  const r=f=>fs.readFileSync(require('node:path').join(__dirname,'..',f),'utf8');
+  assert.match(r('frontend/assets/js/cards.js'),/\(type === "puja" \|\| type === "pkg"\) && p\.language && p\.language !== currentLang/);
+  assert.match(r('frontend/assets/js/pages/details.js'),/type === 'puja' \|\| type === 'pkg'/);
+  assert.match(r('backend/utils/catalog.js'),/splitPackages\(safeRead/);
+});

@@ -112,7 +112,8 @@ async function performSupabaseSync() {
                 badge: pkg.badge,
                 image: (pkg.media && typeof pkg.media === 'string') ? pkg.media : (pkg.media && pkg.media.image) ? pkg.media.image : "",
                 gallery: pkg.detail?.gallery || [],
-                detail: pkg.detail || {}
+                detail: pkg.detail || {},
+                language: pkg.detail?.language || undefined
             }));
             writeSynced(PACKAGES_FILE, "packages", packages);
             console.log(`[CMS Sync] Loaded ${packages.length} packages from Supabase.`);
@@ -214,7 +215,7 @@ async function syncPackagesToSupabase(packagesArray, options) {
             badge: pkg.badge || "",
             media: img ? { image: img } : {},
             gallery: pkg.detail?.gallery || [],
-                detail: pkg.detail || {}
+                detail: pkg.language ? { ...(pkg.detail || {}), language: pkg.language } : (pkg.detail || {})
         };
     });
     

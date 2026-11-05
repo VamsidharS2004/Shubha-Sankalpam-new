@@ -70,7 +70,7 @@ function renderSlider() {
       if (meta[0]) setText(meta[0], localTemple(firstPuja));
       if (meta[1]) setText(meta[1], localDate(firstPuja));
       if (buttons[0]) {
-        const href = `/puja-details/${encodeURIComponent(firstPuja.id)}`;
+        const href = `/puja-details/${encodeURIComponent(ssPujaSlug(firstPuja))}`;
         if (buttons[0].getAttribute("href") !== href) buttons[0].setAttribute("href", href);
         if (buttons[0].textContent !== "Book Now") buttons[0].innerHTML = '<span>Book Now</span>';
       }
@@ -117,7 +117,7 @@ function renderSlider() {
           </div>
 
           <div class="hero-buttons">
-            <a href="/puja-details/${encodeURIComponent(p.id)}" class="btn hero-btn-primary">
+            <a href="/puja-details/${encodeURIComponent(ssPujaSlug(p))}" class="btn hero-btn-primary">
               <svg class="hero-book-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path></svg>
               <span>Book Now</span>
             </a>

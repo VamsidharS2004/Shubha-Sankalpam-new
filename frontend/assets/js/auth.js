@@ -94,7 +94,7 @@ $id("verifyOtpBtn").addEventListener("click", async () => {
     const out = await api("/api/login/verify", "POST", {
       phone: ($id("loginCountryCode") && !$id("loginPhone").value.trim().startsWith("+") ? $id("loginCountryCode").value + " " : "") + $id("loginPhone").value.trim(),
       otp: $id("loginOtp").value.trim(),
-      signupRef: new URL(next, location.href).searchParams.get("id") || ""
+      signupRef: new URL(next, location.href).searchParams.get("id") || ((new URL(next, location.href).pathname.match(/^\/book\/([^\/]+)/) || [])[1] || "")
     });
     
     const user = out.user;

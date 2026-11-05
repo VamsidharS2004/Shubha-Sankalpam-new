@@ -19,8 +19,10 @@
     .back-btn { background: #333; color: #fff; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-size: 16px; display: flex; align-items: center; gap: 8px; text-decoration: none; font-weight: bold; }
     .back-btn:hover { background: #444; }
     video { max-width: 100%; max-height: calc(100vh - 130px); outline: none; }
-    .jump-row { padding: 10px 0; display: none; }
-    .jump-btn { background: #b3261e; color: #fff; border: none; padding: 10px 18px; border-radius: 999px; cursor: pointer; font-size: 15px; font-weight: 700; }
+    .jump-row { padding: 10px 12px; display: none; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 100%; box-sizing: border-box; }
+    .jump-btn { background: #b3261e; color: #fff; border: none; padding: 9px 16px; border-radius: 999px; cursor: pointer; font-size: 14px; font-weight: 700; max-width: 100%; }
+    .jump-btn:hover { background: #cf3a31; }
+    .jump-btn .jt { opacity: .85; font-weight: 600; margin-left: 4px; }
   </style>
 
   <!-- Favicon -->
@@ -31,28 +33,68 @@
     <a href="account.html" class="back-btn">&larr; Go Back</a>
   </div>
   <video id="player" controls autoplay playsinline></video>
-  <div class="jump-row" id="jumpRow"><button type="button" class="jump-btn" id="jumpBtn"></button></div>
+  <div class="jump-row" id="jumpRow"></div>
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const rawUrl = urlParams.get('url') || '';
     const parts = rawUrl.split('#');
     const videoUrl = parts[0];
-    const m = /(?:^|&)gotra=(\d{1,6})(?:&|$)/.exec(parts.slice(1).join('#'));
-    const gotraStart = m ? parseInt(m[1], 10) : 0;
+    const hashPart = parts.slice(1).join('#');
+
+    /* Timestamps typed in the admin panel are kept in the link:  #ts=Name~seconds;Name~seconds  (names are URL-encoded).
+       Older links with  #gotra=SECONDS  still work and show one "Go to gotra names" button. */
+    function readStamps(hash) {
+      const list = [];
+      const ts = /(?:^|&)ts=([^&]*)/.exec(hash);
+      if (ts) {
+        ts[1].split(';').forEach(function (item) {
+          const cut = item.lastIndexOf('~');
+          if (cut < 1) return;
+          const sec = parseInt(item.slice(cut + 1), 10);
+          let name = item.slice(0, cut);
+          try { name = decodeURIComponent(name); } catch (e) {}
+          name = name.trim();
+          if (name && Number.isFinite(sec) && sec >= 0) list.push({ name: name, seconds: sec });
+        });
+      }
+      if (!list.length) {
+        const g = /(?:^|&)gotra=(\d{1,6})(?:&|$)/.exec(hash);
+        if (g && parseInt(g[1], 10) > 0) {
+          const lang = document.documentElement.lang;
+          const label = { te: 'గోత్రనామాల దగ్గరికి వెళ్ళండి', hi: 'गोत्र नाम पर जाएँ', en: 'Go to gotra names' }[lang] || 'Go to gotra names';
+          list.push({ name: label, seconds: parseInt(g[1], 10) });
+        }
+      }
+      return list.sort(function (a, b) { return a.seconds - b.seconds; });
+    }
+    function clock(total) {
+      const h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60), s = String(total % 60).padStart(2, '0');
+      return h ? h + ':' + String(m).padStart(2, '0') + ':' + s : m + ':' + s;
+    }
+
     if (videoUrl) {
       const player = document.getElementById('player');
       player.src = videoUrl;
-      if (gotraStart > 0) {
-        const lang = document.documentElement.lang;
-        const text = { te: 'గోత్రనామాల దగ్గరికి వెళ్ళండి', hi: 'गोत्र नाम पर जाएँ', en: 'Go to gotra names' }[lang] || 'Go to gotra names';
-        const mm = Math.floor(gotraStart / 60), ss = String(gotraStart % 60).padStart(2, '0');
-        document.getElementById('jumpBtn').textContent = '▶ ' + text + ' (' + mm + ':' + ss + ')';
-        document.getElementById('jumpRow').style.display = 'block';
-        document.getElementById('jumpBtn').addEventListener('click', function () {
-          player.currentTime = gotraStart;
-          player.play().catch(function () {});
+      const stamps = readStamps(hashPart);
+      if (stamps.length) {
+        const row = document.getElementById('jumpRow');
+        stamps.forEach(function (st) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'jump-btn';
+          btn.appendChild(document.createTextNode('\u25B6 ' + st.name));
+          const t = document.createElement('span');
+          t.className = 'jt';
+          t.textContent = '(' + clock(st.seconds) + ')';
+          btn.appendChild(t);
+          btn.addEventListener('click', function () {
+            player.currentTime = st.seconds;
+            player.play().catch(function () {});
+          });
+          row.appendChild(btn);
         });
+        row.style.display = 'flex';
       }
     } else {
       document.body.innerHTML = "<h2 style='color:white; margin:auto;'>Video not found</h2>";

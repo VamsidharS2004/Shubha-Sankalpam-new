@@ -26,9 +26,17 @@
     return;
   }
 
+  /* tidy the address: booking.html?id=001 and /book/001 become /book/001-te (id + language) */
+  try {
+    const want = "/book/" + encodeURIComponent(item.id != null ? ssPujaSlug(item) : ref);
+    const rest = new URLSearchParams(location.search); rest.delete("id");
+    const q = rest.toString();
+    if (decodeURIComponent(location.pathname.replace(/\/$/, "")) !== decodeURIComponent(want) && item.id != null) history.replaceState(null, "", want + (q ? "?" + q : "") + location.hash);
+  } catch (_) {}
+
   /* not logged in? go to login, then come back here */
   if (!authToken) {
-    location.href = "login.html?next=" + encodeURIComponent("booking.html?id=" + ref);
+    location.href = "login.html?next=" + encodeURIComponent("/book/" + (item.id != null ? ssPujaSlug(item) : ref));
     return;
   }
 
@@ -88,7 +96,7 @@ let promo = null;   /* { code, off, label } once a promo code has been applied (
 function showPrice(){
 $id("bkDate").textContent = item.muhurat ? new Date(item.muhurat).toLocaleDateString("en-IN",{timeZone:"Asia/Kolkata",day:"numeric",month:"long",year:"numeric"}) : item.date || "To be confirmed";
 const formattedPrice = "₹" + item.price.toLocaleString("en-IN");
-const disc = type === "pkg" ? null : ssDiscountInfo(item);          /* puja discount set in the admin panel (null = no discount) */
+const disc = ssDiscountInfo(item);          /* puja / package discount set in the admin panel (null = no discount) */
 const off = promo ? Math.min(promo.off, item.price - 1) : 0;
 const payable = item.price - off;
 $id("bkPriceBase").textContent = formattedPrice;

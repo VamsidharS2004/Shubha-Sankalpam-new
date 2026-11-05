@@ -25,7 +25,7 @@ test('the built home page already contains the current first hero puja (text, li
   assert.match(html, /data-puja-id="a1"/);
   assert.match(html, /<h1>శ్రీ రాజశ్యామల <span class="hero-headline-accent">చండీ హోమం<\/span><\/h1>/);
   assert.match(html, /<p class="hero-desc">శ్రీ రాజశ్యామల చండీ హోమం వివరణ<\/p>/);
-  assert.match(html, /href="\/puja-details\/a1"/);
+  assert.match(html, /href="\/puja-details\/a1(?:-(?:en|te|hi))?"/);
   assert.match(html, /<span class="hm-item">కాశీ విశ్వనాథ స్వామి ఆలయం<\/span>/);
   assert.ok(!/Old|old text/.test(html.replace(/<head>[\s\S]*?<\/head>/, '')), 'no leftover text from the previous puja');
   assert.equal(bakeHomeHero(html, root, () => null), html, 'baking twice changes nothing');

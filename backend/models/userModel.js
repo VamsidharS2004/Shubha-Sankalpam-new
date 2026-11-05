@@ -30,9 +30,33 @@ function writeLocalUsers(rows) {
   fs.renameSync(temporary,DATA_FILE);
 }
 
+/* ----------------------------------------------------------------
+   CUSTOMER ID — a unique 5-digit number (10001 - 99999) given once,
+   when the devotee is created. It is never edited and never reused.
+   With Supabase the database hands it out (sequence, see
+   migrations/20261102_customer_id.sql); this is the same rule for
+   the local users.json fallback.
+   ---------------------------------------------------------------- */
+function nextLocalCustomerId(users) {
+  let max = 10000;
+  for (const u of users) { const n = Number(u.customer_id); if (n > max) max = n; }
+  if (max >= 99999) throw new Error("Customer IDs are full (99999). Extend the range.");
+  return max + 1;
+}
+/* old local records created before customer IDs existed get one, oldest first */
+function ensureLocalCustomerIds(users) {
+  const missing = users.filter(u => !u.customer_id);
+  if (!missing.length) return false;
+  missing.sort((a, b) => String(a.created_at || "").localeCompare(String(b.created_at || "")));
+  for (const u of missing) u.customer_id = nextLocalCustomerId(users);
+  return true;
+}
+
 async function all() {
     if (!supabase) {
-        return readLocalUsers().map(u => ({ ...u, booking_count: 0 }));
+        const users = readLocalUsers();
+        if (ensureLocalCustomerIds(users)) writeLocalUsers(users);
+        return users.map(u => ({ ...u, booking_count: 0 }));
     }
 
     // Select devotees and count their bookings
@@ -71,8 +95,9 @@ async function createManualDevotee(raw) {
         const idx = users.findIndex(u => u.phone === phone);
         if (idx > -1) users[idx] = { ...users[idx], ...record };
         else users.push(record);
+        ensureLocalCustomerIds(users);
         writeLocalUsers(users);
-        return record;
+        return idx > -1 ? users[idx] : users[users.length - 1];
     }
     
     const { data, error } = await supabase.from('devotees').upsert([{
@@ -100,7 +125,10 @@ async function findOrCreate(phone, defaults = {}) {
     if (!supabase) {
         const users = readLocalUsers();
         const existing = users.find(u => u.phone === p);
-        if (existing) return existing;
+        if (existing) {
+            if (!existing.customer_id) { ensureLocalCustomerIds(users); writeLocalUsers(users); }
+            return existing;
+        }
 
         const record = {
             phone: p,
@@ -113,6 +141,7 @@ async function findOrCreate(phone, defaults = {}) {
             created_by: 'system',
             created_at: new Date().toISOString()
         };
+        record.customer_id = nextLocalCustomerId(users);
         users.push(record);
         writeLocalUsers(users);
         if (defaults.signup) await require("./leadModel").signup(p, defaults.signupRef);
@@ -149,7 +178,7 @@ async function updateDevotee(phone, raw) {
         if (idx === -1) {
             // shouldn't normally happen (findOrCreate runs first via getMe),
             // but create the record defensively rather than fail the update
-            users.push({ phone: p, created_by: 'system', created_at: new Date().toISOString() });
+            users.push({ phone: p, customer_id: nextLocalCustomerId(users), created_by: 'system', created_at: new Date().toISOString() });
             idx = users.length - 1;
         }
 
@@ -164,7 +193,7 @@ async function updateDevotee(phone, raw) {
             updates.phone = normalizePhone(raw.phone);
         }
 
-        users[idx] = { ...users[idx], ...updates };
+        users[idx] = { ...users[idx], ...updates, customer_id: users[idx].customer_id };  // the ID never changes
         writeLocalUsers(users);
         return users[idx];
     }

@@ -27,7 +27,8 @@ function frontendRows(table, rows) {
   } : table==='cms_packages' ? {
     id:p.id,name:p.name,name_te:p.name_te,name_hi:p.name_hi,desc:p.description,desc_te:p.description_te,desc_hi:p.description_hi,
     temple:p.temple,date:p.date,muhurat:p.muhurat,price:p.price,badge:p.badge,
-    image:typeof p.media==='string'?p.media:p.media?.image||'',gallery:p.detail?.gallery||[],detail:p.detail||{}
+    image:typeof p.media==='string'?p.media:p.media?.image||'',gallery:p.detail?.gallery||[],detail:p.detail||{},
+    language:p.detail?.language||undefined
   } : {id:p.id,name:p.name_en,name_te:p.name_te,name_hi:p.name_hi,blurb:p.blurb_en,blurb_te:p.blurb_te,blurb_hi:p.blurb_hi,image:p.image});
 }
 module.exports={readCatalog,saveCatalog,frontendRows};

@@ -2,18 +2,18 @@
   --bg-dark: #111116;
   --bg-sidebar: #181820;
   --bg-panel: #1A1A24;
-  --bg-input: #1F1F2C;
+  --bg-input: #25253A;
   --bg-hover: #232332;
   
   --text-main: #EFEFEF;
-  --text-muted: #8E8EA0;
+  --text-muted: #AEAEC2;
   
   --accent: #E58C4F;
   --accent-hover: #F69D60;
   --accent-dim: rgba(229, 140, 79, 0.1);
   
-  --border: #2A2A38;
-  --border-light: #333344;
+  --border: #38384E;
+  --border-light: #4A4A66;
 }
 
 * {
@@ -615,3 +615,42 @@ select, option { background-color: var(--bg-input); color: var(--text-main); }
  .sidebar .nav-link { width:100%; text-align:left; }
  .sidebar .user-info { padding:8px 12px; }
 }
+
+
+/* ---- Visibility fixes: calendar / clock icons and pickers are drawn light on the dark panel ---- */
+input[type="date"], input[type="datetime-local"], input[type="time"], input[type="month"] { color-scheme: dark; }
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator {
+  opacity: 1; cursor: pointer; padding: 4px; border-radius: 4px;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover { background: var(--accent-dim); }
+select, textarea { color-scheme: dark; }
+input::placeholder, textarea::placeholder { color: #8A8AA2; opacity: 1; }
+
+
+/* ---- Compact forms everywhere in the admin panel (same look as the Promo Codes form) ---- */
+input, select, textarea { padding: 8px 12px; font-size: .88rem; }
+textarea { line-height: 1.5; }
+.form-group { margin-bottom: 14px; }
+.form-group label { margin-bottom: 5px; font-size: .74rem; line-height: 1.35; }
+/* the long grey help text that sat inside a label now sits on its own small line under the label */
+.form-group label > span[style*="font-size:12px"], .form-group label > span[style*="font-size: 12px"] {
+  display: block; margin: 2px 0 0 !important; font-size: .76rem !important; font-weight: 400 !important;
+  text-transform: none; letter-spacing: 0; color: var(--text-muted) !important; opacity: .9; line-height: 1.4;
+}
+/* short answers (numbers, dates, choices) do not need a full-width box */
+.form-group input[type="number"], .form-group input[type="date"], .form-group input[type="datetime-local"], .form-group input[type="time"] { max-width: 320px; }
+.form-group select { max-width: 460px; }
+.promo-step .form-group input[type="number"], .promo-step .form-group input[type="datetime-local"], .promo-step .form-group select { max-width: none; }
+/* two short fields side by side (price + discount, etc.) */
+.form-row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; align-items: start; }
+.form-row2 > .form-group { min-width: 0; }
+.form-row2 .form-group input[type="number"] { max-width: none; }
+@media (max-width: 700px) { .form-row2 { grid-template-columns: minmax(0, 1fr); } }
+.drawer-body { padding: 20px 24px; }
+.form-row2 > .form-group { display: flex; flex-direction: column; }
+.form-row2 > .form-group > input, .form-row2 > .form-group > select { margin-top: auto; }

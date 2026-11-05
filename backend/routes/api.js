@@ -19,6 +19,7 @@ const analyticsReports = require('../controllers/analyticsReportController');
 const visitorLeads = require('../controllers/visitorLeadsController');
 const bookingForm = require('../controllers/bookingFormController');
 const promo = require('../controllers/promoController');
+const whatsappCampaign = require('../controllers/whatsappCampaignController');
 const routes = [
   {method:'GET',path:'/api/content/booking-form',middleware:[],handler:bookingForm.getForm},
   {method:'GET',path:'/api/admin/booking-form',middleware:[adminOnly],handler:bookingForm.getForm},
@@ -69,6 +70,9 @@ const routes = [
   { method: "GET",  path: "/api/content/global", middleware: [], handler: websiteContent.getWebsiteContent },
 
   // --- Promo codes ---
+  { method: "GET",  path: "/api/admin/whatsapp", middleware: [adminOnly], handler: whatsappCampaign.status },
+  { method: "GET",  path: "/api/admin/whatsapp/preview", middleware: [adminOnly], handler: whatsappCampaign.preview },
+  { method: "POST", path: "/api/admin/whatsapp/send", middleware: [adminOnly], handler: whatsappCampaign.sendMessages },
   { method: "POST", path: "/api/promo/validate", middleware: [requireLogin], handler: promo.validate },
   { method: "GET",  path: "/api/admin/promos", middleware: [adminOnly], handler: promo.adminList },
   { method: "GET",  path: "/api/admin/promos/generate", middleware: [adminOnly], handler: promo.adminGenerate },

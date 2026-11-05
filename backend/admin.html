@@ -13,7 +13,7 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- Styles -->
     <link rel="stylesheet" href="/assets/css/fonts.css">
-    <link rel="stylesheet" href="/assets/css/admin.css">
+    <link rel="stylesheet" href="/assets/css/admin.css?v=20261102-admin">
     <link rel="stylesheet" href="assets/css/responsive.css?v=20261001-hero-variants1">
 <link rel="stylesheet" href="/assets/css/admin-analytics.css?v=20261029-admin">
 <style>
@@ -34,7 +34,7 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
 .table-container th,.table-container td{padding:12px 10px}
 .table-container td{font-size:.85rem}
 .table-container th{font-size:.8rem}
-</style>
+.ss-where2{display:block;margin:6px 0 0;font-size:12.5px;line-height:1.5;color:#7a8591}.ss-where-banner{background:#fff8e6;border:1px solid #f0e0b0;border-radius:8px;padding:10px 14px;margin:10px 0 16px;color:#5b4a14}.ss-where-banner strong{display:block;margin-bottom:4px}</style>
 </head>
 <body>
 
@@ -43,7 +43,23 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
         <div class="login-box">
             <h2><i class="ph ph-lock-key"></i> Admin Access</h2>
             <p class="text-muted" style="margin-bottom: 24px;">Enter password to view admin dashboard</p>
-            <input type="password" id="pw" placeholder="Enter admin password">
+            <div class="pw-wrap" style="position:relative;">
+                <input type="password" id="pw" placeholder="Enter admin password" autocomplete="current-password" style="padding-right:46px;">
+                <button type="button" id="pwEye" aria-label="Show password" title="Show / hide password" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:0;cursor:pointer;font-size:1.25rem;color:#6b7280;padding:6px;line-height:1;"><i class="ph ph-eye" id="pwEyeIcon"></i></button>
+            </div>
+            <script>
+            (function () {
+                var i = document.getElementById("pw"), b = document.getElementById("pwEye"), ic = document.getElementById("pwEyeIcon");
+                if (!i || !b) return;
+                b.addEventListener("click", function () {
+                    var show = i.type === "password";
+                    i.type = show ? "text" : "password";
+                    ic.className = show ? "ph ph-eye-slash" : "ph ph-eye";
+                    b.setAttribute("aria-label", show ? "Hide password" : "Show password");
+                    i.focus();
+                });
+            })();
+            </script>
             <button class="btn btn-primary" id="loginBtn" style="width:100%; justify-content:center;">Log In</button>
         </div>
     </div>
@@ -59,6 +75,7 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
 <button class="nav-link" data-target="view-booking-form"><i class="ph ph-list-checks"></i> Booking Form</button>
 <button class="nav-link" data-target="view-analytics"><i class="ph ph-chart-line-up"></i> Analytics</button>
 <button class="nav-link" data-target="view-promos"><i class="ph ph-ticket"></i> Promo Codes</button>
+<button class="nav-link" data-target="view-whatsapp"><i class="ph ph-whatsapp-logo"></i> WhatsApp</button>
             <button class="nav-link" data-target="view-dashboard">
                 <i class="ph ph-squares-four"></i> Dashboard
             </button>
@@ -146,10 +163,14 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
                 </div>
                 <details class="bk-video" style="border:1px solid var(--border);border-radius:10px;padding:10px 14px;">
                     <summary style="cursor:pointer;font-weight:600;"><i class="ph ph-video"></i> Send one video to many bookings</summary>
-                    <p class="text-muted" style="margin:8px 0;font-size:.82rem;">1. Choose one puja above &nbsp;2. Tick its bookings in the table &nbsp;3. Choose the video &nbsp;4. Press Send.</p>
+                    <p class="text-muted" style="margin:8px 0;font-size:.82rem;">1. Choose one puja above &nbsp;2. Tick its bookings in the table &nbsp;3. Choose the video &nbsp;4. (Optional) Press <b>Add timestamps</b> and type where each part starts &nbsp;5. Press <b>Send video to selected</b> &mdash; it goes to all ticked devotees at once.</p>
                     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                         <input type="file" id="bulkVideoFile" accept="video/*" style="max-width:260px;">
-                        <label style="font-size:.8rem;display:flex;align-items:center;gap:6px;">Gotra names start at <input type="text" id="bulkGotraStart" placeholder="e.g. 2:15" title="Optional. When the gotra names begin in the video (minutes:seconds)" style="width:80px;padding:6px 8px;"></label>
+                        <button type="button" class="btn" id="tsBulkToggle" onclick="tsToggleBulk()" aria-expanded="false" aria-controls="tsBulkWrap"><i class="ph ph-clock"></i> Add timestamps <span id="tsBulkCount" class="text-muted"></span></button>
+                        <div id="tsBulkWrap" style="display:none;flex-basis:100%;">
+                            <div style="font-size:.8rem;font-weight:600;">Where does each part start in this video? The devotee gets one jump button for each.</div>
+                            <div id="tsBulkEditorHost"></div>
+                        </div>
                         <button type="button" class="btn btn-primary" id="sendBulkVideoBtn"><i class="ph ph-video"></i> Send video to selected</button>
                         <span id="bulkVideoProgress" role="status" style="font-size:.82rem;"></span>
                     </div>
@@ -199,7 +220,7 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
             <div class="toolbar" style="justify-content: flex-start;">
                 <div class="search-bar" style="width:400px;">
                     <i class="ph ph-magnifying-glass"></i>
-                    <input type="text" placeholder="Search name, phone, city...">
+                    <input type="text" placeholder="Search Customer ID, name, phone, city...">
                 </div>
             </div>
             <div class="toolbar" id="devoteeFilters" style="justify-content:flex-start;gap:14px;flex-wrap:wrap;align-items:flex-end;">
@@ -207,7 +228,7 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
                     <select id="devoteeGroupBy" class="form-control" style="min-width:190px;padding:9px 12px;">
                         <option value="none">No grouping (one list)</option>
                         <option value="date">Signup date (day by day)</option>
-                        <option value="puja">Puja (booked or interested)</option>
+                        <option value="puja">Puja (booked)</option>
                     </select>
                 </label>
                 <label style="display:flex;flex-direction:column;gap:4px;font-size:.8rem;font-weight:600;">Signed up from
@@ -220,7 +241,7 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
                     <select id="devoteePujaFilter" class="form-control" style="min-width:220px;padding:9px 12px;"><option value="">All pujas</option></select>
                 </label>
                 <button type="button" class="btn" id="devoteeFilterClear">Clear filters</button>
-                <p class="text-muted" style="flex-basis:100%;margin:0;font-size:.78rem;">"Puja" means the puja a devotee booked or showed interest in. A devotee who did both for different pujas appears under each one. "Download CSV" downloads exactly what is shown here.</p>
+                <p class="text-muted" style="flex-basis:100%;margin:0;font-size:.78rem;">"Puja" means the puja a devotee has booked. A devotee who did both for different pujas appears under each one. "Download CSV" downloads exactly what is shown here.</p>
             </div>
 
             <div class="table-container">
@@ -233,7 +254,6 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
                             <th>Gotram</th>
                             <th>Signup date/time (IST)</th>
                             <th>Signup source / Puja</th>
-                            <th>Interested puja</th>
                             <th>Pending / Confirmed</th>
                             <th>Bookings</th>
                             <th>Actions</th>
@@ -319,8 +339,7 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
                         <tr>
                             <th>Package Name</th>
                             <th>Status</th>
-                            <th>Telugu</th>
-                            <th>Hindi</th>
+                            <th>Language</th>
                             <th>Base Price</th>
                             <th>Actions</th>
                         </tr>
@@ -369,31 +388,35 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
         
         <!-- Dashboard -->
         <section id="view-dashboard" class="view-section">
-            <div class="page-header"><h1 style="color:var(--accent)">Dashboard</h1><button class="btn" id="refreshDashboard">Refresh</button></div>
-            <div class="stats-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:24px; margin-top:24px;">
-                <div class="stat-card" style="background:#fff; border:1px solid var(--border); border-radius:12px; padding:24px; box-shadow:0 2px 14px rgba(0,0,0,0.04);">
-                    <div style="color:var(--text-muted); font-size:0.9rem; margin-bottom:8px;">Total Bookings</div>
-                    <div id="statTotalBookings" style="font-size:2rem; font-weight:700; color:#1A1A24;">0</div>
+            <div class="page-header dash-head">
+                <div>
+                    <h1 class="dash-title">Dashboard</h1>
+                    <div class="dash-sub" id="dashSub">Overview of bookings, devotees and revenue</div>
                 </div>
-                <div class="stat-card" style="background:#fff; border:1px solid var(--border); border-radius:12px; padding:24px; box-shadow:0 2px 14px rgba(0,0,0,0.04);">
-                    <div style="color:var(--text-muted); font-size:0.9rem; margin-bottom:8px;">Total Users</div>
-                    <div id="statTotalDevotees" style="font-size:2rem; font-weight:700; color:#1A1A24;">0</div>
+                <button class="btn" id="refreshDashboard"><i class="ph ph-arrows-clockwise"></i> Refresh</button>
+            </div>
+            <div class="stats-grid dash-grid2">
+                <div class="stat-card sc sc-gold"><div class="sc-ic"><i class="ph ph-calendar-check"></i></div><div class="sc-label">Total Bookings</div><div class="sc-num" id="statTotalBookings">0</div></div>
+                <div class="stat-card sc sc-terra"><div class="sc-ic"><i class="ph ph-users"></i></div><div class="sc-label">Total Users</div><div class="sc-num" id="statTotalDevotees">0</div></div>
+                <div class="stat-card sc sc-hero"><div class="sc-ic"><i class="ph ph-currency-inr"></i></div><div class="sc-label">Total Revenue (₹)</div><div class="sc-num" id="statTotalRevenue">₹0</div></div>
+                <div class="stat-card sc sc-green" id="cardActiveUsers"><div class="sc-ic"><i class="ph ph-users-three"></i></div><div class="sc-label">Logged-in Sessions (24h) <span class="live-dot" title="Session list refreshes periodically"></span></div><div class="sc-num" id="statActiveUsers">0</div></div>
+                <div class="stat-card sc sc-sky"><div class="sc-ic"><i class="ph ph-user-plus"></i></div><div class="sc-label">Today's Signups (IST)</div><div class="sc-num" id="statTodaySignups">0</div></div>
+                <div class="stat-card sc sc-amber"><div class="sc-ic"><i class="ph ph-hourglass-medium"></i></div><div class="sc-label">Pending Bookings</div><div class="sc-num" id="statPendingBookings">0</div></div>
+                <div class="stat-card sc sc-mint"><div class="sc-ic"><i class="ph ph-seal-check"></i></div><div class="sc-label">Confirmed Bookings</div><div class="sc-num" id="statConfirmedBookings">0</div></div>
+            </div>
+            <div class="table-container dash-panel" id="liveDevoteesCard">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+                    <h3 style="margin:0">Logged-in Devotees <span class="live-dot" title="Refreshes every 30 seconds while this page is open"></span></h3>
+                    <span id="dashDevoteesCount" class="text-muted">0 devotees</span>
                 </div>
-                <div class="stat-card" style="background:#fff; border:1px solid var(--border); border-radius:12px; padding:24px; box-shadow:0 2px 14px rgba(0,0,0,0.04);">
-                    <div style="color:var(--text-muted); font-size:0.9rem; margin-bottom:8px;">Total Revenue (₹)</div>
-                    <div id="statTotalRevenue" style="font-size:2rem; font-weight:700; color:var(--accent);">₹0</div>
+                <div class="text-muted" style="font-size:0.85rem;margin-bottom:10px">Everyone who logged in during the last 24 hours: name, mobile number and the puja they opened.</div>
+                <div style="overflow-x:auto">
+                <table id="dashDevoteesTable" style="width:100%;border-collapse:collapse;display:none">
+                    <thead><tr style="text-align:left;border-bottom:2px solid var(--border)"><th style="padding:10px 16px">Name</th><th style="padding:10px 16px">Mobile</th><th style="padding:10px 16px">Puja opened</th><th style="padding:10px 16px">Last active</th></tr></thead>
+                    <tbody id="dashDevoteesTbody"></tbody>
+                </table>
                 </div>
-                <div class="stat-card" id="cardActiveUsers" style="background:#fff; border:1px solid var(--border); border-radius:12px; padding:24px; box-shadow:0 2px 14px rgba(0,0,0,0.04);">
-                    <div class="stat-icon" style="background:#e8f5e9; color:#2e7d32; width:36px; height:36px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; margin-bottom:8px;"><i class="ph ph-users-three" style="font-size:1.2rem;"></i></div>
-                    <div class="stat-val" style="display:flex; align-items:center; gap:8px;">
-                        <span id="statActiveUsers" style="font-size:2rem; font-weight:700; color:var(--accent);">0</span>
-                        <span class="live-dot" title="Session list refreshes periodically"></span>
-                    </div>
-                    <div class="stat-label" style="color:var(--text-muted); font-size:0.9rem; margin-top:4px;">Logged-in Sessions (24h)</div>
-                </div>
-                <div class="stat-card" style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px"><div>Today's Signups (IST)</div><strong id="statTodaySignups" style="font-size:2rem">0</strong></div>
-                <div class="stat-card" style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px"><div>Pending Bookings</div><strong id="statPendingBookings" style="font-size:2rem">0</strong></div>
-                <div class="stat-card" style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px"><div>Confirmed Bookings</div><strong id="statConfirmedBookings" style="font-size:2rem">0</strong></div>
+                <div id="dashDevoteesEmpty" class="text-muted" style="padding:18px 4px">No one has logged in during the last 24 hours.</div>
             </div>
             <p id="leadTrackingNotice" role="status"></p>
 
@@ -520,15 +543,54 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
             </div>
 </section>
 <style>
-.promo-step{border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:14px}
-.promo-step-head{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
-.promo-step-head>span{flex:none;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#111;font-weight:800;display:flex;align-items:center;justify-content:center}
-.promo-step-head h3{margin:0;font-size:1.05rem;color:var(--accent)}
-.promo-step-head p{margin:2px 0 0;font-size:.85rem;opacity:.75}
-.promo-hint{display:block;margin-top:5px;font-size:.78rem;opacity:.7}
+#promoForm{max-width:920px}
+.promo-step{border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:10px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;align-items:start}
+.promo-step>.promo-step-head{grid-column:1/-1;margin-bottom:2px}
+.promo-step .form-group{margin:0;min-width:0}
+.promo-step .promo-wide{grid-column:1/-1}
+.promo-step input:not([type=checkbox]),.promo-step select{padding:8px 12px}
+.promo-step textarea{padding:8px 12px}
+@media (max-width:700px){.promo-step{grid-template-columns:minmax(0,1fr)}}
+.promo-step-head{display:flex;gap:12px;align-items:flex-start;margin-bottom:4px}
+.promo-step-head>span{flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#111;font-weight:800;display:flex;align-items:center;justify-content:center}
+.promo-step-head h3{margin:0;font-size:1rem;color:var(--accent)}
+.promo-step-head p{margin:2px 0 0;font-size:.82rem;opacity:.85}
+.promo-hint{display:block;margin-top:4px;font-size:.78rem;opacity:.85}
 .promo-summary{border:1px dashed var(--accent);border-radius:10px;padding:12px 16px;margin:0 0 14px;font-size:.95rem}
 .promo-summary b{color:var(--accent)}
 </style>
+<section id="view-whatsapp" class="view-section">
+<div class="page-header"><div><h1 style="color:var(--accent)">WhatsApp Messages</h1><div class="text-muted">Tell devotees a puja is open, or send a last-call reminder, with the approved AiSensy templates.</div></div></div>
+<div class="bf-guide"><strong>How it works</strong><ol><li>Pick the puja, the message type and the language. The wording and the photo are filled in from the puja; you can change any line.</li><li>First press <b>Send</b> with <b>Test to my number</b> to see the message on your own phone.</li><li>Then choose the devotees and press Send. Sending to many people needs the word <b>SEND</b> typed in the box.</li></ol><p style="margin:6px 0 0">Only live pujas are listed. Message people who agreed to receive WhatsApp messages from you.</p></div>
+<div id="waSetup" style="display:none;margin:12px 0;color:#E5534B">WhatsApp (AiSensy) is not set up on this server yet: add AISENSY_API_KEY in the server settings.</div>
+<div id="waNoPujas" style="display:none;margin:12px 0" class="text-muted">There is no live puja right now. Make a puja Public (or Scheduled) in Pujas and it will appear here.</div>
+<div id="waForm" style="display:none">
+<div class="table-container" style="padding:20px;border-radius:12px;margin-top:16px">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:16px">
+<div class="form-group"><label for="waPuja">Puja</label><select id="waPuja"></select></div>
+<div class="form-group"><label for="waKind">Message</label><select id="waKind"><option value="open">Puja is open for booking</option><option value="reminder">Last call (booking closes)</option></select></div>
+<div class="form-group"><label for="waLang">Language</label><select id="waLang"><option value="te">Telugu</option><option value="en">English</option></select></div>
+</div>
+<div class="text-muted" style="font-size:.85rem;margin:8px 0 14px">AiSensy template used: <b id="waTpl">-</b></div>
+<div style="display:grid;gap:12px">
+<div class="form-group"><label for="waF1">1. Headline (bold)</label><input id="waF1" type="text" maxlength="600"></div>
+<div class="form-group"><label for="waF2">2. Short description</label><input id="waF2" type="text" maxlength="600"></div>
+<div class="form-group"><label for="waF3">3. Offer / call to action line</label><input id="waF3" type="text" maxlength="600"></div>
+<div class="form-group"><label for="waF4">4. Date</label><input id="waF4" type="text" maxlength="100"></div>
+</div>
+<div style="margin-top:14px;font-size:.9rem">Link sent: <b id="waLink">-</b></div>
+<div style="margin-top:10px"><img id="waImg" alt="Puja photo sent in the message" style="max-width:220px;border-radius:10px;display:none"><div id="waNoImg" style="display:none;color:#E5534B">This puja has no photo. The message needs one (add it in Pujas).</div></div>
+<hr style="margin:18px 0;border:0;border-top:1px solid var(--border)">
+<div><strong>Send to</strong>
+<div style="display:flex;gap:18px;flex-wrap:wrap;margin:8px 0"><label><input type="radio" name="waAud" value="test" checked> Test to my number</label><label><input type="radio" name="waAud" value="numbers"> Numbers I type</label><label><input type="radio" name="waAud" value="all"> All devotees</label></div>
+<div id="waTestBox" class="form-group"><label for="waTest">Your mobile number</label><input id="waTest" type="tel" placeholder="10-digit mobile number"></div>
+<div id="waNumBox" class="form-group" style="display:none"><label for="waNumbers">Mobile numbers (separate with space, comma or new line)</label><textarea id="waNumbers" rows="3"></textarea></div>
+<div id="waConfirmBox" class="form-group" style="display:none"><label for="waConfirm">Type SEND to confirm sending to many people</label><input id="waConfirm" type="text" autocomplete="off"></div>
+</div>
+<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px"><button class="btn btn-primary" id="waSend" type="button">Send</button><button class="btn" id="waStop" type="button" style="display:none">Stop</button><span id="waStatus" role="status"></span></div>
+<pre id="waLog" style="margin-top:12px;max-height:220px;overflow:auto;font-size:.8rem"></pre>
+</div></div>
+</section>
 <section id="view-promos" class="view-section">
 <div class="page-header"><h1 style="color:var(--accent)">Promo Codes</h1><button class="btn btn-primary" id="promoNew" type="button">New Promo Code</button></div>
 <p id="promoStatus" role="status" style="margin:12px 0;min-height:1.2em"></p>
@@ -538,7 +600,7 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
 <h2 id="promoFormTitle" style="margin-bottom:14px">New promo code</h2>
 
 <div class="promo-step"><div class="promo-step-head"><span>1</span><div><h3>Name of the code</h3><p>What will the devotee type? Leave it empty and we will make a random one.</p></div></div>
-<div class="form-group"><label>Promo code</label>
+<div class="form-group promo-wide"><label>Promo code</label>
 <div style="display:flex;gap:8px;"><input type="text" id="promoCode" maxlength="24" placeholder="e.g. FIRST, SALE50, DIWALI" style="text-transform:uppercase;flex:1;"><button class="btn" id="promoGenerate" type="button">Make a random code</button></div>
 <small class="promo-hint">Use 3 to 24 letters or numbers, no spaces. A code can't be renamed later.</small></div></div>
 
@@ -550,20 +612,20 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
 <div class="promo-step"><div class="promo-step-head"><span>3</span><div><h3>Who gets it, and on which pujas?</h3><p>Decide who can use the code and where it works.</p></div></div>
 <div class="form-group"><label>Who can use this code?</label>
 <select id="promoAudience"><option value="anyone">Everyone (a general offer like SALE)</option><option value="first_time">Only first-time devotees (like FIRST)</option><option value="phone">Only the mobile numbers I enter (one or many devotees)</option></select></div>
-<div class="form-group" id="promoPhoneBox" style="display:none"><label>Mobile numbers (one or many)</label><textarea id="promoPhone" rows="4" placeholder="9876543210&#10;9123456780&#10;9000000001" style="width:100%;resize:vertical"></textarea><small class="promo-hint">Type one number per line, or separate them with commas. Only these numbers can use the code. <b id="promoPhoneCount">0 numbers</b></small></div>
+<div class="form-group promo-wide" id="promoPhoneBox" style="display:none"><label>Mobile numbers (one or many)</label><textarea id="promoPhone" rows="4" placeholder="9876543210&#10;9123456780&#10;9000000001" style="width:100%;resize:vertical"></textarea><small class="promo-hint">Type one number per line, or separate them with commas. Only these numbers can use the code. <b id="promoPhoneCount">0 numbers</b></small></div>
 <div class="form-group"><label>Which pujas does it work on?</label><select id="promoScope"><option value="all">Every puja on the site</option><option value="selected">Only the pujas I choose</option></select><small class="promo-hint">Monthly packages never get promo codes.</small></div>
-<div class="form-group" id="promoPujaBox" style="display:none"><label>Tick the pujas</label><div id="promoPujaList" style="max-height:220px;overflow:auto;border:1px solid var(--border);border-radius:6px;padding:10px;"></div></div></div>
+<div class="form-group promo-wide" id="promoPujaBox" style="display:none"><label>Tick the pujas</label><div id="promoPujaList" style="max-height:220px;overflow:auto;border:1px solid var(--border);border-radius:6px;padding:10px;"></div></div></div>
 
 <div class="promo-step"><div class="promo-step-head"><span>4</span><div><h3>When does the code expire? (required)</h3><p>Choose the exact date and time (India time, IST) when the code stops working.</p></div></div>
 <div class="form-group"><label>Expires on (date and time) *</label><input type="datetime-local" id="promoEnds"><small class="promo-hint">The code stops working at exactly this time.</small></div>
-<div class="form-group"><label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:.9rem;color:var(--text-main)"><input type="checkbox" id="promoNoExpiry"> This code never expires (tick this instead of choosing a time)</label></div>
+<div class="form-group promo-wide" style="order:9"><label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:.9rem;color:var(--text-main)"><input type="checkbox" id="promoNoExpiry"> This code never expires (tick this instead of choosing a time)</label></div>
 <div class="form-group"><label>Starts on (date and time, optional)</label><input type="datetime-local" id="promoStarts"><small class="promo-hint">Empty = works immediately.</small></div></div>
 
 <div class="promo-step"><div class="promo-step-head"><span>5</span><div><h3>Limits (all optional)</h3><p>Leave these empty for no limit.</p></div></div>
 <div class="form-group"><label>How many times can the code be used in total?</label><input type="number" id="promoMaxUses" min="0" step="1" placeholder="Unlimited"><small class="promo-hint">Example: 100 means the first 100 bookings get the discount.</small></div>
 <div class="form-group"><label>How many times can one devotee use it?</label><input type="number" id="promoPerUser" min="1" step="1" value="1"></div>
-<div class="form-group"><label>Note for yourself</label><input type="text" id="promoNote" maxlength="200" placeholder="e.g. Diwali offer (devotees don't see this)"></div>
-<div class="form-group"><label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:.9rem;color:var(--text-main)"><input type="checkbox" id="promoActive" checked> Switch this code on</label></div></div>
+<div class="form-group promo-wide"><label>Note for yourself</label><input type="text" id="promoNote" maxlength="200" placeholder="e.g. Diwali offer (devotees don't see this)"></div>
+<div class="form-group promo-wide"><label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:.9rem;color:var(--text-main)"><input type="checkbox" id="promoActive" checked> Switch this code on</label></div></div>
 
 <div class="promo-summary" id="promoSummary" aria-live="polite"></div>
 <div style="display:flex;gap:10px;"><button class="btn btn-primary" id="promoSave" type="button">Save promo code</button><button class="btn" id="promoCancel" type="button">Cancel</button></div>
@@ -868,15 +930,17 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
                 <label>Page link (ID) * <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Filled in automatically from the title. It becomes the puja's web address, so leave it as it is.)</span></label>
                 <input type="text" id="editPujaId" placeholder="Filled automatically">
             </div>
+            <div class="form-row2">
             <div class="form-group">
-                <label>Base Price (₹) * <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(The normal price, before any discount. Shows on Home, Puja Details, & Booking pages)</span></label>
+                <label>Base Price (₹) * <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Normal price, before any discount)</span></label>
                 <input type="number" id="editPujaPrice" min="1">
             </div>
             <div class="form-group" id="editPujaDiscountBox">
-                <label>Discount (%) <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Optional. Leave empty or 0 for no discount. When set, customers see the original price struck through, the new price and the % off.)</span></label>
+                <label>Discount (%) <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Optional. Empty or 0 = no discount)</span></label>
                 <input type="number" id="editPujaDiscount" min="0" max="90" step="1" placeholder="0">
-                <p id="editPujaDiscountPreview" style="margin:6px 0 0;font-size:13px;color:#666;"></p>
             </div>
+            </div>
+            <p id="editPujaDiscountPreview" style="margin:-6px 0 0;font-size:13px;color:var(--text-muted);"></p>
 
             <!-- General Info -->
             <div style="border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
@@ -1066,18 +1130,25 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
                 <label>Page link (ID) <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Created automatically. It is the package's identity for bookings, so it cannot be changed.)</span></label>
                 <input type="text" id="editPackageId" readonly placeholder="Created automatically">
             </div>
+            <div class="form-row2">
             <div class="form-group">
-                <label>Base Price (₹) * <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Shows on Home, Package Details, &amp; Booking pages)</span></label>
+                <label>Base Price (₹) * <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Normal monthly price, before any discount)</span></label>
                 <input type="number" id="editPackagePrice" placeholder="Price">
             </div>
+            <div class="form-group" id="editPackageDiscountBox">
+                <label>Discount (%) <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Optional. Empty or 0 = no discount)</span></label>
+                <input type="number" id="editPackageDiscount" min="0" max="90" step="1" placeholder="0">
+            </div>
+            </div>
+            <p id="editPackageDiscountPreview" style="margin:-6px 0 0;font-size:13px;color:var(--text-muted);"></p>
 
             <!-- General Info -->
             <div style="border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
                 <h4 style="margin-bottom:4px; color:var(--text-main); font-size:1rem;">1. Basic details</h4>
-                <p class="text-muted" style="margin:0 0 14px; font-size:.82rem;">A package keeps English, Telugu and Hindi together. Choose the language you are typing in; the other languages stay as they are. A Private draft can be saved with just a name.</p>
+                <p class="text-muted" style="margin:0 0 14px; font-size:.82rem;">Each package is in one language, like a puja: choose its language below and type everything in that language. For the same package in another language, add a separate package (the Duplicate button helps). A Private draft can be saved with just a name.</p>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
                     <div class="form-group">
-                        <label>Editing Language</label>
+                        <label>Package language</label>
                         <select id="editPackageLangToggle" onchange="togglePackageLangs(this.value)" style="width:100%; padding:8px; border-radius:4px; border:1px solid var(--border); background:var(--bg-input); color:var(--text-main);">
                             <option value="en">English</option>
                             <option value="te">Telugu</option>
@@ -1153,7 +1224,7 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
             <!-- Package Content -->
             <div style="border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
                 <h4 style="margin-bottom:4px; color:var(--text-main); font-size:1rem;">2. Title &amp; description (what visitors read)</h4>
-                <p class="text-muted" style="margin:0 0 14px; font-size:.82rem;">Type it the way you want it to look: a blank line starts a new paragraph, a line starting with <b>-</b> becomes a bullet point, a line starting with <b>#</b> becomes a heading. The white preview box under each text area shows exactly how it will look on the website. Use "Editing Language" above to switch language.</p>
+                <p class="text-muted" style="margin:0 0 14px; font-size:.82rem;">Type it the way you want it to look: a blank line starts a new paragraph, a line starting with <b>-</b> becomes a bullet point, a line starting with <b>#</b> becomes a heading. The white preview box under each text area shows exactly how it will look on the website. The package language is chosen above ("Package language").</p>
                 <div id="pkg-lang-en">
                 <div class="form-group">
                     <label>Package Title (English) <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(Shows on Home, Package Details, &amp; Booking pages)</span></label>
@@ -1225,7 +1296,7 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
             <!-- Advanced Arrays -->
             <details class="ss-section" style="border: 1px solid var(--border); padding: 16px; border-radius: 8px;">
                 <summary><h4 style="margin-bottom:16px; color:var(--text-main); font-size:1rem;">3. Extra sections (optional) - Advanced Package Details <span style="font-size:12px;color:#888;font-weight:400;margin-left:8px;">(These sections only appear on the Package Details page)</span></h4></summary>
-                <p class="text-muted" style="margin-bottom: 16px; font-size: 0.85rem;">Leaving these blank will use the default content for this package. These rows follow the "Editing Language" chosen above; switch the language to fill the Telugu or Hindi text of the same rows.</p>
+                <p class="text-muted" style="margin-bottom: 16px; font-size: 0.85rem;">Leaving these blank will use the default content for this package. These rows are written in the package language chosen above.</p>
                 
                 <h5 style="margin:16px 0 8px; color:var(--text-main);">1. Package Benefits</h5>
                 <div id="package-editor-benefits" style="display:flex; flex-direction:column; gap:8px;"></div>
@@ -1317,7 +1388,7 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
         </div>
     </aside>
 
-    <script src="/content/pujas.js"></script><script src="/content/packages.js"></script><script defer src="/assets/js/admin.js?v=20261028d-admin"></script>
+    <script src="/content/pujas.js"></script><script src="/content/packages.js"></script><script defer src="/assets/js/admin.js?v=20261105-tus1"></script>
 <style>
 .dl-menu{position:relative;display:inline-block}
 .dl-menu-list{position:absolute;left:0;top:calc(100% + 6px);z-index:60;min-width:300px;background:var(--bg-panel);border:1px solid var(--border-light);border-radius:10px;padding:6px;box-shadow:0 12px 30px rgba(0,0,0,.45)}
@@ -1347,11 +1418,13 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
 <script defer src="/assets/js/rich-text.js?v=20261016-drafts2"></script>
 <script defer src="/assets/js/admin-puja.js?v=20261028-date"></script>
 <script defer src="/assets/js/admin-editor-guide.js?v=20261028d-admin"></script>
+<script defer src="/assets/js/admin-where-shows.js?v=20261103-admin2"></script>
 <script defer src="/assets/js/admin-phone-booking.js?v=20261015-phone2"></script>
 <script defer src="/assets/js/admin-analytics.js?v=20261029-admin"></script>
 <script defer src="/assets/js/booking-form-ui.js?v=20261003-form-v2"></script>
 <script defer src="/assets/js/admin-booking-form.js?v=20261003-form-v2"></script>
-<script defer src="/assets/js/admin-promos.js?v=20261028-promo4"></script>
+<script defer src="/assets/js/admin-promos.js?v=20261101-promo5"></script>
+<script defer src="/assets/js/admin-whatsapp.js?v=20261104-wa1"></script>
 
 <style id="puja-admin-style">
 .puja-head{position:sticky;top:0;z-index:10;background:var(--bg-panel);display:block !important;padding:14px 20px 10px}
@@ -1381,6 +1454,7 @@ body,input,select,textarea,button{font-family:'Poppins','Anek Telugu',sans-serif
 .st-live{background:rgba(46,158,98,.18);color:#43c785}.st-draft{background:rgba(160,160,160,.2);color:#b8b8b8}
 .st-scheduled{background:rgba(70,130,220,.2);color:#7fb0f5}.st-ended{background:rgba(224,88,79,.16);color:#f08a83}
 </style>
+<link rel="stylesheet" href="/assets/css/admin-theme.css?v=20261105-theme2">
 </body>
 </html>
 

@@ -27,7 +27,7 @@ const vm = require("node:vm");
 const { bakeHomeHero } = require("./hero-bake");
 
 const FRONTEND = path.resolve(__dirname, "../frontend");
-const VERSION = "20261028-promo5";
+const VERSION = "20261103-promo12";
 const SKIP = new Set(["404.html", "google09a10f499bc60551.html", "admin.html", "booking_backup.html", "index.html", "vedamandir.html", "video-player.html"]);
 
 /* ---- load SITE + headerHTML() exactly as the browser would ---- */
@@ -69,8 +69,8 @@ var O="/storage/v1/object/public/",R="/storage/v1/render/image/public/",Q=String
 var ssSet=function(x){var b=x.split(Q)[0].replace(O,R);return [480,800,1200,1600].map(function(w){return b+Q+"width="+w+A+"resize=contain"+A+"quality=70 "+w+"w";}).join(", ");};
 var ssOk=function(x){return typeof x==="string"&&x.indexOf(O)>-1&&x.indexOf("https://")===0;};
 if(P.slice(-10)==="/puja.html")L=H.puja||[];else if(P.slice(-13)==="/package.html")L=H.pkg||[];
-else if(P.indexOf("/puja-details/")===0){HID=decodeURIComponent(P.slice(14).split("/")[0]);var u=H.byId&&H.byId[HID];if(u){L=[u];S="(max-width: 900px) 100vw, 60vw";}}
-else if(P.slice(-13)==="/booking.html"){HID=new URLSearchParams(location.search).get("id")||"";}
+else if(P.indexOf("/puja-details/")===0){HID=decodeURIComponent(P.slice(14).split("/")[0]);if(!(H.byId&&H.byId[HID]))HID=HID.replace(/-(en|te|hi)$/,"");var u=H.byId&&H.byId[HID];if(u){L=[u];S="(max-width: 900px) 100vw, 60vw";}}
+else if(P.slice(-13)==="/booking.html"||P.indexOf("/book/")===0){HID=P.indexOf("/book/")===0?decodeURIComponent(P.slice(6).split("/")[0]):(new URLSearchParams(location.search).get("id")||"");if(!(H.byId&&H.byId[HID])&&!(H.meta&&H.meta[HID]))HID=HID.replace(/-(en|te|hi)$/,"");}
 /* The title, price and photo of the puja the visitor just clicked (remembered by cards.js): the puja and booking pages paint these at once
    instead of a gray placeholder. Only used when remembered in the language now shown. */
 var M=HID&&H.meta&&H.meta[HID],U2=HID&&H.byId&&H.byId[HID];
@@ -233,7 +233,7 @@ function processPage(file, headerHTML) {
   }
 
   // 1a. the puja page is served at /puja-details/001, so relative links need <base href="/"> (first thing in <head>)
-  if (file === "puja-details.html" || file === "payment.html") {
+  if (file === "puja-details.html" || file === "payment.html" || file === "booking.html") {
     html = html.replace(/<base href="\/">\s*/g, "");
     html = html.replace(/<head>\s*/, m => m + '<base href="/">\n');
   }

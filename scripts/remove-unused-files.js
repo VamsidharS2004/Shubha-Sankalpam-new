@@ -59,7 +59,9 @@ const FILES = [
   "remove_bg.py",
   "frontend/patch.py",
   "frontend/replace.py",
-  "backend/test_supa.js"
+  "backend/test_supa.js",
+  "frontend/booking_backup.html",
+  "frontend/vedamandir.html"
 ];
 const doIt = process.argv.includes("--yes");
 let count = 0, bytes = 0;

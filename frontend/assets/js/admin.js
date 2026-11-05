@@ -468,7 +468,7 @@ function renderBookings() {
                         <input type="file" id="video_file_${b.id}" accept="video/*" style="flex:1 1 auto; min-width:0; width:120px; max-width:150px; padding: 4px; font-size: 0.75rem; background: transparent; color: var(--text-main);">
                         <button class="btn" style="padding: 4px 8px; background: var(--accent); color: #fff; border:none;" onclick="sendVideo('${b.id}')">Send</button>
                     </div>
-                    <div style="flex-basis:100%;margin-top:2px;"><input type="text" id="video_gotra_${b.id}" placeholder="Gotra at m:ss" title="Optional: when the gotra names start in the video, e.g. 2:15" style="width:120px; padding:4px; font-size:0.75rem;"></div>
+                    <details class="ts-box" style="flex-basis:100%;margin-top:2px;" ontoggle="if(this.open)tsEnsureRow('ts_${b.id}')"><summary style="cursor:pointer;font-size:.75rem;color:var(--accent);">&#9201; Add timestamps</summary>${tsEditorHTML('ts_' + b.id)}</details>
                     <div id="video_progress_${b.id}" style="display:none; flex-basis: 100%; margin-top: 4px; font-size: 0.75rem; color: var(--accent);">Uploading: 0%</div>
                     <div style="display:flex; gap:4px; margin-top:4px;">
                         <button class="btn" style="padding: 4px 8px" onclick="editBooking('${b.id}')"><i class="ph ph-pencil"></i></button>
@@ -576,33 +576,224 @@ function withGotraStart(url, seconds) {
     return seconds > 0 ? base + "#gotra=" + seconds : base;
 }
 
-async function uploadVideoFile(file, onProgress = () => {}) {
-    if (file.size > 1.5 * 1024 * 1024 * 1024) throw new Error("File exceeds the 1.5 GB limit.");
-    const chunkSize = 5 * 1024 * 1024;
-    const totalChunks = Math.ceil(file.size / chunkSize);
-    const startRes = await fetch(`/api/admin/upload-video/start?key=${encodeURIComponent(KEY)}`, { method: "POST" });
-    if (!startRes.ok) throw new Error((await startRes.json()).error || "Failed to start upload");
-    const { uploadId } = await startRes.json();
+/* ---- Video timestamps: ANY number of named jump points ("Gotra names" at 2:15, "Puja starts" at 5:00 ...).
+   They are typed in the admin while sending a video and are kept inside the video link itself:
+       video-url#ts=Name~seconds;Name~seconds
+   so no database change is needed. The devotee's video page shows one button per timestamp.
+   (Older links with #gotra=SECONDS still work.) ---- */
+const TS_SUGGESTIONS = ["Gotra names", "Sankalpam", "Puja starts", "Homam", "Aarti", "Prasadam / Blessings"];
+(function tsSetup() {
+    if (!document.getElementById("tsNameList")) {
+        const dl = document.createElement("datalist");
+        dl.id = "tsNameList";
+        dl.innerHTML = TS_SUGGESTIONS.map(n => `<option value="${n}">`).join("");
+        document.body.appendChild(dl);
+    }
+    if (!document.getElementById("tsStyles")) {
+        const st = document.createElement("style");
+        st.id = "tsStyles";
+        st.textContent = ".ts-editor{display:flex;flex-direction:column;gap:8px;margin-top:6px;max-width:100%}.ts-rows{display:flex;flex-direction:column;gap:6px}" +
+            ".ts-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;max-width:100%}" +
+            ".ts-row .ts-name{flex:0 1 auto;min-width:0;max-width:100%;padding:5px 9px;font-size:.8rem;field-sizing:content}" +
+            ".ts-row .ts-time{flex:0 0 auto;width:76px;padding:5px 8px;font-size:.8rem;text-align:center;cursor:pointer;caret-color:transparent}" +
+            ".ts-del{flex:0 0 auto;border:1px solid var(--border,#3A2B29);background:transparent;color:var(--text-muted,#BDAEA2);border-radius:6px;width:26px;height:26px;cursor:pointer;line-height:1}" +
+            ".ts-del:hover{color:#fff;background:#b3261e;border-color:#b3261e}" +
+            ".ts-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.ts-chip-label{font-size:.74rem;color:var(--text-muted,#BDAEA2)}" +
+            ".ts-chip{border:1px solid var(--border-light,#55403D);background:transparent;color:var(--text-main,#F7EFE6);border-radius:999px;padding:3px 10px;font-size:.74rem;cursor:pointer}" +
+            ".ts-chip:hover{border-color:var(--accent,#E8A22A);color:var(--accent,#E8A22A)}" +
+            ".ts-chip-own{border-style:dashed;color:var(--accent,#E8A22A);border-color:var(--accent,#E8A22A)}" +
+            ".ts-hint{font-size:.72rem;color:var(--text-muted,#BDAEA2)}" +
+            ".ts-pop{position:fixed;z-index:100000;background:var(--bg-card,#221918);color:var(--text-main,#F7EFE6);border:1px solid var(--border-light,#55403D);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.55);padding:10px;width:206px}" +
+            ".ts-pop-cols{display:flex;gap:6px}.ts-pop-col{flex:1 1 0;min-width:0}.ts-pop-col h6{margin:0 0 4px;font-size:.66rem;font-weight:700;text-align:center;color:var(--text-muted,#BDAEA2);text-transform:uppercase;letter-spacing:.05em}" +
+            ".ts-pop-list{height:168px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;padding-right:2px;scrollbar-width:thin}" +
+            ".ts-pop-list button{border:0;background:transparent;color:inherit;border-radius:6px;padding:5px 0;font-size:.82rem;cursor:pointer}" +
+            ".ts-pop-list button:hover{background:var(--bg-hover,#322524)}.ts-pop-list button.on{background:var(--accent,#E8A22A);color:#1a1211;font-weight:700}" +
+            ".ts-pop-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px}.ts-pop-val{font-weight:800;font-size:1rem}" +
+            ".ts-pop-done{border:0;background:var(--accent,#E8A22A);color:#1a1211;font-weight:700;border-radius:8px;padding:5px 14px;cursor:pointer}";
+        document.head.appendChild(st);
+    }
+})();
+function tsEditorHTML(id) {
+    const chips = TS_SUGGESTIONS.map(n => `<button type="button" class="ts-chip" onclick="tsAddRow('${id}','${n.replace(/'/g, "\\'")}')">+ ${n}</button>`).join("");
+    return `<div class="ts-editor" id="${id}"><div class="ts-rows"></div><div class="ts-chips"><span class="ts-chip-label">Add:</span>${chips}<button type="button" class="ts-chip ts-chip-own" onclick="tsAddRow('${id}','',true)">&#9998; My own name</button></div><div class="ts-hint">Tap a name to add it, or &ldquo;My own name&rdquo; to type any name. Tap the time box to pick the time.</div></div>`;
+}
+/* the name box grows / shrinks to fit what is typed */
+function tsFit(input) {
+    const text = input.value || input.placeholder || "";
+    input.style.width = Math.min(Math.max([...text].length * 1.15 + 3, 12), 40) + "ch";
+}
+/* ---- time picker: opens beside the time box; pick hours / minutes / seconds by tapping ---- */
+let tsPop = null, tsPopInput = null;
+function tsClosePicker() { if (tsPop) { tsPop.remove(); tsPop = null; tsPopInput = null; } }
+function tsParse(v) {
+    const p = String(v || "").split(":").map(x => parseInt(x, 10) || 0);
+    let h = 0, m = 0, s = 0;
+    if (p.length === 3) [h, m, s] = p; else if (p.length === 2) [m, s] = p; else if (p.length === 1 && String(v || "").trim()) [s] = p;
+    if (m > 59) { h += Math.floor(m / 60); m %= 60; }
+    return { h: Math.min(h, 9), m: Math.min(m, 59), s: Math.min(s, 59) };
+}
+function tsFormat(t) { const ss = String(t.s).padStart(2, "0"); return t.h ? `${t.h}:${String(t.m).padStart(2, "0")}:${ss}` : `${t.m}:${ss}`; }
+function tsOpenPicker(input) {
+    tsClosePicker();
+    const cur = tsParse(input.value);
+    const pop = document.createElement("div");
+    pop.className = "ts-pop";
+    const col = (key, label, max) => `<div class="ts-pop-col"><h6>${label}</h6><div class="ts-pop-list" data-k="${key}">${Array.from({ length: max + 1 }, (_, i) => `<button type="button" data-v="${i}"${cur[key] === i ? ' class="on"' : ""}>${key === "h" ? i : String(i).padStart(2, "0")}</button>`).join("")}</div></div>`;
+    pop.innerHTML = `<div class="ts-pop-cols">${col("h", "Hr", 9)}${col("m", "Min", 59)}${col("s", "Sec", 59)}</div><div class="ts-pop-foot"><span class="ts-pop-val"></span><button type="button" class="ts-pop-done">Done</button></div>`;
+    document.body.appendChild(pop);
+    tsPop = pop; tsPopInput = input;
+    const show = () => { pop.querySelector(".ts-pop-val").textContent = tsFormat(cur); };
+    show();
+    pop.addEventListener("click", e => {
+        const btn = e.target.closest(".ts-pop-list button");
+        if (btn) {
+            const k = btn.parentNode.dataset.k;
+            cur[k] = parseInt(btn.dataset.v, 10);
+            btn.parentNode.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === btn));
+            input.value = tsFormat(cur);
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+            show();
+        }
+        if (e.target.closest(".ts-pop-done")) tsClosePicker();
+    });
+    // position: beside the time box (right side if there is room, else left), kept inside the screen
+    const r = input.getBoundingClientRect(), w = 206, h = 250;
+    let left = r.right + 8; if (left + w > window.innerWidth - 8) left = Math.max(8, r.left - w - 8);
+    if (left < 8 || left + w > window.innerWidth - 8) left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8));
+    let top = Math.max(8, Math.min(r.top - 8, window.innerHeight - h - 8));
+    pop.style.left = left + "px"; pop.style.top = top + "px";
+    pop.querySelectorAll(".ts-pop-list").forEach(l => { const on = l.querySelector(".on"); if (on) l.scrollTop = Math.max(0, on.offsetTop - 60); });
+}
+document.addEventListener("mousedown", e => { if (tsPop && !e.target.closest(".ts-pop") && e.target !== tsPopInput) tsClosePicker(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") tsClosePicker(); });
+window.addEventListener("scroll", e => { if (tsPop && e.target && tsPop.contains(e.target)) return; tsClosePicker(); }, true);
+window.addEventListener("resize", tsClosePicker);
 
-    for (let index = 0; index < totalChunks; index++) {
-        const chunk = file.slice(index * chunkSize, Math.min((index + 1) * chunkSize, file.size));
-        let uploaded = false;
-        for (let retry = 0; !uploaded && retry < 3; retry++) {
-            try {
-                onProgress(`Uploading video: ${Math.round(((index + 1) / totalChunks) * 100)}%`);
-                const response = await fetch(`/api/admin/upload-video/chunk?key=${encodeURIComponent(KEY)}&id=${uploadId}&index=${index}&size=${chunkSize}`, { method: "POST", body: chunk });
-                if (!response.ok) throw new Error((await response.json()).error || "Chunk upload failed");
-                uploaded = true;
-            } catch (error) {
-                if (retry === 2) throw error;
-                await new Promise(resolve => setTimeout(resolve, 1200));
-            }
+window.tsAddRow = function (id, name, focusName) {
+    const rows = document.querySelector(`#${id} .ts-rows`);
+    if (!rows) return;
+    /* an untouched empty row is reused instead of leaving a blank row behind */
+    if (name || focusName) {
+        const empty = [...rows.querySelectorAll(".ts-row")].find(r => !r.querySelector(".ts-name").value.trim() && !r.querySelector(".ts-time").value.trim());
+        if (empty) {
+            const ne = empty.querySelector(".ts-name"), te = empty.querySelector(".ts-time");
+            ne.value = name || ""; tsFit(ne);
+            if (focusName || !name) ne.focus(); else tsOpenPicker(te);
+            return;
         }
     }
+    const row = document.createElement("div");
+    row.className = "ts-row";
+    row.innerHTML = `<input type="text" class="ts-name" list="tsNameList" maxlength="40" placeholder="Timestamp name"><input type="text" class="ts-time" readonly placeholder="Pick time" title="Tap to pick the time" aria-label="Time"><button type="button" class="ts-del" title="Remove" aria-label="Remove timestamp">&times;</button>`;
+    const nameEl = row.querySelector(".ts-name"), timeEl = row.querySelector(".ts-time");
+    nameEl.value = name || "";
+    tsFit(nameEl);
+    nameEl.addEventListener("input", () => tsFit(nameEl));
+    timeEl.addEventListener("click", () => tsOpenPicker(timeEl));
+    timeEl.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); tsOpenPicker(timeEl); } });
+    row.querySelector(".ts-del").addEventListener("click", () => { if (tsPopInput === timeEl) tsClosePicker(); row.remove(); });
+    rows.appendChild(row);
+    if (focusName || !name) nameEl.focus(); else tsOpenPicker(timeEl);
+};
+window.tsEnsureRow = function (id) {
+    const rows = document.querySelector(`#${id} .ts-rows`);
+    if (rows && !rows.children.length) {
+        window.tsAddRow(id, "", false);
+        const first = rows.querySelector(".ts-name"); if (first && document.activeElement === first) first.blur();
+    }
+};
+function tsClear(id) {
+    tsClosePicker();
+    const rows = document.querySelector(`#${id} .ts-rows`);
+    if (rows) { rows.innerHTML = ""; window.tsEnsureRow(id); }
+}
+/* reads the rows of one editor -> { ok, list:[{name, seconds}], error } ; empty rows are ignored, list is sorted by time */
+function readTimestamps(id) {
+    const list = [];
+    const rows = document.querySelectorAll(`#${id} .ts-row`);
+    for (const row of rows) {
+        const name = row.querySelector(".ts-name").value.trim().replace(/[~;#&]/g, " ").replace(/\s+/g, " ");
+        const timeText = row.querySelector(".ts-time").value.trim();
+        if (!name && !timeText) continue;
+        if (!name) return { ok: false, list: [], error: "A timestamp has a time but no name. Add a name or remove the row." };
+        const t = parseGotraStart(timeText);
+        if (!timeText || !t.ok) return { ok: false, list: [], error: `Time for "${name}" must look like 2:15 (minutes:seconds).` };
+        list.push({ name, seconds: t.seconds });
+    }
+    list.sort((a, b) => a.seconds - b.seconds);
+    return { ok: true, list, error: "" };
+}
+function withTimestamps(url, list) {
+    const base = String(url || "").split("#")[0];
+    if (!list || !list.length) return base;
+    return base + "#ts=" + list.map(t => encodeURIComponent(t.name) + "~" + t.seconds).join(";");
+}
+/* bulk send: the "Add timestamps" button opens / closes the editor; the button shows how many are filled in */
+window.tsToggleBulk = function () {
+    const wrap = document.getElementById("tsBulkWrap"), btn = document.getElementById("tsBulkToggle");
+    if (!wrap || !btn) return;
+    const open = wrap.style.display === "none";
+    wrap.style.display = open ? "block" : "none";
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) { tsInitBulk(); tsEnsureRow("ts_bulk"); }
+};
+function tsUpdateBulkCount() {
+    const el = document.getElementById("tsBulkCount");
+    if (!el) return;
+    const n = [...document.querySelectorAll("#ts_bulk .ts-row")].filter(r => r.querySelector(".ts-name").value.trim() || r.querySelector(".ts-time").value.trim()).length;
+    el.textContent = n ? `(${n} added)` : "";
+}
+document.addEventListener("input", e => { if (e.target.closest && e.target.closest("#ts_bulk")) tsUpdateBulkCount(); });
+document.addEventListener("click", e => { if (e.target.closest && e.target.closest("#ts_bulk .ts-del")) setTimeout(tsUpdateBulkCount, 0); });
+function tsInitBulk() {
+    const host = document.getElementById("tsBulkEditorHost");
+    if (host && !document.getElementById("ts_bulk")) { host.innerHTML = tsEditorHTML("ts_bulk"); tsEnsureRow("ts_bulk"); }
+}
+document.addEventListener("DOMContentLoaded", tsInitBulk);
+if (document.readyState !== "loading") setTimeout(tsInitBulk, 0);
+
+/* Browser -> Supabase Storage directly, resumable (6 MB pieces, retries, survives a dropped connection). Up to 10 GB. */
+const MAX_VIDEO_BYTES = 10 * 1024 * 1024 * 1024;
+function loadTusLib() {
+    if (window.tus) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/npm/tus-js-client@4.1.0/dist/tus.min.js";
+        s.onload = () => window.tus ? resolve() : reject(new Error("Upload library did not load."));
+        s.onerror = () => reject(new Error("Could not load the upload library. Check your internet connection."));
+        document.head.appendChild(s);
+    });
+}
+async function uploadVideoFile(file, onProgress = () => {}) {
+    if (file.size > MAX_VIDEO_BYTES) throw new Error("File exceeds the 10 GB limit.");
+    await loadTusLib();
+    const ext = ((file.name.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g, "")) || "mp4";
+    const startRes = await fetch(`/api/admin/upload-video/start?key=${encodeURIComponent(KEY)}&ext=${encodeURIComponent(ext)}`, { method: "POST" });
+    const startData = await startRes.json().catch(() => ({}));
+    if (!startRes.ok) throw new Error(startData.error || "Failed to start upload");
+    const { uploadId, bucket, objectName, endpoint, token } = startData;
+    const finalExt = objectName.split(".").pop();
+    const gb = n => (n / 1073741824).toFixed(2);
+    await new Promise((resolve, reject) => {
+        const upload = new tus.Upload(file, {
+            endpoint,
+            retryDelays: [0, 2000, 5000, 10000, 20000, 30000],
+            headers: { authorization: `Bearer ${token}`, "x-upsert": "true" },
+            uploadDataDuringCreation: true,
+            removeFingerprintOnSuccess: true,
+            metadata: { bucketName: bucket, objectName, contentType: file.type || "video/mp4", cacheControl: "3600" },
+            chunkSize: 6 * 1024 * 1024,
+            onError: err => reject(new Error("Upload failed: " + (err && err.message ? err.message : err))),
+            onProgress: (sent, total) => onProgress(`Uploading video: ${Math.round(sent / total * 100)}% (${gb(sent)} of ${gb(total)} GB)`),
+            onSuccess: () => resolve()
+        });
+        upload.start();
+    });
     onProgress("Finishing upload…");
-    const finish = await fetch(`/api/admin/upload-video/finish?key=${encodeURIComponent(KEY)}&id=${uploadId}`, { method: "POST" });
-    if (!finish.ok) throw new Error((await finish.json()).error || "Failed to finish upload");
-    return (await finish.json()).url;
+    const finish = await fetch(`/api/admin/upload-video/finish?key=${encodeURIComponent(KEY)}&id=${encodeURIComponent(uploadId)}&ext=${encodeURIComponent(finalExt)}`, { method: "POST" });
+    const fin = await finish.json().catch(() => ({}));
+    if (!finish.ok) throw new Error(fin.error || "Failed to finish upload");
+    return fin.url;
 }
 
 async function sendVideoToSelectedBookings() {
@@ -612,8 +803,8 @@ async function sendVideoToSelectedBookings() {
     const status = document.getElementById("bulkVideoProgress");
     if (!ids.length) return alert("Select the bookings for one puja first.");
     if (!file) return alert("Choose a video file first.");
-    const gotra = parseGotraStart(document.getElementById("bulkGotraStart")?.value);
-    if (!gotra.ok) return alert("Gotra start time must look like 2:15 (minutes:seconds). Leave it empty if not needed.");
+    const stamps = readTimestamps("ts_bulk");
+    if (!stamps.ok) return alert(stamps.error);
     const selected = ids.map(id => (window.allBookings || []).find(booking => String(booking.id) === String(id))).filter(Boolean);
     const pujaNames = [...new Set(selected.map(booking => booking.puja || ""))];
     if (pujaNames.length !== 1) return alert("Please filter bookings to one puja, then select its bookings.");
@@ -622,7 +813,7 @@ async function sendVideoToSelectedBookings() {
     const button = document.getElementById("sendBulkVideoBtn");
     button.disabled = true;
     try {
-        const videoUrl = withGotraStart(await uploadVideoFile(file, message => { status.textContent = message; }), gotra.seconds);
+        const videoUrl = withTimestamps(await uploadVideoFile(file, message => { status.textContent = message; }), stamps.list);
         let sent = 0;
         const failures = [];
         for (let i = 0; i < ids.length; i++) {
@@ -636,7 +827,9 @@ async function sendVideoToSelectedBookings() {
         await loadBookings();
         status.textContent = `Video attached to ${sent} of ${ids.length} bookings${failures.length ? `; ${failures.length} failed` : ""}.`;
         document.getElementById("bulkVideoFile").value = "";
-        if (document.getElementById("bulkGotraStart")) document.getElementById("bulkGotraStart").value = "";
+        tsClear("ts_bulk");
+        tsUpdateBulkCount();
+        const tsWrap = document.getElementById("tsBulkWrap"); if (tsWrap) tsWrap.style.display = "none";
         document.getElementById("selectAllBookings").checked = false;
         document.querySelectorAll(".booking-row-select").forEach(box => { box.checked = false; });
     } catch (error) {
@@ -653,7 +846,6 @@ const istDayOf = v => { const t = Date.parse(v); return Number.isFinite(t) ? new
 function pujasOfDevotee(d) {
     const set = new Set();
     const add = v => { const t = String(v || "").trim(); if (t) set.add(t); };
-    add(d.interested_puja);
     (window.allBookings || []).forEach(b => { if (String(b.phone || "") === String(d.phone || "") && b.puja) add(b.puja); });
     return [...set];
 }
@@ -670,13 +862,12 @@ function devoteeRowHtml(d) {
                 <td><input type="checkbox" class="devotee-row-select" value="${esc(d.phone)}" aria-label="Select ${esc(d.name)}"></td>
                 <td>
                     <div>${esc(d.name)}</div>
-                    <div class="text-muted" style="font-size:0.8rem">ID: ${esc((d.id||"").substring(0,8))}</div>
+                    <div class="text-muted" style="font-size:0.8rem">Customer ID: <b>${esc(d.customer_id || "—")}</b></div>
                 </td>
                 <td>${esc(d.phone)}</td>
                 <td>${esc(d.gotra || '—')}</td>
                 <td>${d.signup_at || d.created_at ? esc(new Date(d.signup_at || d.created_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})) : 'Not recorded'}</td>
                 <td>${esc(d.signup_source || 'Not recorded')}<br>${esc(d.signup_puja || '—')}</td>
-                <td>${esc(d.interested_puja || 'Not recorded')}</td>
                 <td>${Number(d.pending_count)||0} pending / ${Number(d.confirmed_count)||0} confirmed</td>
                 <td>${d.booking_count || 0}</td>
                 <td>
@@ -694,7 +885,7 @@ function renderDevotees() {
     const groupBy = document.getElementById("devoteeGroupBy")?.value || "none";
     const day = d => istDayOf(d.signup_at || d.created_at);
     const list = all.filter(d => {
-        if (q && !([d.name, d.phone, d.city, d.gotra, d.email, d.interested_puja].join(" ").toLowerCase().includes(q))) return false;
+        if (q && !([d.name, d.phone, d.customer_id, d.city, d.gotra, d.email].join(" ").toLowerCase().includes(q))) return false;
         const dd = day(d);
         if (from && (!dd || dd < from)) return false;
         if (to && (!dd || dd > to)) return false;
@@ -717,7 +908,7 @@ function renderDevotees() {
         if (g.title) {
             const h = document.createElement("tr");
             h.className = "devotee-group";
-            h.innerHTML = `<td colspan="10" style="background:rgba(255,140,0,.12);font-weight:700;padding:10px 14px;">${esc(g.title)} <span class="text-muted" style="font-weight:500;">&mdash; ${g.items.length} devotee${g.items.length === 1 ? "" : "s"}</span></td>`;
+            h.innerHTML = `<td colspan="9" style="background:rgba(255,140,0,.12);font-weight:700;padding:10px 14px;">${esc(g.title)} <span class="text-muted" style="font-weight:500;">&mdash; ${g.items.length} devotee${g.items.length === 1 ? "" : "s"}</span></td>`;
             tbody.appendChild(h);
         }
         g.items.forEach(d => { const tr = document.createElement("tr"); tr.innerHTML = devoteeRowHtml(d); tbody.appendChild(tr); });
@@ -1058,7 +1249,18 @@ function updatePujaDiscountPreview() {
 }
 document.addEventListener("input", e => {
     if (e.target && (e.target.id === "editPujaPrice" || e.target.id === "editPujaDiscount")) updatePujaDiscountPreview();
+    if (e.target && (e.target.id === "editPackagePrice" || e.target.id === "editPackageDiscount")) updatePackageDiscountPreview();
 });
+/* same helper for packages: shows what customers will pay per month */
+function updatePackageDiscountPreview() {
+    const base = parseInt(document.getElementById("editPackagePrice").value, 10) || 0;
+    const pct = Math.min(90, Math.max(0, parseInt(document.getElementById("editPackageDiscount").value, 10) || 0));
+    const out = document.getElementById("editPackageDiscountPreview");
+    if (!out) return;
+    out.textContent = (pct > 0 && base > 1)
+        ? `Customers will see ₹${base.toLocaleString("en-IN")} struck through, pay ₹${Math.max(1, Math.round(base * (100 - pct) / 100)).toLocaleString("en-IN")} per month and see "${pct}% OFF".`
+        : "No discount: customers see the normal price only.";
+}
 
 function openEditPuja(index) {
     const p = index >= 0 ? allPujas[index] : { id: "", name: "", desc: "", name_te: "", desc_te: "", name_hi: "", desc_hi: "", price: 1500, cat: "All", image: "", temple: "", date: "", muhurat: "", detail: {}, packages: [], media: [] };
@@ -1535,8 +1737,7 @@ async function loadPackages() {
                         <div class="text-muted" style="font-size:0.8rem">Badge: ${esc(p.badge || '—')}</div>
                     </td>
                     <td>${pujaBadge(p, st)}</td>
-                    <td>${esc(p.name_te || '—')}</td>
-                    <td>${esc(p.name_hi || '—')}</td>
+                    <td>${p.language === 'te' ? 'Telugu' : p.language === 'hi' ? 'Hindi' : 'English'}</td>
                     <td>₹${p.price}</td>
                     <td style="white-space:nowrap">
                         <button class="btn" style="padding: 4px 8px" onclick="openEditPackage(${idx})"><i class="ph ph-pencil"></i> Edit</button>
@@ -1548,7 +1749,7 @@ async function loadPackages() {
             });
             if (!tbody.children.length) {
                 const tr = document.createElement('tr');
-                tr.innerHTML = '<td colspan="6" class="text-muted" style="text-align:center;padding:18px">No packages in this view.</td>';
+                tr.innerHTML = '<td colspan="5" class="text-muted" style="text-align:center;padding:18px">No packages in this view.</td>';
                 tbody.appendChild(tr);
             }
         }
@@ -1567,9 +1768,9 @@ async function duplicatePackage(index) {
     if (!src) return;
     const copy = structuredClone(src);
     copy.id = 'pkg_' + crypto.randomUUID();
+    delete copy.base_id;
     copy.name = (src.name || '') + (src.name ? ' (copy)' : '');
-    if (copy.name_te) copy.name_te += ' (copy)';
-    if (copy.name_hi) copy.name_hi += ' (copy)';
+    if (copy.language && copy.language !== 'en') copy['name_' + copy.language] = copy.name;
     copy.detail = Object.assign({}, copy.detail || {}, { status: 'draft' });
     delete copy.detail.publishAt;
     copy.muhurat = '';
@@ -1685,12 +1886,18 @@ function addPackageDetailRow(type, data = {}) {
     row.append(body, remove);
     document.getElementById('package-editor-' + type).append(row);
 }
-function readPackageDetailRows(type) {
+function readPackageDetailRows(type, pkgLang) {
+    pkgLang = pkgLang || 'en';
     return Array.from(document.getElementById('package-editor-'+type).children).map(row=>{
         const data=structuredClone(row.packageOriginal || {});
         row.querySelectorAll('[data-key]').forEach(input=>{data[input.dataset.key]=input.value.trim();});
+        if(type!=='gallery'){   // a package has one language: keep only that language's text
+            for(const field of packageDetailFields[type])for(const lang of ['en','te','hi']){
+                if(lang!==pkgLang)delete data[field+(lang==='en'?'':'_'+lang)];
+            }
+        }
         return type==='gallery' ? data.url : data;
-    }).filter(data=>typeof data==='string' ? !!data : packageDetailFields[type].some(field=>['','_te','_hi'].some(lang=>data[field+lang])));
+    }).filter(data=>typeof data==='string' ? !!data : packageDetailFields[type].some(field=>data[field+(pkgLang==='en'?'':'_'+pkgLang)]));
 }
 let packageSaving = false;
 function openEditPackage(index) {
@@ -1701,7 +1908,10 @@ function openEditPackage(index) {
     document.getElementById("editPackageIndex").value = index;
     
     document.getElementById("editPackageId").value = p.id || ("pkg_" + Date.now());
-    document.getElementById("editPackagePrice").value = p.price || "";
+    /* a discounted package keeps its normal price in detail.originalPrice; "price" is what the customer pays each month */
+    document.getElementById("editPackagePrice").value = (p.detail && p.detail.originalPrice) ? p.detail.originalPrice : (p.price || "");
+    document.getElementById("editPackageDiscount").value = (p.detail && p.detail.discountPercent) ? p.detail.discountPercent : "";
+    updatePackageDiscountPreview();
     
     // General
     document.getElementById("editPackageBadge").value = p.badge || "";
@@ -1710,24 +1920,21 @@ function openEditPackage(index) {
     document.getElementById("editPackageDate").value = p.date || "";
     document.getElementById("editPackageMuhurat").value = p.muhurat || "";
     
-    // English
-    document.getElementById("editPackageNameEn").value = p.name || "";
-    document.getElementById("editPackageDescEn").value = p.desc || "";
+    // One package = one language (like a puja). Only the text of that language is loaded.
     const det = p.detail || {};
-    document.getElementById("editPackageAboutEn").value = det.about || "";
+    const pkgLang = p.language || (index < 0 ? 'te' : (p.name ? 'en' : (p.name_te ? 'te' : (p.name_hi ? 'hi' : 'en'))));
+    const LS = { en: 'En', te: 'Te', hi: 'Hi' };
+    for (const l of ['en', 'te', 'hi']) {
+        document.getElementById("editPackageName" + LS[l]).value = "";
+        document.getElementById("editPackageDesc" + LS[l]).value = "";
+        document.getElementById("editPackageAbout" + LS[l]).value = "";
+    }
+    document.getElementById("editPackageName" + LS[pkgLang]).value = p.name || p['name_' + pkgLang] || "";
+    document.getElementById("editPackageDesc" + LS[pkgLang]).value = p.desc || p['desc_' + pkgLang] || "";
+    document.getElementById("editPackageAbout" + LS[pkgLang]).value = (pkgLang === 'en' ? det.about : (det['about_' + pkgLang] || det.about)) || "";
     
-    // Telugu
-    document.getElementById("editPackageNameTe").value = p.name_te || "";
-    document.getElementById("editPackageDescTe").value = p.desc_te || "";
-    document.getElementById("editPackageAboutTe").value = det.about_te || "";
-    
-    // Hindi
-    document.getElementById("editPackageNameHi").value = p.name_hi || "";
-    document.getElementById("editPackageDescHi").value = p.desc_hi || "";
-    document.getElementById("editPackageAboutHi").value = det.about_hi || "";
-    
-    document.getElementById('editPackageLangToggle').value = p.name_te && !p.name ? 'te' : 'en';
-    togglePackageLangs(document.getElementById('editPackageLangToggle').value);
+    document.getElementById('editPackageLangToggle').value = pkgLang;
+    togglePackageLangs(pkgLang);
     const preview=document.getElementById('prevPackageImage');
     const image=document.getElementById('editPackageImage').value;
     if(preview){preview.src=image ? (image.startsWith('http') || image.startsWith('/') ? image : '/'+image) : '';preview.style.display=image?'block':'none';}
@@ -1738,7 +1945,7 @@ function openEditPackage(index) {
     const tdn=document.getElementById('editPackageTempleDetailsName');if(tdn)tdn.value=det.templeDetailsName||'';
     ['filePackageDesktopHeroImage','filePackageTempleImage'].forEach(i=>{const f=document.getElementById(i);if(f)f.value='';});
     for(const field of ['duration','tradition','forWhom'])for(const lang of ['en','te','hi'])
-        document.getElementById('package-'+field+'-'+lang).value=det[field+(lang==='en'?'':'_'+lang)] || '';
+        document.getElementById('package-'+field+'-'+lang).value=lang===pkgLang ? (det[field+(lang==='en'?'':'_'+lang)] || '') : '';
     for(const type of Object.keys(packageDetailFields)){
         document.getElementById('package-editor-'+type).replaceChildren();
         (type==='gallery' ? (p.gallery || det.gallery || []) : (det[type] || [])).forEach(data=>addPackageDetailRow(type,data));
@@ -1760,11 +1967,25 @@ async function savePackage(opts) {
     const index = parseInt(document.getElementById("editPackageIndex").value, 10);
     
     const p = index >= 0 ? structuredClone(allPackages[index]) : { detail: {}, packages: [] };
-    p.id = index >= 0 ? allPackages[index].id : (document.getElementById('editPackageId').value.trim() || 'pkg_'+crypto.randomUUID());
+    const pkgLang = document.getElementById('editPackageLangToggle').value || 'en';
+    p.language = pkgLang;
+    delete p.base_id;
+    p.id = index >= 0 ? allPackages[index].id : ((document.getElementById('editPackageId').value.trim() || 'pkg_'+crypto.randomUUID()).replace(/-(en|te|hi)$/, '') + '-' + pkgLang);
     
     p.price = Number(document.getElementById("editPackagePrice").value);
     if(!isDraft && (!Number.isFinite(p.price) || p.price<0))return say('Enter a valid package price.');
     if(!Number.isFinite(p.price) || p.price<0)p.price=0;
+    const pkgBase = p.price;
+    const pkgDiscount = Math.min(90, Math.max(0, parseInt(document.getElementById("editPackageDiscount").value, 10) || 0));
+    if (!p.detail) p.detail = {};
+    if (pkgDiscount > 0 && pkgBase > 1) {
+        p.price = Math.max(1, Math.round(pkgBase * (100 - pkgDiscount) / 100));
+        p.detail.originalPrice = pkgBase;
+        p.detail.discountPercent = pkgDiscount;
+    } else {
+        delete p.detail.originalPrice;
+        delete p.detail.discountPercent;
+    }
     p.badge = document.getElementById("editPackageBadge").value.trim();
     p.image = document.getElementById("editPackageImage").value.trim();
     p.media = p.image;
@@ -1772,36 +1993,36 @@ async function savePackage(opts) {
     p.date = document.getElementById("editPackageDate").value.trim();
     p.muhurat = document.getElementById("editPackageMuhurat").value.trim();
     
-    p.name = document.getElementById("editPackageNameEn").value.trim();
-    p.desc = document.getElementById("editPackageDescEn").value.trim();
-    
-    p.name_te = document.getElementById("editPackageNameTe").value.trim();
-    p.desc_te = document.getElementById("editPackageDescTe").value.trim();
-    
-    p.name_hi = document.getElementById("editPackageNameHi").value.trim();
-    p.desc_hi = document.getElementById("editPackageDescHi").value.trim();
+    const LS = { en: 'En', te: 'Te', hi: 'Hi' };
+    p.name = document.getElementById("editPackageName" + LS[pkgLang]).value.trim();
+    p.desc = document.getElementById("editPackageDesc" + LS[pkgLang]).value.trim();
+    for (const l of ['en', 'te', 'hi']) { delete p['name_' + l]; delete p['desc_' + l]; }
+    if (pkgLang !== 'en') { p['name_' + pkgLang] = p.name; p['desc_' + pkgLang] = p.desc; }
     
     if (!p.detail) p.detail = {};
     delete p.detail.mantra;
     delete p.detail.mantra_te;
     delete p.detail.mantra_hi;
-    p.detail.about = document.getElementById("editPackageAboutEn").value.trim();
-    p.detail.about_te = document.getElementById("editPackageAboutTe").value.trim();
-    p.detail.about_hi = document.getElementById("editPackageAboutHi").value.trim();
+    delete p.detail.about; delete p.detail.about_te; delete p.detail.about_hi;
+    p.detail[pkgLang === 'en' ? 'about' : 'about_' + pkgLang] = document.getElementById("editPackageAbout" + LS[pkgLang]).value.trim();
+    p.detail.language = pkgLang;
     
     const val=id=>{const e=document.getElementById(id);return e&&typeof e.value==='string'?e.value.trim():'';};
     if(val('editPackageDesktopHeroImage'))p.detail.desktopHeroImage=val('editPackageDesktopHeroImage');else delete p.detail.desktopHeroImage;
     if(val('editPackageTempleImage'))p.detail.templeImage=val('editPackageTempleImage');else delete p.detail.templeImage;
     if(val('editPackageTempleDetailsName'))p.detail.templeDetailsName=val('editPackageTempleDetailsName');else delete p.detail.templeDetailsName;
-    if(![p.name,p.name_te,p.name_hi].some(Boolean))return say('Enter a package name in at least one language.');
+    if(!p.name && !isDraft)return say('Enter the package name.');
+    if(!p.name)p.name='';
     if(vis==='scheduled' && !(window.ssPackageUI && window.ssPackageUI.publishAtISO()))return say('Choose the go-live date and time for a scheduled package.');
     if(isDraft)p.detail.status='draft';
     else if(vis==='scheduled'){p.detail.status='scheduled';p.detail.publishAt=window.ssPackageUI.publishAtISO();}
     else{delete p.detail.status;delete p.detail.publishAt;}
     if(isDraft)delete p.detail.publishAt;
-    for(const field of ['duration','tradition','forWhom'])for(const lang of ['en','te','hi'])
-        p.detail[field+(lang==='en'?'':'_'+lang)]=document.getElementById('package-'+field+'-'+lang).value.trim();
-    for(const type of Object.keys(packageDetailFields))p.detail[type]=readPackageDetailRows(type);
+    for(const field of ['duration','tradition','forWhom'])for(const lang of ['en','te','hi']){
+        const key=field+(lang==='en'?'':'_'+lang);
+        if(lang===pkgLang)p.detail[key]=document.getElementById('package-'+field+'-'+lang).value.trim();else delete p.detail[key];
+    }
+    for(const type of Object.keys(packageDetailFields))p.detail[type]=readPackageDetailRows(type,pkgLang);
     p.gallery=p.detail.gallery;
     const proposedPackages=allPackages.slice();
     if(index===-1)proposedPackages.push(p);else proposedPackages[index]=p;
@@ -2258,66 +2479,16 @@ window.sendVideo = async function(bookingId) {
     }
     
     const file = fileInput.files[0];
-    const gotra = parseGotraStart((document.getElementById(`video_gotra_${bookingId}`) || {}).value);
-    if (!gotra.ok) return alert("Gotra start time must look like 2:15 (minutes:seconds). Leave it empty if not needed.");
+    const stamps = readTimestamps(`ts_${bookingId}`);
+    if (!stamps.ok) return alert(stamps.error);
     const progressEl = document.getElementById(`video_progress_${bookingId}`);
     
         progressEl.style.display = "block";
     progressEl.textContent = "Initializing upload...";
     
     try {
-        // 1.5 GB validation
-        if (file.size > 1.5 * 1024 * 1024 * 1024) {
-            throw new Error("File exceeds the 1.5 GB limit.");
-        }
-
-        const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB chunks
-        const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-        
-        const startRes = await fetch(`/api/admin/upload-video/start?key=${encodeURIComponent(KEY)}`, { method: "POST" });
-        if (!startRes.ok) {
-            const err = await startRes.json();
-            throw new Error(err.error || "Failed to start upload");
-        }
-        const { uploadId } = await startRes.json();
-        
-        for (let i = 0; i < totalChunks; i++) {
-            const start = i * CHUNK_SIZE;
-            const end = Math.min(start + CHUNK_SIZE, file.size);
-            const chunk = file.slice(start, end);
-            
-            let chunkSuccess = false;
-            let retries = 0;
-            while (!chunkSuccess && retries < 3) {
-                try {
-                    const percent = Math.round((i / totalChunks) * 100);
-                    progressEl.textContent = `Uploading: ${percent}% (${i+1}/${totalChunks} chunks)`;
-                    const chunkRes = await fetch(`/api/admin/upload-video/chunk?key=${encodeURIComponent(KEY)}&id=${uploadId}&index=${i}&size=${CHUNK_SIZE}`, {
-                        method: "POST",
-                        body: chunk
-                    });
-                    if (!chunkRes.ok) {
-                       const err = await chunkRes.json();
-                       throw new Error(err.error || "Chunk upload failed");
-                    }
-                    chunkSuccess = true;
-                } catch (err) {
-                    retries++;
-                    console.warn("Chunk retry", retries, err);
-                    if (retries >= 3) throw err;
-                    await new Promise(r => setTimeout(r, 2000));
-                }
-            }
-        }
-        
-        progressEl.textContent = "Finalizing upload... please wait. (Supabase processing)";
-        const finishRes = await fetch(`/api/admin/upload-video/finish?key=${encodeURIComponent(KEY)}&id=${uploadId}`, { method: "POST" });
-        if (!finishRes.ok) {
-           const err = await finishRes.json();
-           throw new Error(err.error || "Failed to finish upload");
-        }
-        const { url: uploadedUrl } = await finishRes.json();
-        const videoUrl = withGotraStart(uploadedUrl, gotra.seconds);
+        const uploadedUrl = await uploadVideoFile(file, message => { progressEl.textContent = message; });
+        const videoUrl = withTimestamps(uploadedUrl, stamps.list);
         
         progressEl.textContent = "Video uploaded to Supabase. Attaching to booking...";
         
@@ -2418,6 +2589,7 @@ async function loadActiveUsersAnalytics() {
             }
 
             renderActiveUsersAnalytics();
+            if (window.renderDashboardDevotees) window.renderDashboardDevotees();
             return true;
         } catch (err) {
             console.error("Error loading active user analytics:", err);
@@ -2431,6 +2603,38 @@ async function loadActiveUsersAnalytics() {
 
     return activeUsersPromise;
 }
+
+/* Dashboard: logged-in devotees (name, mobile, which puja they opened) */
+function renderDashboardDevotees() {
+    const tbody = document.getElementById("dashDevoteesTbody");
+    const empty = document.getElementById("dashDevoteesEmpty");
+    const table = document.getElementById("dashDevoteesTable");
+    const count = document.getElementById("dashDevoteesCount");
+    if (!tbody) return;
+    const list = (window.allActiveUsers || []).slice().sort((a, b) => new Date(b.lastActiveAt || b.loginTime || 0) - new Date(a.lastActiveAt || a.loginTime || 0));
+    if (count) count.textContent = list.length + (list.length === 1 ? " devotee" : " devotees");
+    tbody.innerHTML = "";
+    if (!list.length) { if (table) table.style.display = "none"; if (empty) empty.style.display = "block"; return; }
+    if (table) table.style.display = ""; if (empty) empty.style.display = "none";
+    list.forEach(u => {
+        const raw = String(u.phone || "").replace(/\D/g, "").slice(-10);
+        const phone = raw ? "+91 " + raw.slice(0, 5) + " " + raw.slice(5) : (u.phone || "—");
+        const name = (u.name && u.name !== "Devotee") ? u.name : "Name not added";
+        const views = Array.isArray(u.viewedPujas) ? u.viewedPujas : [];
+        const pujas = views.length
+            ? views.slice(0, 3).map(p => { const n = typeof p === "string" ? p : (p.pujaName || p.name || p.pujaId || "Puja"); return '<span class="puja-chip">🌸 ' + esc(n) + '</span>'; }).join("") + (views.length > 3 ? '<span class="puja-more-chip">+' + (views.length - 3) + ' more</span>' : "")
+            : '<span class="text-muted" style="font-size:0.8rem;">No puja opened yet</span>';
+        const when = (typeof formatRelativeTime === "function") ? formatRelativeTime(u.lastActiveAt || u.loginTime) : "";
+        const tr = document.createElement("tr");
+        tr.style.borderBottom = "1px solid var(--border)";
+        tr.innerHTML = '<td style="padding:12px 16px;font-weight:600">' + esc(name) + '</td>' +
+            '<td style="padding:12px 16px"><span style="font-family:monospace;font-size:0.85rem">' + esc(phone) + '</span></td>' +
+            '<td style="padding:12px 16px"><div style="display:flex;flex-wrap:wrap;align-items:center">' + pujas + '</div></td>' +
+            '<td style="padding:12px 16px" class="text-muted">' + esc(when || "—") + '</td>';
+        tbody.appendChild(tr);
+    });
+}
+window.renderDashboardDevotees = renderDashboardDevotees;
 window.loadActiveUsersAnalytics = loadActiveUsersAnalytics;
 window.loadActiveUsers = loadActiveUsersAnalytics;
 

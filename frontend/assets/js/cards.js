@@ -7,7 +7,7 @@
    ============================================================ */
 /* ============================================================
    PUJA DISCOUNT — set per puja in the admin panel.
-   A discounted puja keeps its normal price in detail.originalPrice; "price" is what the devotee pays.
+   A discounted puja or package keeps its normal price in detail.originalPrice; "price" is what the devotee pays.
    Returns { orig, price, pct } only when there really is a discount; otherwise null, and every page shows the plain price.
    ============================================================ */
 function ssDiscountInfo(item) {
@@ -59,6 +59,11 @@ function sharedPujaHeroImage(item, field) {
   if (item.detail && item.detail[field]) return item.detail[field];
   if (item.base_id && typeof pujas !== "undefined" && Array.isArray(pujas)) {
     const sibling = pujas.find(candidate => candidate !== item && candidate.base_id === item.base_id && candidate.detail && candidate.detail[field]);
+    if (sibling) return sibling.detail[field];
+  }
+  if (item.language && typeof packages !== "undefined" && Array.isArray(packages)) {   // package language versions share it too
+    const baseOf = x => x.base_id || String(x.id).replace(/-(en|te|hi)$/, "");
+    const sibling = packages.find(candidate => candidate !== item && baseOf(candidate) === baseOf(item) && candidate.detail && candidate.detail[field]);
     if (sibling) return sibling.detail[field];
   }
   return "";
@@ -122,13 +127,14 @@ function mediaHTML(item, itemName, options = {}) {
 
 function cardHTML(p, i, type) {
   const ref = p.id || `${type}:${i}`;
-  const href = `/puja-details/${encodeURIComponent(ref)}`;
+  const slug = p.id ? ssPujaSlug(p) : ref;
+  const href = `/puja-details/${encodeURIComponent(slug)}`;
   const description = typeof localDesc === "function" ? localDesc(p) : (p.desc || "");
   const badge = p.badge ? `<span class="pkg-badge">${p.badge}</span>` : "";
   return `
     <a class="card-media" href="${href}">${mediaHTML(p, localName(p), { eager: i < 4 })}
       <button class="card-act card-heart" type="button" data-like="${ref}" aria-label="Add to wishlist">♡</button>
-      <button class="card-act card-share" type="button" data-share="${ref}" aria-label="Share">⤴</button>
+      <button class="card-act card-share" type="button" data-share="${slug}" aria-label="Share">⤴</button>
     </a>
     <div class="card-body">
       ${badge}
@@ -139,8 +145,8 @@ function cardHTML(p, i, type) {
         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:-2px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> ${p.date || ""}</span>
       </div>
       <div class="card-foot">
-        ${(() => { const dc = type === "pkg" ? null : ssDiscountInfo(p); return dc
-          ? `<div class="price has-off"><span class="price-was">${ssRupees(dc.orig)}</span> ${ssRupees(dc.price)} <span class="price-off">${dc.pct}% OFF</span><small>Per Booking</small></div>`
+        ${(() => { const dc = ssDiscountInfo(p); return dc
+          ? `<div class="price has-off"><span class="price-was">${ssRupees(dc.orig)}</span> ${ssRupees(dc.price)} <span class="price-off">${dc.pct}% OFF</span><small>${type === "pkg" ? "Per Month" : "Per Booking"}</small></div>`
           : `<div class="price">₹${(p.price || p.basePrice || 0).toLocaleString("en-IN")}<small>${type === "pkg" ? "Per Month" : "Per Booking"}</small></div>`; })()}
         <a class="book-link" href="${href}">${type === "pkg" ? "Subscribe" : "View Details"} <span class="arrow">→</span></a>
       </div>
@@ -182,7 +188,7 @@ function renderCards(container, list, type, cat) {
   const shown = [];
   list.forEach((p, i) => {
     if (cat && cat !== "All" && p.cat !== cat && !(cat === "Finance" && p.cat === "Wealth") && !(cat === "Wealth" && p.cat === "Finance")) return;
-    if (type === "puja" && p.language && p.language !== currentLang) return;
+    if ((type === "puja" || type === "pkg") && p.language && p.language !== currentLang) return;   // one puja / package per language
     if ((type === "puja" || type === "pkg") && typeof pujaEnded === "function" && pujaEnded(p)) return;   // finished pujas disappear automatically
     const card = document.createElement("article");
     card.className = "card";
@@ -274,16 +280,23 @@ document.body.addEventListener("click", async e => {
   } catch (err) {}
 });
 
-/* FAQ accordion builder (used by home + details) */
+/* FAQ accordion builder (used by home + puja details + package details).
+   "+" opens an answer; opening another one closes the previous one. */
 function buildFaqList(container, items) {
   container.innerHTML = "";
   items.forEach(f => {
     const item = document.createElement("div");
     item.className = "faq";
-    item.innerHTML = `<div class="faq-q-text" style="padding:20px 24px 10px 24px; font-size:1.02rem; font-weight:600; color:var(--ink);"></div><div class="faq-a" style="display:block;"><div class="faq-a-body" style="padding:0 24px 22px; color:rgba(0,0,0,0.7); line-height:1.6; font-size:0.96rem; margin:0;"></div></div>`;
+    item.innerHTML = `<button type="button" class="faq-q" aria-expanded="false"><span class="faq-icon" aria-hidden="true"></span><span class="faq-q-text"></span></button><div class="faq-a"><div class="faq-a-inner"><div class="faq-a-body"></div></div></div>`;
     item.querySelector(".faq-q-text").textContent = f.q;
     const answer = item.querySelector(".faq-a-body");
     if (typeof ssSetRich === "function" && /\n/.test(String(f.a || ""))) ssSetRich(answer, f.a); else answer.textContent = f.a;   // keeps paragraphs / points typed in admin
+    const btn = item.querySelector(".faq-q");
+    btn.addEventListener("click", () => {
+      const willOpen = !item.classList.contains("open");
+      container.querySelectorAll(".faq.open").forEach(o => { o.classList.remove("open"); o.querySelector(".faq-q").setAttribute("aria-expanded", "false"); });
+      if (willOpen) { item.classList.add("open"); btn.setAttribute("aria-expanded", "true"); }
+    });
     container.appendChild(item);
   });
 }
@@ -341,3 +354,19 @@ function buildWhyUsList(container, items) {
     container.appendChild(card);
   });
 }
+
+/* Pujas / Packages listing on tablets & phones: the search box lives in the same pinned bar as the category chips
+   (chips left, search right). On a laptop/desktop it goes back into the banner. It is the SAME element, so search keeps working. */
+(function () {
+  const bar = document.getElementById("tabsPage");
+  const search = document.querySelector(".discover .search-bar");
+  if (!bar || !search || !window.matchMedia) return;
+  const home = search.parentNode;
+  const mq = window.matchMedia("(max-width: 1024px)");
+  function place() {
+    if (mq.matches) { if (search.parentNode !== bar) bar.appendChild(search); }
+    else if (search.parentNode !== home) home.appendChild(search);
+  }
+  place();
+  (mq.addEventListener ? mq.addEventListener("change", place) : mq.addListener(place));
+})();

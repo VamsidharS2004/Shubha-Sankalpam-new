@@ -317,15 +317,28 @@ body { max-width: 100%; }
 .chakra{position:absolute;right:-30px;bottom:-30px;width:190px;height:190px;opacity:.14;color:#D8C6A8;pointer-events:none}
 .faq-intro{text-align:center;max-width:620px;margin:0 auto 34px;color:var(--muted)}
 .faq-list{max-width:780px;margin:0 auto}
-.faq{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.02);transition:all 0.3s ease;}
+.faq{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.02);transition:border-color .25s ease,box-shadow .25s ease;}
 .faq:hover{border-color:var(--red);box-shadow:0 4px 12px rgba(0,0,0,0.04);}
-.faq button{width:100%;background:none;border:none;text-align:left;padding:20px 24px;font-size:1.02rem;font-weight:600;color:var(--ink);display:flex;justify-content:space-between;align-items:center;gap:16px;cursor:pointer;line-height:1.4;}
-.faq button:focus{outline:none;}
-.faq button .faq-icon{font-size:1.7rem;line-height:1;font-weight:400;color:var(--red);flex-shrink:0;transition:transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);display:flex;align-items:center;justify-content:center;width:24px;height:24px;}
-.faq.open button .faq-icon{color:var(--red);transform:rotate(45deg);}
-.faq-a{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s cubic-bezier(0.4, 0, 0.2, 1);overflow:hidden;color:var(--ink);font-size:.96rem;line-height:1.6;}
+/* question row: "+" on the left, question text beside it. Open = "−" and the question turns red */
+.faq .faq-q{width:100%;display:flex;align-items:flex-start;gap:14px;padding:16px 20px;background:none;border:0;text-align:left;font:inherit;font-size:1rem;font-weight:600;color:var(--ink);cursor:pointer;line-height:1.45;-webkit-tap-highlight-color:transparent;}
+.faq .faq-q:focus{outline:none;}
+.faq .faq-q:focus-visible{outline:2px solid var(--red);outline-offset:-2px;border-radius:12px;}
+.faq .faq-icon{flex:0 0 22px;width:22px;height:22px;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:600;line-height:1;color:var(--red);}
+.faq .faq-icon::before{content:"+";}
+.faq.open .faq-icon::before{content:"\2212";}
+.faq.open .faq-q{color:var(--red);}
+.faq-a{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s cubic-bezier(0.4, 0, 0.2, 1);}
 .faq.open .faq-a{grid-template-rows:1fr;}
-.faq-a p{overflow:hidden;min-height:0;padding:0 24px 22px;color:rgba(0,0,0,0.7);}
+.faq-a-inner{overflow:hidden;min-height:0;visibility:hidden;transition:visibility 0s linear .3s;}
+.faq.open .faq-a-inner{visibility:visible;transition-delay:0s;}
+.faq-a-body{padding:0 20px 18px 56px;color:rgba(0,0,0,0.72);font-size:.96rem;line-height:1.65;}
+.faq-a-body p{margin:0 0 8px;}
+.faq-a-body p:last-child,.faq-a-body ul:last-child,.faq-a-body ol:last-child{margin-bottom:0;}
+.faq-a-body ul,.faq-a-body ol{margin:0 0 8px;padding-left:20px;}
+@media (max-width:480px){
+  .faq .faq-q{padding:14px 16px;gap:12px;font-size:.96rem;}
+  .faq-a-body{padding:0 16px 16px 50px;font-size:.93rem;}
+}
 /* ============================================================
    PUJA GALLERY — responsive grid (was missing layout rules
    entirely before, causing items to stack one-per-row)

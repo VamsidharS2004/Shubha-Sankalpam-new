@@ -267,23 +267,41 @@ function renderBookingsList() {
     });
 }
 
+/* the My Profile card: shows the saved details; a refresh never overwrites what is being typed in edit mode */
+function fillProfileForm(me, force) {
+  const form = $id("profileForm");
+  const u = (me && me.user) || {};
+  const phone = u.phone || "";
+  const email = u.email && !/@example\.com$/i.test(u.email) ? u.email : "";
+  if (force || !(form && form.classList.contains("editing"))) {
+    const set = (id, v) => { const x = $id(id); if (x) x.value = v || ""; };
+    set("pfName", u.name || ""); set("pfGotram", u.gotra || ""); set("pfEmail", email);
+  }
+  /* header above the card: initials circle + name */
+  const nm = (u.name || "").trim();
+  if ($id("pfHeadName")) $id("pfHeadName").textContent = nm || "Add your name";
+  if ($id("pfAvatar")) $id("pfAvatar").textContent = nm ? nm.split(/\s+/).slice(0, 2).map(w => Array.from(w)[0]).join("").toUpperCase() : "\u2022";
+  if ($id("pfPhone")) $id("pfPhone").textContent = phone ? "\u2022\u2022\u2022\u2022\u2022\u2022" + String(phone).replace(/\D/g, "").slice(-4) : "";
+}
+
 function renderProfileData(me) {
   const name = me.user?.name || "Add your name";
   const phone = me.user?.phone || "";
   const email = me.user?.email || "";
   const gotra = me.user?.gotra || "";
 
-  // Top banner
-  $id("abName").textContent = name;
-  $id("abAvatar").textContent = name !== "Add your name" ? (window.ssInitial ? window.ssInitial(name) : name.charAt(0).toUpperCase()) : "D";
   document.documentElement.classList.remove("ss-acct-loading");
-  $id("abPhone").textContent = phone;
-  
+  if ($id("pfCid")) $id("pfCid").textContent = me.user?.customer_id || "";
+
   // Profile dash info
   $id("dashName").textContent = name;
   $id("dashPhone").textContent = phone;
   $id("dashEmail").textContent = (email && !/@example\.com$/i.test(email) ? email : "Add email address");
   $id("dashGotram").textContent = gotra || "Not provided";
+
+  // My Profile card (read-only until "Edit Profile" is pressed)
+  window.__pfMe = me;
+  fillProfileForm(me);
   
   // Stats
   $id("dashBkCount").textContent = (me.bookings || []).length;
@@ -341,7 +359,7 @@ async function loadProfile() {
     try { localStorage.setItem('ss_profile_cache:'+authToken, JSON.stringify({...me, cachedAt:Date.now()})); } catch (_) {}
   } catch (e) {
     if (e.status === 401) { clearToken(); location.replace("login.html?next=account.html"); }
-    else { $id("profileLoadError").hidden = false; $id("abName").textContent = "My Account"; $id("dashName").textContent = "Unable to load profile. Please retry."; }
+    else { $id("profileLoadError").hidden = false; $id("dashName").textContent = "Unable to load profile. Please retry."; }
   } finally {
     isFetchingProfile = false;
   }
@@ -350,52 +368,42 @@ if (authToken) loadProfile();
 if ($id('profileRetry')) $id('profileRetry').addEventListener('click',loadProfile);
 window.addEventListener("pageshow", e => { if (e.persisted && authToken) loadProfile(); });
 
-const epModal = $id("editProfileModal");
-const epForm = $id("editProfileForm");
-const epName = $id("epName");
-const epEmail = $id("epEmail");
-const epGotram = $id("epGotram");
-
-$id("abEditBtn").addEventListener("click", () => {
-  epName.value = $id("dashName").textContent === "Add your name" ? "" : $id("dashName").textContent;
-  const currentEmail = $id("dashEmail").textContent;
-  epEmail.value = currentEmail.includes("@") ? currentEmail : "";
-  epGotram.value = $id("dashGotram").textContent === "Not provided" ? "" : $id("dashGotram").textContent;
-  epModal.classList.add("show");
-});
-
-$id("closeEditProfile").addEventListener("click", () => {
-  epModal.classList.remove("show");
-});
-
-epModal.addEventListener("click", e => {
-  if (e.target === epModal) epModal.classList.remove("show");
-});
-
-epForm.addEventListener("submit", async e => {
-  e.preventDefault();
-  const submitBtn = epForm.querySelector("button[type='submit']");
-  const oldText = submitBtn.textContent;
-  submitBtn.textContent = "Saving...";
-  submitBtn.disabled = true;
-
-  try {
-    await api("/api/me", "PUT", { 
-      name: epName.value.trim(), 
-      email: epEmail.value.trim(),
-      gotra: epGotram.value.trim()
-    });
-    epModal.classList.remove("show");
-    loadProfile();
-  } catch (err) { 
-    alert(err.message); 
-  } finally {
-    submitBtn.textContent = oldText;
-    submitBtn.disabled = false;
+/* My Profile form: saves name, gotram and email through the same API as before */
+(function () {
+  const form = $id("profileForm"); if (!form) return;
+  const msg = $id("pfMsg"), btn = $id("pfSave");
+  const say = (t, k) => { msg.textContent = t || ""; msg.className = "pf-msg" + (k ? " " + k : ""); };
+  const PH = { pfName: "Enter your name", pfGotram: "Enter your gotram", pfEmail: "Add email address" };
+  /* view mode: plain text, nothing can be typed. edit mode: fields open, Save Changes / Cancel shown */
+  function setEdit(on) {
+    form.classList.toggle("editing", on);
+    ["pfName", "pfGotram", "pfEmail"].forEach(id => { const x = $id(id); x.readOnly = !on; x.placeholder = on ? PH[id] : (id === "pfName" ? "" : id === "pfGotram" ? "Add your gotram" : "Not added"); });
+    $id("pfSave").hidden = !on; $id("pfCancel").hidden = !on; $id("pfEdit").hidden = on;
+    say("");
+    if (!on && document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    if (on) { const f = $id("pfName"); f.focus(); try { f.setSelectionRange(f.value.length, f.value.length); } catch (_) {} }
   }
-});
+  $id("pfEdit").addEventListener("click", () => setEdit(true));
+  $id("pfCancel").addEventListener("click", () => { fillProfileForm(window.__pfMe, true); setEdit(false); });
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const name = $id("pfName").value.trim(), email = $id("pfEmail").value.trim(), gotra = $id("pfGotram").value.trim();
+    if (!name) { say("Please enter your name.", "err"); $id("pfName").focus(); return; }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { say("Please enter a valid email address.", "err"); $id("pfEmail").focus(); return; }
+    if (!form.classList.contains("editing")) return;
+    const old = btn.textContent; btn.textContent = "Saving..."; btn.disabled = true; say("");
+    try {
+      await api("/api/me", "PUT", { name, email, gotra });
+      window.__pfMe = Object.assign({}, window.__pfMe, { user: Object.assign({}, (window.__pfMe || {}).user, { name, email, gotra }) });
+      setEdit(false);
+      say("Saved. Your details are updated.", "ok");
+      loadProfile();
+    } catch (err) { say(err.message || "Could not save. Please try again.", "err"); }
+    finally { btn.textContent = old; btn.disabled = false; }
+  });
+})();
 
-$id("abLogoutBtn").addEventListener("click", () => {
+$id("pfLogout").addEventListener("click", () => {
   try { localStorage.removeItem('ss_profile_cache:'+authToken); localStorage.removeItem('ss_profile_cache'); } catch (_) {}
   clearToken();
   location.href = "login.html";

@@ -23,8 +23,8 @@ var O="/storage/v1/object/public/",R="/storage/v1/render/image/public/",Q=String
 var ssSet=function(x){var b=x.split(Q)[0].replace(O,R);return [480,800,1200,1600].map(function(w){return b+Q+"width="+w+A+"resize=contain"+A+"quality=70 "+w+"w";}).join(", ");};
 var ssOk=function(x){return typeof x==="string"&&x.indexOf(O)>-1&&x.indexOf("https://")===0;};
 if(P.slice(-10)==="/puja.html")L=H.puja||[];else if(P.slice(-13)==="/package.html")L=H.pkg||[];
-else if(P.indexOf("/puja-details/")===0){HID=decodeURIComponent(P.slice(14).split("/")[0]);var u=H.byId&&H.byId[HID];if(u){L=[u];S="(max-width: 900px) 100vw, 60vw";}}
-else if(P.slice(-13)==="/booking.html"){HID=new URLSearchParams(location.search).get("id")||"";}
+else if(P.indexOf("/puja-details/")===0){HID=decodeURIComponent(P.slice(14).split("/")[0]);if(!(H.byId&&H.byId[HID]))HID=HID.replace(/-(en|te|hi)$/,"");var u=H.byId&&H.byId[HID];if(u){L=[u];S="(max-width: 900px) 100vw, 60vw";}}
+else if(P.slice(-13)==="/booking.html"||P.indexOf("/book/")===0){HID=P.indexOf("/book/")===0?decodeURIComponent(P.slice(6).split("/")[0]):(new URLSearchParams(location.search).get("id")||"");if(!(H.byId&&H.byId[HID])&&!(H.meta&&H.meta[HID]))HID=HID.replace(/-(en|te|hi)$/,"");}
 /* The title, price and photo of the puja the visitor just clicked (remembered by cards.js): the puja and booking pages paint these at once
    instead of a gray placeholder. Only used when remembered in the language now shown. */
 var M=HID&&H.meta&&H.meta[HID],U2=HID&&H.byId&&H.byId[HID];
@@ -67,14 +67,13 @@ html.ss-i18n-pending:not([lang="te"]) [data-i18n],html.ss-i18n-pending:not([lang
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <noscript></noscript>
-<link rel="stylesheet" href="assets/css/global.css?v=20261028-promo5">
-<link rel="stylesheet" href="assets/css/navbar.css?v=20261028-promo5">
-<link rel="stylesheet" href="assets/css/account.css?v=20261028-promo5">
-<link rel="stylesheet" href="assets/css/home.css?v=20261028-promo5">
-<link rel="stylesheet" href="assets/css/animations.css?v=20261028-promo5">
-<link rel="stylesheet" href="assets/css/responsive.css?v=20261028-promo5">  <!-- always last -->
+<link rel="stylesheet" href="assets/css/global.css?v=20261103-promo12">
+<link rel="stylesheet" href="assets/css/navbar.css?v=20261103-promo12">
+<link rel="stylesheet" href="assets/css/account.css?v=20261103-promo12">
+<link rel="stylesheet" href="assets/css/home.css?v=20261103-promo12">
+<link rel="stylesheet" href="assets/css/animations.css?v=20261103-promo12">
+<link rel="stylesheet" href="assets/css/responsive.css?v=20261103-promo12">  <!-- always last -->
 <style>
-  html:not(.ss-has-token) .account-banner,
   html:not(.ss-has-token) .account-grid {
     display: none !important;
   }
@@ -130,13 +129,16 @@ html.ss-i18n-pending:not([lang="te"]) [data-i18n],html.ss-i18n-pending:not([lang
     window.ssPaintCached = function () {
       if (!(cached && cached.user)) return;
       var u = cached.user, set = function (id, v) { var x = document.getElementById(id); if (x && v) x.textContent = v; };
-      set("abName", u.name || "Add your name"); set("dashName", u.name || "Add your name");
-      set("abPhone", u.phone); set("dashPhone", u.phone);
+      set("dashName", u.name || "Add your name");
+      set("dashPhone", u.phone);
       set("dashEmail", u.email && !/@example\.com$/i.test(u.email) ? u.email : "Add email address");
       set("dashGotram", u.gotra || "Not provided");
       set("dashLang", window.ssLangLabel());
+      var sv = function (id, v) { var x = document.getElementById(id); if (x && v && document.activeElement !== x) x.value = v; };
+      sv("pfName", u.name); sv("pfGotram", u.gotra); sv("pfEmail", u.email && !/@example\.com$/i.test(u.email) ? u.email : "");
+      var pp = document.getElementById("pfPhone"); if (pp && u.phone) pp.textContent = "\u2022\u2022\u2022\u2022\u2022\u2022" + String(u.phone).replace(/\D/g, "").slice(-4);
       set("dashBkCount", String((cached.bookings || []).length));
-      var av = document.getElementById("abAvatar"); if (av) av.textContent = u.name ? window.ssInitial(u.name) : "D";
+      var ci = document.getElementById("pfCid"); if (ci && u.customer_id) ci.textContent = u.customer_id;
     };
   })();
 </script>
@@ -144,7 +146,7 @@ html.ss-i18n-pending:not([lang="te"]) [data-i18n],html.ss-i18n-pending:not([lang
 <meta name="description" content="Manage your profile and view your puja booking history.">
 
   <!-- Favicon -->
-<link rel="stylesheet" href="assets/css/content-layout.css?v=20261028-promo5">
+<link rel="stylesheet" href="assets/css/content-layout.css?v=20261103-promo12">
 <style>html[data-start-panel] .account-panel{display:none!important}
 html[data-start-panel="profile"] #panel-profile,
 html[data-start-panel="bookings"] #panel-bookings,
@@ -198,7 +200,7 @@ html[data-start-panel="support"] #panel-support{display:block!important}</style>
   </header>
   <script>(function(){try{var m={en:"English",hi:"हिन्दी",te:"తెలుగు"},l=localStorage.getItem("ss_lang")||"te";document.getElementById("langLabel").textContent=m[l]||m.te;}catch(e){}})();</script>
   <a class="floating-wa" href="https://wa.me/917075568530?text=I%20need%20help%20with%20puja%20booking" target="_blank" rel="noopener" aria-label="WhatsApp Help">
-    <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><path d="M12.031 2C6.495 2 2 6.496 2 12.032c0 1.838.48 3.633 1.391 5.215L2 22l4.896-1.285A9.972 9.972 0 0 0 12.031 22c5.535 0 10.031-4.496 10.031-10.032S17.566 2 12.031 2zm5.568 14.542c-.237.669-1.381 1.283-1.921 1.348-.541.066-1.236.195-3.523-.75-2.756-1.139-4.512-3.957-4.654-4.146-.141-.189-1.111-1.478-1.111-2.822 0-1.344.697-2.008.946-2.26.248-.252.54-.315.719-.315.18 0 .359 0 .506.006.155.006.35-.052.532.385.188.452.64 1.564.697 1.678.058.114.095.247.024.385-.072.138-.109.225-.216.351-.109.126-.229.273-.326.37-.109.108-.225.228-.103.438.122.209.544.898 1.168 1.455.808.72 1.488.941 1.7 1.05.212.109.335.089.461-.052.126-.143.541-.63.687-.847.146-.217.291-.182.485-.109.194.073 1.225.578 1.436.684.212.106.352.158.403.247.052.089.052.52-.185 1.189z"/></svg>
+    <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
   </a>
   <nav class="bottom-nav" aria-label="Mobile">
     <a href="home.html"><span class="bn-icon"><svg aria-hidden="true" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10H3z"/><path d="M9 20v-7h6v7"/></svg></span>Home</a>
@@ -212,40 +214,21 @@ html[data-start-panel="support"] #panel-support{display:block!important}</style>
 <div class="breadcrumb"><div class="container"><a href="home.html">HOME</a><i>›</i><span>Account</span></div></div>
 
 <div class="container">
-  <!-- NEW TOP BANNER -->
-  <div class="account-banner">
-    <div class="ab-left">
-      <div class="ab-avatar" id="abAvatar"></div>
-      <div class="ab-info">
-        <div class="ab-name-row">
-          <h2 id="abName"></h2>
-        </div>
-        <div class="ab-phone-row">
-          <span class="ab-icon">📞</span> <span id="abPhone"></span> • Verified Account
-        </div>
-      </div>
-    </div>
-    <div class="ab-right">
-      <button class="btn btn-gold" id="abEditBtn">✎ Edit Profile</button>
-      <button class="btn btn-outline" id="abLogoutBtn">Logout</button>
-    </div>
-  </div>
-
   <script>window.ssPaintCached && window.ssPaintCached();</script>
   <div class="account-grid" id="accountLoggedIn">
     <!-- ============ SIDEBAR — each button's data-panel value must
          match a panel's id below (panel-xxx). Clicking a button shows
          that panel and hides the others — see assets/js/pages/account.js -->
     <aside class="side-card" aria-label="Account menu">
-      <button class="side-item active" data-panel="profile"><span class="si">👤</span> Profile Summary</button>
-      <button class="side-item" data-panel="bookings"><span class="si">🛕</span><span>My Bookings<span class="hide-sm"> &amp; Tracker</span></span></button>
-      <button class="side-item" data-panel="subscriptions"><span class="si">🗓️</span> My Subscriptions</button>
-      <button class="side-item" data-panel="wishlist"><span class="si">🤍</span> Saved Wishlist</button>
-      <button class="side-item" data-panel="address"><span class="si">📍</span> Saved Addresses</button>
-      <button class="side-item" data-panel="wallet"><span class="si">👛</span> Devotee Wallet</button>
-      <button class="side-item" data-panel="language"><span class="si">🌐</span> Language Switcher</button>
-      <button class="side-item" data-panel="about"><span class="si">ℹ️</span> About</button>
-      <button class="side-item" data-panel="support"><span class="si">🎧</span> Support</button>
+      <button class="side-item active" data-panel="profile"><span class="si"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21c0-4.1 3.4-7 7.5-7s7.5 2.9 7.5 7"/></svg></span> Profile Summary</button>
+      <button class="side-item" data-panel="bookings"><span class="si"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17M9 15.3l2.2 2.2 3.8-4"/></svg></span><span>My Bookings<span class="hide-sm"> &amp; Tracker</span></span></button>
+      <button class="side-item" data-panel="subscriptions"><span class="si"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l8.5 4.7-8.5 4.7-8.5-4.7L12 3.5z"/><path d="M3.5 12.6l8.5 4.7 8.5-4.7"/><path d="M3.5 16.6l8.5 4.7 8.5-4.7"/></svg></span> My Subscriptions</button>
+      <button class="side-item" data-panel="wishlist"><span class="si"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5S3.5 15.3 3.5 9.4A4.6 4.6 0 0 1 12 7a4.6 4.6 0 0 1 8.5 2.4c0 5.9-8.5 11.1-8.5 11.1z"/></svg></span> Saved Wishlist</button>
+      <button class="side-item" data-panel="address"><span class="si"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s6.8-6 6.8-11.4a6.8 6.8 0 0 0-13.6 0C5.2 15 12 21 12 21z"/><circle cx="12" cy="9.6" r="2.4"/></svg></span> Saved Addresses</button>
+      <button class="side-item" data-panel="wallet"><span class="si"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="7" width="17" height="13" rx="2.5"/><path d="M5 7l10.5-3.2a1.5 1.5 0 0 1 2 1.4V7"/><path d="M16.2 13.6h2.4"/></svg></span> Devotee Wallet</button>
+      <button class="side-item" data-panel="language"><span class="si"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 5.5h8M7.5 3.5v2M5.2 5.5c.5 3.6 3 6.4 6.3 7.6M10 5.5c-.7 3.5-3.4 6.7-6.5 8"/><path d="M12.5 20.5l4-9.5 4 9.5M14 17.2h5"/></svg></span> Language Switcher</button>
+      <button class="side-item" data-panel="about"><span class="si"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.8"/><path d="M12 11v5.2M12 7.6h.01"/></svg></span> About</button>
+      <button class="side-item" data-panel="support"><span class="si"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.2 14v-2a7.8 7.8 0 0 1 15.6 0v2"/><rect x="3.2" y="13.5" width="4" height="6.2" rx="1.6"/><rect x="16.8" y="13.5" width="4" height="6.2" rx="1.6"/><path d="M20.8 19.2c0 1.8-1.8 2.6-4.6 2.6h-1.4"/></svg></span> Support</button>
     </aside>
     <script>(function(){var p=document.documentElement.getAttribute("data-start-panel");if(!p)return;document.querySelectorAll(".side-item").forEach(function(b){b.classList.toggle("active",b.dataset.panel===p)});})();</script>
 
@@ -253,55 +236,51 @@ html[data-start-panel="support"] #panel-support{display:block!important}</style>
     <!-- ============ PANEL: PROFILE (shown by default) ============ -->
     <div class="account-panel" id="panel-profile">
 
-      <div class="dash-card">
-        <h3>Devotee Information</h3>
-        <div class="dash-grid">
-          <div class="dash-item">
-            <label data-cms-key="account.label.full_name">Full Name:</label>
-            <div id="dashName"></div>
-          </div>
-          <div class="dash-item">
-            <label data-cms-key="account.label.verified_phone">Verified Phone:</label>
-            <div id="dashPhone"></div>
-          </div>
-          <div class="dash-item">
-            <label data-cms-key="account.label.email">Email Address:</label>
-            <div id="dashEmail"></div>
-          </div>
-          <div class="dash-item">
-            <label data-cms-key="account.label.preferred_language">Preferred Language:</label>
-            <div id="dashLang"></div>
-          </div>
-          <div class="dash-item">
-            <label data-cms-key="account.label.gotram">Gotram:</label>
-            <div id="dashGotram"></div>
-          </div>
-        </div>
+      <h2 class="pf-title" data-cms-key="account.heading.profile_summary">Profile Summary</h2>
+      <div class="pf-id">
+        <div class="pf-avatar" id="pfAvatar" aria-hidden="true">&nbsp;</div>
+        <div class="pf-idname" id="pfHeadName">&nbsp;</div>
       </div>
 
-      <div class="sum-cards" aria-label="Account summary">
-        <div class="sumcard t-rose" data-go="bookings" role="button" tabindex="0">
-          <span class="sc-ic">🛕</span>
-          <span class="sc-text"><strong class="sc-title">My Bookings (<span id="dashBkCount">0</span>)</strong><span class="sc-sub">View all your puja bookings and history</span></span>
-          <span class="sc-go" aria-hidden="true">&rarr;</span>
+      <div class="profile-card">
+        <div class="pf-head">
+          <div>
+            <h3 data-cms-key="account.heading.personal_details">Personal Details</h3>
+            <p class="pf-sub" data-cms-key="account.text.profile_sub">Manage your personal information.</p>
+          </div>
         </div>
-        <div class="sumcard t-amber" data-go="subscriptions" role="button" tabindex="0">
-          <span class="sc-ic">🗓️</span>
-          <span class="sc-text"><strong class="sc-title">My Subscriptions (<span >0</span>)</strong><span class="sc-sub">Manage your active subscriptions</span></span>
-          <span class="sc-go" aria-hidden="true">&rarr;</span>
-        </div>
-        <div class="sumcard t-green" data-go="address" role="button" tabindex="0">
-          <span class="sc-ic">📍</span>
-          <span class="sc-text"><strong class="sc-title">My Addresses (<span >0</span>)</strong><span class="sc-sub">Manage your saved delivery addresses</span></span>
-          <span class="sc-go" aria-hidden="true">&rarr;</span>
-        </div>
-        <div class="sumcard t-lilac" data-go="wishlist" role="button" tabindex="0">
-          <span class="sc-ic">🤍</span>
-          <span class="sc-text"><strong class="sc-title">Saved Pujas (<span id="dashWishlistCount">0</span>)</strong><span class="sc-sub">Pujas you saved to book later</span></span>
-          <span class="sc-go" aria-hidden="true">&rarr;</span>
-        </div>
+        <form id="profileForm" novalidate>
+          <div class="pf-group">
+            <label for="pfName"><span data-cms-key="account.label.name_plain">Name</span> <b class="req">*</b></label>
+            <input type="text" id="pfName" autocomplete="name" placeholder="" required readonly>
+          </div>
+          <div class="pf-group">
+            <label for="pfGotram" data-cms-key="account.label.gotram_plain">Gotram</label>
+            <input type="text" id="pfGotram" placeholder="Add your gotram" readonly>
+          </div>
+          <div class="pf-group">
+            <label for="pfEmail" data-cms-key="account.label.email_short">Email</label>
+            <input type="email" id="pfEmail" autocomplete="email" placeholder="Not added" readonly>
+          </div>
+          <div class="pf-group">
+            <label data-cms-key="account.label.mobile_short">Mobile</label>
+            <div class="pf-readonly"><span id="pfPhone">&nbsp;</span><span class="pf-verified">&#10004; Verified</span></div>
+          </div>
+          <div class="pf-group pf-last">
+            <label data-cms-key="account.label.customer_id">Customer ID</label>
+            <div class="pf-readonly"><span id="pfCid">&nbsp;</span></div>
+          </div>
+          <p class="pf-msg" id="pfMsg" role="status" aria-live="polite"></p>
+          <div class="pf-actions">
+            <button type="button" class="pf-edit" id="pfEdit" data-cms-key="account.button.edit_details">Edit Details</button>
+            <button type="submit" class="btn btn-red pf-save" id="pfSave" data-cms-key="account.button.save_changes" hidden>Save Changes</button>
+            <button type="button" class="pf-cancel" id="pfCancel" data-cms-key="account.button.cancel" hidden>Cancel</button>
+          </div>
+          <button type="button" class="pf-logout" id="pfLogout" data-cms-key="account.button.logout">Logout</button>
+        </form>
+        <!-- kept hidden: other parts of the page read these values -->
+        <div hidden aria-hidden="true"><div id="dashName"></div><div id="dashPhone"></div><div id="dashEmail"></div><div id="dashLang"></div><div id="dashGotram"></div><span id="dashBkCount">0</span><span id="dashWishlistCount">0</span></div>
       </div>
-      <script>window.ssPaintCached && window.ssPaintCached();</script>
     </div>
 
     <!-- ============ PANEL: MY BOOKINGS (real data from the backend) ============ -->
@@ -390,43 +369,21 @@ html[data-start-panel="support"] #panel-support{display:block!important}</style>
 </div>
 
 <!-- Edit Profile Modal -->
-<div class="lightbox" id="editProfileModal">
-  <div class="lightbox-frame" style="background:#fff; width:min(90vw, 400px); border-radius:16px; padding:24px; position:relative; display:flex; flex-direction:column; gap:16px; aspect-ratio:auto;">
-    <button class="lightbox-close" id="closeEditProfile" style="background:var(--red-soft); color:var(--red); top:16px; right:16px;">×</button>
-    <h3 style="font-size:1.2rem; color:var(--ink);" data-cms-key="account.heading.edit_profile">Edit Profile</h3>
-    <form id="editProfileForm" style="display:flex; flex-direction:column; gap:16px;">
-      <div style="display:flex; flex-direction:column; gap:6px;">
-        <label style="font-size:.85rem; font-weight:600; color:var(--muted);" data-cms-key="account.label.edit_name">Full Name</label>
-        <input type="text" id="epName" required="" style="padding:10px 14px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:1rem;">
-      </div>
-      <div style="display:flex; flex-direction:column; gap:6px;">
-        <label style="font-size:.85rem; font-weight:600; color:var(--muted);" data-cms-key="account.label.edit_email">Email Address (Optional)</label>
-        <input type="email" id="epEmail" style="padding:10px 14px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:1rem;">
-      </div>
-      <div style="display:flex; flex-direction:column; gap:6px;">
-        <label style="font-size:.85rem; font-weight:600; color:var(--muted);" data-cms-key="account.label.edit_gotram">Gotram</label>
-        <input type="text" id="epGotram" placeholder="Optional" style="padding:10px 14px; border:1px solid var(--line); border-radius:8px; font-family:inherit; font-size:1rem;">
-      </div>
-      <button type="submit" class="btn btn-red" style="margin-top:8px; width:100%; justify-content:center;">Save Changes</button>
-    </form>
-  </div>
-</div>
-
 <div id="site-footer"></div>
 <!-- ============ CONTENT (edit these files to change text/prices/images) ============ -->
-<script defer src="content/site-settings.js?v=20261028-promo5"></script>
-<script defer src="content/pujas.js?v=20261028-promo5"></script>
-<script defer src="content/packages.js?v=20261028-promo5"></script>
+<script defer src="content/site-settings.js?v=20261103-promo12"></script>
+<script defer src="content/pujas.js?v=20261103-promo12"></script>
+<script defer src="content/packages.js?v=20261103-promo12"></script>
 
 <!-- ============ SITE CODE (do not need to edit for content changes) ============ -->
-<script defer src="assets/js/main.js?v=20261028-promo5"></script>
-<script defer src="assets/js/navbar.js?v=20261028-promo5"></script>
-<script defer src="assets/js/animations.js?v=20261028-promo5"></script>
-<script defer src="assets/js/cards.js?v=20261028-promo5"></script>
-<script defer src="assets/js/language.js?v=20261028-promo5"></script>
-<script defer src="assets/js/pages/account.js?v=20261028-promo5"></script>
+<script defer src="assets/js/main.js?v=20261103-promo12"></script>
+<script defer src="assets/js/navbar.js?v=20261103-promo12"></script>
+<script defer src="assets/js/animations.js?v=20261103-promo12"></script>
+<script defer src="assets/js/cards.js?v=20261103-promo12"></script>
+<script defer src="assets/js/language.js?v=20261103-promo12"></script>
+<script defer src="assets/js/pages/account.js?v=20261103-promo12"></script>
 
-<script defer src="assets/js/analytics-tracker.js?v=20261028-promo5"></script>
+<script defer src="assets/js/analytics-tracker.js?v=20261103-promo12"></script>
 <!-- ss-early:start (generated by scripts/prerender-header.js) -->
 <script>(function(){try{var d=document.documentElement;if((d.lang||"te")!=="te")return;
 var raw=localStorage.getItem("ss_cms_global_v2");if(!raw)return;var c=(JSON.parse(raw)||{}).content;if(!c)return;

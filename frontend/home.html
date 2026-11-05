@@ -50,8 +50,8 @@ var O="/storage/v1/object/public/",R="/storage/v1/render/image/public/",Q=String
 var ssSet=function(x){var b=x.split(Q)[0].replace(O,R);return [480,800,1200,1600].map(function(w){return b+Q+"width="+w+A+"resize=contain"+A+"quality=70 "+w+"w";}).join(", ");};
 var ssOk=function(x){return typeof x==="string"&&x.indexOf(O)>-1&&x.indexOf("https://")===0;};
 if(P.slice(-10)==="/puja.html")L=H.puja||[];else if(P.slice(-13)==="/package.html")L=H.pkg||[];
-else if(P.indexOf("/puja-details/")===0){HID=decodeURIComponent(P.slice(14).split("/")[0]);var u=H.byId&&H.byId[HID];if(u){L=[u];S="(max-width: 900px) 100vw, 60vw";}}
-else if(P.slice(-13)==="/booking.html"){HID=new URLSearchParams(location.search).get("id")||"";}
+else if(P.indexOf("/puja-details/")===0){HID=decodeURIComponent(P.slice(14).split("/")[0]);if(!(H.byId&&H.byId[HID]))HID=HID.replace(/-(en|te|hi)$/,"");var u=H.byId&&H.byId[HID];if(u){L=[u];S="(max-width: 900px) 100vw, 60vw";}}
+else if(P.slice(-13)==="/booking.html"||P.indexOf("/book/")===0){HID=P.indexOf("/book/")===0?decodeURIComponent(P.slice(6).split("/")[0]):(new URLSearchParams(location.search).get("id")||"");if(!(H.byId&&H.byId[HID])&&!(H.meta&&H.meta[HID]))HID=HID.replace(/-(en|te|hi)$/,"");}
 /* The title, price and photo of the puja the visitor just clicked (remembered by cards.js): the puja and booking pages paint these at once
    instead of a gray placeholder. Only used when remembered in the language now shown. */
 var M=HID&&H.meta&&H.meta[HID],U2=HID&&H.byId&&H.byId[HID];
@@ -87,6 +87,10 @@ html.ss-i18n-pending:not([lang="te"]) [data-i18n],html.ss-i18n-pending:not([lang
 <link rel="preconnect" href="https://caxowviysinpnvvqcsog.supabase.co"><!-- admin-uploaded puja images -->
 <style>@font-face{font-family:'Poppins';font-style:normal;font-weight:400;font-display:swap;src:url(/assets/fonts/poppins-latin-ext-400-normal.woff2) format('woff2');unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:'Poppins';font-style:normal;font-weight:400;font-display:swap;src:url(/assets/fonts/poppins-latin-400-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:'Poppins';font-style:normal;font-weight:500;font-display:swap;src:url(/assets/fonts/poppins-latin-ext-500-normal.woff2) format('woff2');unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:'Poppins';font-style:normal;font-weight:500;font-display:swap;src:url(/assets/fonts/poppins-latin-500-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:'Poppins';font-style:normal;font-weight:600;font-display:swap;src:url(/assets/fonts/poppins-latin-ext-600-normal.woff2) format('woff2');unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:'Poppins';font-style:normal;font-weight:600;font-display:swap;src:url(/assets/fonts/poppins-latin-600-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:'Poppins';font-style:normal;font-weight:700;font-display:swap;src:url(/assets/fonts/poppins-latin-ext-700-normal.woff2) format('woff2');unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:'Poppins';font-style:normal;font-weight:700;font-display:swap;src:url(/assets/fonts/poppins-latin-700-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:'Poppins';font-style:normal;font-weight:800;font-display:swap;src:url(/assets/fonts/poppins-latin-ext-800-normal.woff2) format('woff2');unicode-range:U+0100-02AF,U+0304,U+0308,U+0329,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}@font-face{font-family:'Poppins';font-style:normal;font-weight:800;font-display:swap;src:url(/assets/fonts/poppins-latin-800-normal.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}@font-face{font-family:'Anek Telugu';font-style:normal;font-weight:100 800;font-display:fallback;src:url(/assets/fonts/anek-telugu-telugu-wght-normal.woff2) format('woff2-variations'),url(/assets/fonts/anek-telugu-telugu-wght-normal.woff2) format('woff2');unicode-range:U+0951-0952,U+0964-0965,U+0C00-0C7F,U+1CDA,U+1CF2,U+200C-200D,U+25CC}</style>
 <script type="speculationrules">{"prerender":[{"where":{"href_matches":"/puja-details/*"},"eagerness":"moderate"}],"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/api/*","/admin*","/uploads/*","/*\\?*token=*"]}}]},"eagerness":"moderate"}]}</script>
+<link rel="preload" as="image" href="https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/b22ac15c-9b95-43e8-a3ff-52510dd93b38.webp" media="(min-width: 1200px)" fetchpriority="high">
+<link rel="preload" as="image" href="https://caxowviysinpnvvqcsog.supabase.co/storage/v1/render/image/public/media/pujas/c927e613-fb05-4605-be3f-6992792a2cf4.webp?width=1200&amp;resize=contain&amp;quality=70" media="(min-width: 768px) and (max-width: 1199px)" fetchpriority="high">
+<link rel="preload" as="image" href="https://caxowviysinpnvvqcsog.supabase.co/storage/v1/render/image/public/media/pujas/c927e613-fb05-4605-be3f-6992792a2cf4.webp?width=800&amp;resize=contain&amp;quality=70" media="(max-width: 767px)" fetchpriority="high">
+<style id="ss-hero-ratio">@media (min-width:768px) and (max-width:1199px){.hero-slide[data-slide="0"] .hero-image-wrap picture{aspect-ratio:1920 / 1080!important}}@media (min-width:1200px){.hero-slide[data-slide="0"] .hero-image-wrap picture{aspect-ratio:1920 / 700!important}}</style>
 <!-- ss-head:end -->
 <!-- ss-seo:start (generated by scripts/prerender-header.js) -->
 <link rel="canonical" href="https://www.shubhasankalpam.com/">
@@ -105,16 +109,16 @@ html.ss-i18n-pending:not([lang="te"]) [data-i18n],html.ss-i18n-pending:not([lang
 <noscript></noscript>
 <style>/* Above-the-fold critical layout; final responsive rules live in hero.css. */
 .hero-landing{position:relative;background:#fffaf2;padding:16px 2vw 0}@media(max-width:767px){.hero-landing{padding:10px 12px 0}}</style>
-<link rel="stylesheet" href="assets/css/global.css?v=20261028-promo5">
-<link rel="stylesheet" href="assets/css/navbar.css?v=20261028-promo5">
-<link rel="stylesheet" href="assets/css/hero.css?v=20261028-promo5">
-<link rel="stylesheet" href="assets/css/home.css?v=20261028-promo5">
-<link rel="stylesheet" href="assets/css/animations.css?v=20261028-promo5">
-<link rel="stylesheet" href="assets/css/responsive.css?v=20261028-promo5">  <!-- always last -->
+<link rel="stylesheet" href="assets/css/global.css?v=20261103-promo12">
+<link rel="stylesheet" href="assets/css/navbar.css?v=20261103-promo12">
+<link rel="stylesheet" href="assets/css/hero.css?v=20261103-promo12">
+<link rel="stylesheet" href="assets/css/home.css?v=20261103-promo12">
+<link rel="stylesheet" href="assets/css/animations.css?v=20261103-promo12">
+<link rel="stylesheet" href="assets/css/responsive.css?v=20261103-promo12">  <!-- always last -->
 <title>Shubha Sankalpam | Online Puja Booking &ndash; Book Vedic Pujas & Homams</title>
 <meta name="description" content="Shubha Sankalpam (శుభ సంకల్పం) - book authentic Vedic pujas and homams at sacred temples across India. Verified purohits, video proof within 48 hours, 100% secure booking.">
   <!-- Favicon -->
-<link rel="stylesheet" href="assets/css/content-layout.css?v=20261028-promo5">
+<link rel="stylesheet" href="assets/css/content-layout.css?v=20261103-promo12">
 </head>
 <body>
 <!-- ================= LANDING SPLASH ================= 
@@ -172,7 +176,7 @@ html.ss-i18n-pending:not([lang="te"]) [data-i18n],html.ss-i18n-pending:not([lang
   </header>
   <script>(function(){try{var m={en:"English",hi:"हिन्दी",te:"తెలుగు"},l=localStorage.getItem("ss_lang")||"te";document.getElementById("langLabel").textContent=m[l]||m.te;}catch(e){}})();</script>
   <a class="floating-wa" href="https://wa.me/917075568530?text=I%20need%20help%20with%20puja%20booking" target="_blank" rel="noopener" aria-label="WhatsApp Help">
-    <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><path d="M12.031 2C6.495 2 2 6.496 2 12.032c0 1.838.48 3.633 1.391 5.215L2 22l4.896-1.285A9.972 9.972 0 0 0 12.031 22c5.535 0 10.031-4.496 10.031-10.032S17.566 2 12.031 2zm5.568 14.542c-.237.669-1.381 1.283-1.921 1.348-.541.066-1.236.195-3.523-.75-2.756-1.139-4.512-3.957-4.654-4.146-.141-.189-1.111-1.478-1.111-2.822 0-1.344.697-2.008.946-2.26.248-.252.54-.315.719-.315.18 0 .359 0 .506.006.155.006.35-.052.532.385.188.452.64 1.564.697 1.678.058.114.095.247.024.385-.072.138-.109.225-.216.351-.109.126-.229.273-.326.37-.109.108-.225.228-.103.438.122.209.544.898 1.168 1.455.808.72 1.488.941 1.7 1.05.212.109.335.089.461-.052.126-.143.541-.63.687-.847.146-.217.291-.182.485-.109.194.073 1.225.578 1.436.684.212.106.352.158.403.247.052.089.052.52-.185 1.189z"/></svg>
+    <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
   </a>
   <nav class="bottom-nav" aria-label="Mobile">
     <a href="home.html" class="active"><span class="bn-icon"><svg aria-hidden="true" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10H3z"/><path d="M9 20v-7h6v7"/></svg></span>Home</a>
@@ -187,21 +191,21 @@ html.ss-i18n-pending:not([lang="te"]) [data-i18n],html.ss-i18n-pending:not([lang
 
 <section class="hero-landing" id="top">
   <!-- First hero slide is present in the HTML so the hero never starts as a blank frame. -->
-  <div class="hero-slider" id="heroSlider" style="display:none !important">
+  <div class="hero-slider" id="heroSlider">
     <div class="hero-slide hero-slide-overlay active" data-slide="0" data-dynamic-hero data-puja-id="001">
       <div class="hero-image-wrap">
         <picture>
-          <source media="(min-width: 1200px)" srcset="https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/64c1ba17-1046-4a3e-b507-7936f7fe4821.webp">
-          <source media="(max-width: 767px)" srcset="https://caxowviysinpnvvqcsog.supabase.co/storage/v1/render/image/public/media/pujas/1bf4c453-9680-4840-b9d2-dc8e1a439035.webp?width=800&amp;resize=contain&amp;quality=70">
-          <img src="https://caxowviysinpnvvqcsog.supabase.co/storage/v1/render/image/public/media/pujas/1bf4c453-9680-4840-b9d2-dc8e1a439035.webp?width=1200&amp;resize=contain&amp;quality=70" data-orig="https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/1bf4c453-9680-4840-b9d2-dc8e1a439035.webp" onerror="var p=this.parentNode;if(p&amp;&amp;p.tagName==='PICTURE'){p.querySelectorAll('source').forEach(function(s){if(s.srcset.indexOf('/render/image/')>-1)s.remove()})}if(this.dataset.orig&amp;&amp;this.src!==this.dataset.orig){this.removeAttribute('srcset');this.src=this.dataset.orig}else{this.onerror=null;this.removeAttribute('srcset');this.src='assets/images/logo-header.webp'}" alt="మోక్ష నారాయణ బలి పూజ" class="hero-img" width="1920" height="1080" decoding="async" fetchpriority="high">
+          <source media="(min-width: 1200px)" srcset="https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/b22ac15c-9b95-43e8-a3ff-52510dd93b38.webp">
+          <source media="(max-width: 767px)" srcset="https://caxowviysinpnvvqcsog.supabase.co/storage/v1/render/image/public/media/pujas/c927e613-fb05-4605-be3f-6992792a2cf4.webp?width=800&amp;resize=contain&amp;quality=70">
+          <img src="https://caxowviysinpnvvqcsog.supabase.co/storage/v1/render/image/public/media/pujas/c927e613-fb05-4605-be3f-6992792a2cf4.webp?width=1200&amp;resize=contain&amp;quality=70" data-orig="https://caxowviysinpnvvqcsog.supabase.co/storage/v1/object/public/media/pujas/c927e613-fb05-4605-be3f-6992792a2cf4.webp" onerror="var p=this.parentNode;if(p&amp;&amp;p.tagName==='PICTURE'){p.querySelectorAll('source').forEach(function(s){if(s.srcset.indexOf('/render/image/')>-1)s.remove()})}if(this.dataset.orig&amp;&amp;this.src!==this.dataset.orig){this.removeAttribute('srcset');this.src=this.dataset.orig}else{this.onerror=null;this.removeAttribute('srcset');this.src='assets/images/logo-header.webp'}" alt="శ్రీ రాజశ్యామల - చండీ హోమం" class="hero-img" width="1920" height="1080" decoding="async" fetchpriority="high">
         </picture>
         <div class="hero-overlay-gradient"></div>
         <div class="hero-copy">
-          <h1>మోక్ష నారాయణ <span class="hero-headline-accent">బలి పూజ</span></h1>
-          <p class="hero-desc">పూర్వీకుల శాంతి, సద్గతి కోసం అయోధ్య పవిత్ర క్షేత్రంలో మోక్ష నారాయణ బలి పూజను శాస్త్రోక్తంగా నిర్వహిస్తారు. శ్రీమహావిష్ణువును నారాయణ స్వరూపంగా ఆరాధిస్తూ, సంకల్పం, తర్పణం, పిండప్రదానం మరియు ప్రత్యేక ప్రార్థనలతో పితృదేవతలను స్మరించి ఈ పవిత్ర కర్మను సమర్పిస్తారు.</p>
-          <div class="hero-meta"><span class="hm-item">అయోధ్య</span><span class="hm-item">29 అక్టోబర్, గురువారం</span></div>
+          <h1>శ్రీ రాజశ్యామల - <span class="hero-headline-accent">చండీ హోమం</span></h1>
+          <p class="hero-desc">వాక్చాతుర్యం, మేధాశక్తి, విఘ్నవినాశనం, విజయసిద్ధి, నాయకత్వ శక్తి</p>
+          <div class="hero-meta"><span class="hm-item">శ్రీ శుభంకరీ దేవాలయం, హైదరాబాద్</span><span class="hm-item">7 నవంబర్, శనివారం</span></div>
           <div class="hero-buttons">
-            <a href="/puja-details/001" class="btn hero-btn-primary"><span>Book Now</span></a>
+            <a href="/puja-details/002-te" class="btn hero-btn-primary"><span>Book Now</span></a>
             <a href="#pujas" class="btn hero-btn-secondary">View All Pujas</a>
           </div>
           <div class="hero-feature-row"><div class="hero-feature"><div class="hf-badge">🎥</div><span class="hf-label">పూజ వీడియో 48 గంటల్లో</span></div><div class="hero-feature"><div class="hf-badge">🛕</div><span class="hf-label">అనుభవజ్ఞులైన పురోహితులు</span></div><div class="hero-feature"><div class="hf-badge">🕉️</div><span class="hf-label">పవిత్ర దేవాలయాల్లో పూజలు</span></div><div class="hero-feature"><div class="hf-badge">🙏</div><span class="hf-label">ప్రామాణిక వైదిక పూజలు</span></div></div>
@@ -211,7 +215,7 @@ html.ss-i18n-pending:not([lang="te"]) [data-i18n],html.ss-i18n-pending:not([lang
   </div>
 
   <!-- Shown by JS when no show_in_hero puja matches the current language -->
-  <div id="heroEmptyBanner" style="display:flex; position:relative; width:100%; min-height:520px; background:linear-gradient(135deg,#1A0B0E 0%,#2d1218 50%,#1A0B0E 100%); align-items:center; justify-content:center; text-align:center; padding:80px 24px;">
+  <div id="heroEmptyBanner" style="display:none; position:relative; width:100%; min-height:520px; background:linear-gradient(135deg,#1A0B0E 0%,#2d1218 50%,#1A0B0E 100%); align-items:center; justify-content:center; text-align:center; padding:80px 24px;">
     <div style="max-width:600px; margin:auto;">
       <div style="font-size:2.5rem; margin-bottom:12px;">🪔</div>
       <h1 id="heroEmptyTitle" style="color:#fff; font-size:clamp(1.6rem,4vw,2.6rem); font-weight:700; line-height:1.25; margin-bottom:16px;">
@@ -357,15 +361,7 @@ html.ss-i18n-pending:not([lang="te"]) [data-i18n],html.ss-i18n-pending:not([lang
   </div>
 </section>
 
-<section class="section cv-below" id="temples" style="background:var(--bg-soft)">
-  <div class="container">
-    <h2 class="section-title" data-i18n-list="sacred_temples">పవిత్ర <em>దేవాలయాలు</em></h2>
-    <p class="section-sub" data-i18n-list="sacred_temples_sub">మీ పూజలు నిర్వహించబడే దేవాలయాలు, ధృవీకరించబడిన పురోహితులచే.</p>
-    <div class="temple-grid" id="templeGrid"></div>
-  </div>
-</section>
-
-<section class="section cv-below">
+<section class="section cv-below" id="gallery-section" style="background:var(--bg-soft)">
   <div class="container">
     <h2 class="section-title" data-i18n-list="puja_gallery">పూజా <em>గ్యాలరీ</em></h2>
     <div class="gallery" id="gallery">
@@ -378,6 +374,14 @@ html.ss-i18n-pending:not([lang="te"]) [data-i18n],html.ss-i18n-pending:not([lang
       <button class="g-item" data-caption="Varaha Homam"><img loading="lazy" decoding="async" width="800" height="600" src="assets/images/pujas/varaha.webp" alt="Varaha Homam"></button>
       <button class="g-item" data-caption="Gograsam Seva"><img loading="lazy" decoding="async" width="800" height="600" src="assets/images/pujas/gograsam.webp" alt="Gograsam Seva"></button>
     </div>
+  </div>
+</section>
+
+<section class="section cv-below" id="temples">
+  <div class="container">
+    <h2 class="section-title" data-i18n-list="sacred_temples">పవిత్ర <em>దేవాలయాలు</em></h2>
+    <p class="section-sub" data-i18n-list="sacred_temples_sub">మీ పూజలు నిర్వహించబడే దేవాలయాలు, ధృవీకరించబడిన పురోహితులచే.</p>
+    <div class="temple-grid" id="templeGrid"></div>
   </div>
 </section>
 
@@ -408,24 +412,24 @@ html.ss-i18n-pending:not([lang="te"]) [data-i18n],html.ss-i18n-pending:not([lang
 <div id="site-footer"></div>
 
 <!-- ============ CONTENT (edit these files to change text/prices/images) ============ -->
-<script defer src="content/site-settings.js?v=20261028-promo5"></script>
-<script defer src="content/pujas.js?v=20261028-promo5"></script>
-<script defer src="content/packages.js?v=20261028-promo5"></script>
-<script defer src="content/puja-detail-defaults.js?v=20261028-promo5"></script>
-<script defer src="content/trust-highlights.js?v=20261028-promo5"></script>
-<script defer src="content/why-us.js?v=20261028-promo5"></script>
-<script defer src="content/temples.js?v=20261028-promo5"></script>
-<script defer src="content/testimonials.js?v=20261028-promo5"></script>
-<script defer src="content/faq.js?v=20261028-promo5"></script>
+<script defer src="content/site-settings.js?v=20261103-promo12"></script>
+<script defer src="content/pujas.js?v=20261103-promo12"></script>
+<script defer src="content/packages.js?v=20261103-promo12"></script>
+<script defer src="content/puja-detail-defaults.js?v=20261103-promo12"></script>
+<script defer src="content/trust-highlights.js?v=20261103-promo12"></script>
+<script defer src="content/why-us.js?v=20261103-promo12"></script>
+<script defer src="content/temples.js?v=20261103-promo12"></script>
+<script defer src="content/testimonials.js?v=20261103-promo12"></script>
+<script defer src="content/faq.js?v=20261103-promo12"></script>
 
 <!-- ============ SITE CODE (do not need to edit for content changes) ============ -->
-<script defer src="assets/js/main.js?v=20261028-promo5"></script>
-<script defer src="assets/js/language.js?v=20261028-promo5"></script>
-<script defer src="assets/js/navbar.js?v=20261028-promo5"></script>
-<script defer src="assets/js/animations.js?v=20261028-promo5"></script>
-<script defer src="assets/js/cards.js?v=20261028-promo5"></script>
-<script defer src="assets/js/pages/home.js?v=20261028-promo5"></script>  <script defer src="assets/js/cms-renderer.js?v=20261028-promo5"></script>
-<script defer src="assets/js/analytics-tracker.js?v=20261028-promo5"></script>
+<script defer src="assets/js/main.js?v=20261103-promo12"></script>
+<script defer src="assets/js/language.js?v=20261103-promo12"></script>
+<script defer src="assets/js/navbar.js?v=20261103-promo12"></script>
+<script defer src="assets/js/animations.js?v=20261103-promo12"></script>
+<script defer src="assets/js/cards.js?v=20261103-promo12"></script>
+<script defer src="assets/js/pages/home.js?v=20261103-promo12"></script>  <script defer src="assets/js/cms-renderer.js?v=20261103-promo12"></script>
+<script defer src="assets/js/analytics-tracker.js?v=20261103-promo12"></script>
 <!-- ss-early:start (generated by scripts/prerender-header.js) -->
 <script>(function(){try{var d=document.documentElement;if((d.lang||"te")!=="te")return;
 var raw=localStorage.getItem("ss_cms_global_v2");if(!raw)return;var c=(JSON.parse(raw)||{}).content;if(!c)return;

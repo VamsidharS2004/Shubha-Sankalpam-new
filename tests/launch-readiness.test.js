@@ -44,7 +44,7 @@ test("puja details gallery opens a zoomable viewer", () => {
 
 test("puja details uses clean URLs (/puja-details/001)", () => {
   assert.ok(read("puja-details.html").includes('<base href="/">'));
-  assert.ok(read("assets/js/cards.js").includes("/puja-details/${encodeURIComponent(ref)}"));
+  assert.ok(read("assets/js/cards.js").includes("/puja-details/${encodeURIComponent(slug)}"));
   assert.ok(read("assets/js/main.js").includes("puja-details"));
   const v = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../vercel.json"), "utf8"));
   assert.ok(v.rewrites.some(r => r.source === "/puja-details/:id" && r.destination === "/puja-details.html"));

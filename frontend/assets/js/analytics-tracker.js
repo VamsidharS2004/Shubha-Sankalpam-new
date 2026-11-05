@@ -3,7 +3,7 @@
    with every event of that visit, so the admin Analytics page can show clicks and bookings per source. */
 (()=>{
  if(navigator.doNotTrack==='1'||navigator.webdriver)return;
- const page=/^\/puja-details\/[^\/]+\/?$/.test(location.pathname)?'puja-details.html':(location.pathname.split('/').pop()||'home.html');
+ const page=/^\/book\/[^\/]+\/?$/.test(location.pathname)?'booking.html':/^\/puja-details\/[^\/]+\/?$/.test(location.pathname)?'puja-details.html':(location.pathname.split('/').pop()||'home.html');
  if(page.includes('admin')||page.includes('backup'))return;
  const uuid=()=>crypto.randomUUID();let visitor,session,referrer='Direct',isNew=false,attr=null;
  try{const source=new URL(document.referrer);if(source.hostname!==location.hostname)referrer=source.hostname;}catch(e){}
